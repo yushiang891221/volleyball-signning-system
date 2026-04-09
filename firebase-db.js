@@ -63,5 +63,19 @@ window.FirebaseDB = {
       ...match,
       finishedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+  },
+
+  async clearMatches(venueId) {
+    const matchesRef = getVenueMatchesRef(venueId);
+    const snap = await matchesRef.get();
+    if (snap.empty) {
+      return;
+    }
+
+    const batch = firebase.firestore().batch();
+    snap.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
   }
 };

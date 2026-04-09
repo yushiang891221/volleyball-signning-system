@@ -60,6 +60,7 @@ const actionSectionEl = document.getElementById("action-section");
 const registerTeamBtn = document.getElementById("register-team");
 const cancelMyRegistrationBtn = document.getElementById("cancel-my-registration");
 const resetRegistrationBtn = document.getElementById("reset-registration");
+const resetMatchHistoryBtn = document.getElementById("reset-match-history");
 const checkLocationBtn = document.getElementById("check-location");
 const registrationMessageEl = document.getElementById("registration-message");
 const locationMessageEl = document.getElementById("location-message");
@@ -662,6 +663,37 @@ function resetRegistrationWithPassword() {
   registrationMessageEl.textContent = "已完成重置，請重新報名。";
 }
 
+async function resetMatchHistory() {
+  const password = window.prompt("請輸入重置密碼：");
+  if (password === null) {
+    return;
+  }
+  if (password !== RESET_REGISTRATION_PASSWORD) {
+    registrationMessageEl.textContent = "密碼錯誤，無法重置比賽結果。";
+    return;
+  }
+
+  const confirmed = window.confirm("確定要清空目前球場的比賽結果紀錄嗎？");
+  if (!confirmed) {
+    return;
+  }
+
+  if (hasFirebase() && firebaseReady) {
+    try {
+      await window.FirebaseDB.clearMatches(selectedVenueId);
+    } catch (error) {
+      console.error("clearMatches failed:", error);
+      registrationMessageEl.textContent = "重置比賽結果失敗，請稍後再試。";
+      return;
+    }
+  } else {
+    state.matchHistory = [];
+    renderMatchHistory();
+  }
+
+  registrationMessageEl.textContent = "已清空比賽結果紀錄。";
+}
+
 function setTeamsByIndex(teamAIndex, teamBIndex) {
   const teamA = state.registeredTeams[teamAIndex];
   const teamB = state.registeredTeams[teamBIndex];
@@ -886,6 +918,7 @@ resetBtn.addEventListener("click", resetMatch);
 registerTeamBtn.addEventListener("click", registerTeam);
 cancelMyRegistrationBtn.addEventListener("click", cancelMyRegistration);
 resetRegistrationBtn.addEventListener("click", resetRegistrationWithPassword);
+resetMatchHistoryBtn.addEventListener("click", resetMatchHistory);
 checkLocationBtn.addEventListener("click", checkLocationForRegistration);
 venueSelectEl.addEventListener("change", () => {
   if (hasFirebase() && firebaseReady) {
