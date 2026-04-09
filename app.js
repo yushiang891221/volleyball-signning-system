@@ -817,6 +817,14 @@ function registerTeam() {
     return;
   }
 
+  if (deviceTeamId) {
+    const exists = state.registeredTeams.some((team) => team.teamId === deviceTeamId);
+    if (exists) {
+      registrationMessageEl.textContent = "本裝置已綁定一支隊伍，請先取消我的報名後再報名新隊伍。";
+      return;
+    }
+  }
+
   const teamName = teamNameInputEl.value.trim();
   const teamPlayers = collectPlayers(teamInputContainerEl);
 
