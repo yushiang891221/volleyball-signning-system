@@ -239,6 +239,21 @@ function canDeviceScore() {
   return Boolean(deviceTeamId && state.scorerTeamId && deviceTeamId === state.scorerTeamId);
 }
 
+function assignScorerIfMissing() {
+  if (state.scorerTeamId) {
+    return;
+  }
+  for (let index = 0; index < state.registeredTeams.length; index += 1) {
+    if (index !== state.currentAIndex && index !== state.currentBIndex) {
+      state.scorerIndex = index;
+      state.scorerTeamId = state.registeredTeams[index].teamId;
+      return;
+    }
+  }
+  state.scorerIndex = null;
+  state.scorerTeamId = null;
+}
+
 function refreshScoringPermissionView() {
   const canScore = canDeviceScore() && !state.finished;
   aPlusBtn.disabled = !canScore;
@@ -547,7 +562,9 @@ function renderRegisteredTeams() {
     const item = document.createElement("li");
     item.textContent = `${team.name}（${team.players.join("、")}）`;
     const isPlaying = index === state.currentAIndex || index === state.currentBIndex;
+    const isScorer = state.scorerTeamId && team.teamId === state.scorerTeamId;
     item.classList.toggle("active-match-team", isPlaying);
+    item.classList.toggle("scorer-team", Boolean(isScorer));
     registeredTeamsEl.appendChild(item);
   }
 }
@@ -766,11 +783,25 @@ function advanceToNextMatch() {
     return false;
   }
 
-  const winnerIndex = state.scoreA > state.scoreB ? state.currentAIndex : state.currentBIndex;
-  const challengerIndex = state.scorerIndex;
+  const winnerIndexRaw = state.scoreA > state.scoreB ? state.currentAIndex : state.currentBIndex;
+  const loserIndexRaw = state.scoreA > state.scoreB ? state.currentBIndex : state.currentAIndex;
+  let challengerIndex = state.scorerIndex;
+
+  // Loser leaves queue; challenger enters next match.
+  state.registeredTeams.splice(loserIndexRaw, 1);
+
+  let winnerIndex = winnerIndexRaw;
+  if (loserIndexRaw < winnerIndexRaw) {
+    winnerIndex -= 1;
+  }
+  if (loserIndexRaw < challengerIndex) {
+    challengerIndex -= 1;
+  }
+
   const nextScorerIndex = challengerIndex + 1;
   state.scorerIndex = nextScorerIndex < state.registeredTeams.length ? nextScorerIndex : null;
   state.scorerTeamId = state.scorerIndex === null ? null : state.registeredTeams[state.scorerIndex].teamId;
+  ensureDeviceTeamStillExists();
   registrationMessageEl.textContent = `${state.registeredTeams[winnerIndex].name} 留場，下一場開始。`;
   const started = setTeamsByIndex(winnerIndex, challengerIndex);
   if (started) {
@@ -806,6 +837,7 @@ function registerTeam() {
   };
   state.registeredTeams.push(newTeam);
   bindDeviceTeamIfNeeded(newTeam.teamId);
+  assignScorerIfMissing();
 
   renderRegisteredTeams();
   ensureDeviceTeamStillExists();
