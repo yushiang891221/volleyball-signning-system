@@ -58,6 +58,7 @@ const gameSectionEl = document.getElementById("game-section");
 const statusSectionEl = document.getElementById("status-section");
 const actionSectionEl = document.getElementById("action-section");
 const registerTeamBtn = document.getElementById("register-team");
+const cancelMyRegistrationBtn = document.getElementById("cancel-my-registration");
 const resetRegistrationBtn = document.getElementById("reset-registration");
 const checkLocationBtn = document.getElementById("check-location");
 const registrationMessageEl = document.getElementById("registration-message");
@@ -230,6 +231,7 @@ function refreshScoringPermissionView() {
   bPlusBtn.disabled = !canScore;
   aMinusBtn.disabled = !canScore;
   bMinusBtn.disabled = !canScore;
+  resetBtn.disabled = !canScore;
 }
 
 function checkLocationForRegistration() {
@@ -577,6 +579,74 @@ function clearAllRegistrationData() {
   refreshView();
 }
 
+function cancelMyRegistration() {
+  if (!deviceTeamId) {
+    registrationMessageEl.textContent = "本裝置尚未綁定報名隊伍，無法取消。";
+    return;
+  }
+
+  const cancelIndex = state.registeredTeams.findIndex((team) => team.teamId === deviceTeamId);
+  if (cancelIndex === -1) {
+    registrationMessageEl.textContent = "目前球場找不到你的報名資料。";
+    return;
+  }
+
+  if (cancelIndex === state.currentAIndex || cancelIndex === state.currentBIndex) {
+    registrationMessageEl.textContent = "比賽中的隊伍不可取消報名。";
+    return;
+  }
+
+  const cancelledTeam = state.registeredTeams[cancelIndex];
+  const confirmed = window.confirm(`確定要取消「${cancelledTeam.name}」的報名嗎？`);
+  if (!confirmed) {
+    return;
+  }
+  state.registeredTeams.splice(cancelIndex, 1);
+
+  if (Number.isInteger(state.currentAIndex) && state.currentAIndex > cancelIndex) {
+    state.currentAIndex -= 1;
+  }
+  if (Number.isInteger(state.currentBIndex) && state.currentBIndex > cancelIndex) {
+    state.currentBIndex -= 1;
+  }
+
+  if (Number.isInteger(state.scorerIndex)) {
+    if (state.scorerIndex > cancelIndex) {
+      state.scorerIndex -= 1;
+    } else if (state.scorerIndex === cancelIndex) {
+      state.scorerIndex = cancelIndex < state.registeredTeams.length ? cancelIndex : null;
+    }
+  }
+  state.scorerTeamId =
+    Number.isInteger(state.scorerIndex) && state.registeredTeams[state.scorerIndex]
+      ? state.registeredTeams[state.scorerIndex].teamId
+      : null;
+
+  delete deviceTeamMap[selectedVenueId];
+  persistDeviceTeamMap();
+  loadDeviceTeamForVenue();
+
+  if (state.registeredTeams.length < 2) {
+    gameSectionEl.classList.add("hidden");
+    statusSectionEl.classList.add("hidden");
+    actionSectionEl.classList.add("hidden");
+    state.currentAIndex = null;
+    state.currentBIndex = null;
+    state.scorerIndex = null;
+    state.scorerTeamId = null;
+    state.scoreA = 0;
+    state.scoreB = 0;
+    state.serving = null;
+    state.finished = false;
+  }
+
+  renderRegisteredTeams();
+  ensureDeviceTeamStillExists();
+  refreshView();
+  saveRegistrationState();
+  registrationMessageEl.textContent = `已取消 ${cancelledTeam.name} 的報名。`;
+}
+
 function resetRegistrationWithPassword() {
   const password = window.prompt("請輸入重置密碼：");
   if (password === null) {
@@ -781,6 +851,10 @@ function removePoint(team) {
 }
 
 function resetMatch() {
+  if (!canDeviceScore()) {
+    return;
+  }
+
   recordFinishedMatchIfNeeded();
 
   if (advanceToNextMatch()) {
@@ -801,6 +875,7 @@ bPlusBtn.addEventListener("click", () => addPoint("B"));
 bMinusBtn.addEventListener("click", () => removePoint("B"));
 resetBtn.addEventListener("click", resetMatch);
 registerTeamBtn.addEventListener("click", registerTeam);
+cancelMyRegistrationBtn.addEventListener("click", cancelMyRegistration);
 resetRegistrationBtn.addEventListener("click", resetRegistrationWithPassword);
 checkLocationBtn.addEventListener("click", checkLocationForRegistration);
 venueSelectEl.addEventListener("change", () => {
