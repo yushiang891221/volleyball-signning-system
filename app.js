@@ -26,8 +26,8 @@ const VENUES = {
   fengchia: {
     name: "逢甲大學球場",
     type: "box",
-    cornerA: { lat: 24.180408, lng: 120.649766 },
-    cornerB: { lat: 24.180168, lng: 120.65012 }
+    cornerA: { lat: 24.180507, lng: 120.649742 },
+    cornerB: { lat: 24.180135, lng: 120.650160 }
   },
   home: {
     name: "測試用球場",
