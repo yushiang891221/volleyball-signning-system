@@ -27,7 +27,7 @@ const VENUES = {
     name: "逢甲大學球場",
     type: "box",
     cornerA: { lat: 24.180507, lng: 120.649742 },
-    cornerB: { lat: 24.180135, lng: 120.650160 }
+    cornerB: { lat: 24.180058, lng: 120.650191 }
   },
   home: {
     name: "測試用球場",
