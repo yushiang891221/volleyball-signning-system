@@ -133,7 +133,21 @@ function bindDeviceTeamIfNeeded(teamId) {
     deviceTeamId = teamId;
     deviceTeamMap[selectedVenueId] = teamId;
     persistDeviceTeamMap();
+    syncUserTeamClaim();
   }
+}
+
+function syncUserTeamClaim() {
+  if (!hasFirebase() || !firebaseReady) {
+    return;
+  }
+  const currentUser = firebase.auth().currentUser;
+  if (!currentUser) {
+    return;
+  }
+  window.FirebaseDB.setUserTeamId(currentUser.uid, deviceTeamId || null).catch((error) => {
+    console.error("setUserTeamId failed:", error);
+  });
 }
 
 function syncStateFromActiveVenue() {
@@ -219,6 +233,7 @@ function ensureDeviceTeamStillExists() {
     deviceTeamId = "";
     delete deviceTeamMap[selectedVenueId];
     persistDeviceTeamMap();
+    syncUserTeamClaim();
   }
 }
 
@@ -577,6 +592,7 @@ function clearAllRegistrationData() {
   delete deviceTeamMap[selectedVenueId];
   persistDeviceTeamMap();
   loadDeviceTeamForVenue();
+  syncUserTeamClaim();
   refreshView();
 }
 
@@ -626,6 +642,7 @@ function cancelMyRegistration() {
   delete deviceTeamMap[selectedVenueId];
   persistDeviceTeamMap();
   loadDeviceTeamForVenue();
+  syncUserTeamClaim();
 
   if (state.registeredTeams.length < 2) {
     gameSectionEl.classList.add("hidden");
@@ -924,6 +941,7 @@ venueSelectEl.addEventListener("change", () => {
   if (hasFirebase() && firebaseReady) {
     selectedVenueId = venueSelectEl.value;
     loadDeviceTeamForVenue();
+    syncUserTeamClaim();
     // Avoid cross-venue stale state before snapshot returns.
     Object.assign(state, createEmptyVenueState());
     renderPlayerList(teamAPlayersEl, []);
@@ -939,6 +957,7 @@ venueSelectEl.addEventListener("change", () => {
   syncActiveVenueFromState();
   selectedVenueId = venueSelectEl.value;
   loadDeviceTeamForVenue();
+  syncUserTeamClaim();
   syncStateFromActiveVenue();
   renderRegisteredTeams();
   renderMatchHistory();
@@ -976,6 +995,13 @@ checkLocationForRegistration();
 window.FirebaseAppReady
   .then(() => {
     firebaseReady = true;
+    const currentUser = firebase.auth().currentUser;
+    if (currentUser) {
+      window.FirebaseDB.ensureUserProfile(currentUser.uid).catch((error) => {
+        console.error("ensureUserProfile failed:", error);
+      });
+    }
+    syncUserTeamClaim();
     subscribeFirebaseVenue(selectedVenueId);
   })
   .catch((error) => {

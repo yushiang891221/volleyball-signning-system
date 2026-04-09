@@ -10,6 +10,10 @@ function getVenueMatchesRef(venueId) {
   return getVenueDocRef(venueId).collection("matches");
 }
 
+function getUserRef(uid) {
+  return firebase.firestore().collection("users").doc(uid);
+}
+
 window.FirebaseDB = {
   async ensureVenueBaseDoc(venueId, venueName, venueType) {
     const ref = getVenueDocRef(venueId);
@@ -77,5 +81,25 @@ window.FirebaseDB = {
       batch.delete(doc.ref);
     });
     await batch.commit();
+  },
+
+  async ensureUserProfile(uid) {
+    await getUserRef(uid).set(
+      {
+        role: "member",
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      },
+      { merge: true }
+    );
+  },
+
+  async setUserTeamId(uid, teamId) {
+    await getUserRef(uid).set(
+      {
+        teamId: teamId || null,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      },
+      { merge: true }
+    );
   }
 };
