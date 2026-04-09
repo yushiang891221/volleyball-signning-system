@@ -167,6 +167,8 @@ button {
   cursor: pointer;
   background: #2563eb;
   color: #ffffff;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button:hover {
@@ -180,6 +182,14 @@ button:hover {
 
 .danger-btn:hover {
   background: #b91c1c;
+}
+
+.controls button {
+  min-width: 92px;
+  min-height: 68px;
+  font-size: 28px;
+  font-weight: 700;
+  border-radius: 12px;
 }
 
 .status-section,
