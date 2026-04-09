@@ -139,6 +139,38 @@ function generateTeamId() {
   return `${selectedVenueId}_${Date.now()}_${randomPart}`;
 }
 
+function toSafeKey(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9\-_]/g, "")
+    .slice(0, 24);
+}
+
+function normalizeRegisteredTeams(teams) {
+  const input = Array.isArray(teams) ? teams : [];
+  let changed = false;
+  const normalized = input.map((team, index) => {
+    const name = team && team.name ? team.name : `隊伍${index + 1}`;
+    const players = Array.isArray(team && team.players) ? team.players : [];
+    let teamId = team && typeof team.teamId === "string" ? team.teamId : "";
+    if (!teamId) {
+      const key = toSafeKey(name);
+      // Stable fallback for legacy data without teamId.
+      teamId = `legacy_${selectedVenueId}_${index}_${key || "team"}`;
+      changed = true;
+    }
+    return {
+      teamId,
+      name,
+      players
+    };
+  });
+
+  return { normalized, changed };
+}
+
 function getTeamNameById(teamId) {
   const team = state.registeredTeams.find((item) => item.teamId === teamId);
   return team ? team.name : "未指定";
@@ -437,12 +469,8 @@ function applyVenueStatePayload(payload) {
   state.teamBName = payload.teamBName ?? "隊伍 B";
   state.teamAPlayers = Array.isArray(payload.teamAPlayers) ? payload.teamAPlayers : [];
   state.teamBPlayers = Array.isArray(payload.teamBPlayers) ? payload.teamBPlayers : [];
-  state.registeredTeams = Array.isArray(payload.registeredTeams) ? payload.registeredTeams : [];
-  state.registeredTeams = state.registeredTeams.map((team) => ({
-    teamId: team.teamId || generateTeamId(),
-    name: team.name,
-    players: Array.isArray(team.players) ? team.players : []
-  }));
+  const normalizedTeamsResult = normalizeRegisteredTeams(payload.registeredTeams);
+  state.registeredTeams = normalizedTeamsResult.normalized;
   state.registrationHistory = Array.isArray(payload.registrationHistory) ? payload.registrationHistory : [];
   state.currentAIndex = Number.isInteger(payload.currentAIndex) ? payload.currentAIndex : null;
   state.currentBIndex = Number.isInteger(payload.currentBIndex) ? payload.currentBIndex : null;
@@ -468,6 +496,10 @@ function applyVenueStatePayload(payload) {
   updateLocationCheckStatus();
   updateStreakModeStatus();
   refreshView();
+
+  if (normalizedTeamsResult.changed) {
+    saveRegistrationState();
+  }
 }
 
 function subscribeFirebaseVenue(venueId) {
