@@ -24,7 +24,7 @@ const state = {
 const WIN_SCORE = 25;
 const MIN_LEAD = 2;
 const STORAGE_KEY = "volleyball-registration";
-const ADMIN_PAGE_PASSWORD = "1234";
+const ADMIN_PAGE_PASSWORD = "0728";
 const DEFAULT_VENUE_ID = "fengchia";
 const DEVICE_TEAM_MAP_KEY = "volleyball-device-team-map";
 const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
@@ -63,6 +63,8 @@ const gameSectionEl = document.getElementById("game-section");
 const statusSectionEl = document.getElementById("status-section");
 const registerTeamBtn = document.getElementById("register-team");
 const cancelMyRegistrationBtn = document.getElementById("cancel-my-registration");
+const reclaimCodeInputEl = document.getElementById("reclaim-code");
+const reclaimControlBtn = document.getElementById("reclaim-control");
 const resetRegistrationBtn = document.getElementById("reset-registration");
 const resetMatchHistoryBtn = document.getElementById("reset-match-history");
 const checkLocationBtn = document.getElementById("check-location");
@@ -148,9 +150,40 @@ function toSafeKey(value) {
     .slice(0, 24);
 }
 
+function deriveStableCodeFromTeamId(teamId, usedCodes) {
+  let hash = 0;
+  for (let i = 0; i < teamId.length; i += 1) {
+    hash = (hash * 31 + teamId.charCodeAt(i)) >>> 0;
+  }
+  let value = (hash % 9000) + 1000;
+  let code = String(value);
+  while (usedCodes.has(code)) {
+    value += 1;
+    if (value > 9999) {
+      value = 1000;
+    }
+    code = String(value);
+  }
+  return code;
+}
+
+function generateUniqueControlCode() {
+  const usedCodes = new Set(state.registeredTeams.map((team) => team.controlCode).filter(Boolean));
+  let attempts = 0;
+  while (attempts < 10000) {
+    const code = String(Math.floor(1000 + Math.random() * 9000));
+    if (!usedCodes.has(code)) {
+      return code;
+    }
+    attempts += 1;
+  }
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+
 function normalizeRegisteredTeams(teams) {
   const input = Array.isArray(teams) ? teams : [];
   let changed = false;
+  const usedCodes = new Set();
   const normalized = input.map((team, index) => {
     const name = team && team.name ? team.name : `隊伍${index + 1}`;
     const players = Array.isArray(team && team.players) ? team.players : [];
@@ -161,8 +194,15 @@ function normalizeRegisteredTeams(teams) {
       teamId = `legacy_${selectedVenueId}_${index}_${key || "team"}`;
       changed = true;
     }
+    let controlCode = team && typeof team.controlCode === "string" ? team.controlCode : "";
+    if (!/^\d{4}$/.test(controlCode) || usedCodes.has(controlCode)) {
+      controlCode = deriveStableCodeFromTeamId(teamId, usedCodes);
+      changed = true;
+    }
+    usedCodes.add(controlCode);
     return {
       teamId,
+      controlCode,
       name,
       players
     };
@@ -224,6 +264,7 @@ function syncActiveVenueFromState() {
     teamBPlayers: [...state.teamBPlayers],
     registeredTeams: state.registeredTeams.map((team) => ({
       teamId: team.teamId,
+      controlCode: team.controlCode,
       name: team.name,
       players: [...team.players]
     })),
@@ -1181,6 +1222,7 @@ function registerTeam() {
 
   const newTeam = {
     teamId: generateTeamId(),
+    controlCode: generateUniqueControlCode(),
     name: teamName,
     players: teamPlayers
   };
@@ -1188,6 +1230,7 @@ function registerTeam() {
   state.registrationHistory.push(newTeam.name);
   bindDeviceTeamIfNeeded(newTeam.teamId);
   assignScorerIfMissing();
+  window.alert(`報名成功！\n隊伍：${newTeam.name}\n取回控制權隨機碼：${newTeam.controlCode}`);
 
   renderRegisteredTeams();
   renderRegistrationHistory();
@@ -1223,6 +1266,28 @@ function registerTeam() {
 
   registrationMessageEl.textContent = `已加入第 ${state.registeredTeams.length} 隊。`;
   saveRegistrationState();
+}
+
+function reclaimControlByCode() {
+  const code = reclaimCodeInputEl.value.trim();
+  if (!/^\d{4}$/.test(code)) {
+    registrationMessageEl.textContent = "請輸入正確的4位數隨機碼。";
+    return;
+  }
+
+  const team = state.registeredTeams.find((item) => item.controlCode === code);
+  if (!team) {
+    registrationMessageEl.textContent = "找不到對應隊伍，請確認隨機碼。";
+    return;
+  }
+
+  deviceTeamId = team.teamId;
+  deviceTeamMap[selectedVenueId] = team.teamId;
+  persistDeviceTeamMap();
+  syncUserTeamClaim();
+  reclaimCodeInputEl.value = "";
+  refreshView();
+  registrationMessageEl.textContent = `已取回 ${team.name} 的控制權。`;
 }
 
 function recordFinishedMatchIfNeeded() {
@@ -1293,6 +1358,7 @@ bPlusBtn.addEventListener("click", () => addPoint("B"));
 bMinusBtn.addEventListener("click", () => removePoint("B"));
 registerTeamBtn.addEventListener("click", registerTeam);
 cancelMyRegistrationBtn.addEventListener("click", cancelMyRegistration);
+reclaimControlBtn.addEventListener("click", reclaimControlByCode);
 resetRegistrationBtn.addEventListener("click", resetRegistrationWithPassword);
 resetMatchHistoryBtn.addEventListener("click", resetMatchHistory);
 checkLocationBtn.addEventListener("click", checkLocationForRegistration);
