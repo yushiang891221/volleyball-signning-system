@@ -504,6 +504,13 @@ async function runDailyAutoResetIfNeeded() {
   if (isDailyResetRunning) {
     return;
   }
+  const now = new Date();
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+  // Only allow auto reset around midnight to avoid daytime unexpected reset.
+  if (!(hour === 0 && minute < 5)) {
+    return;
+  }
   const today = getTodayKey();
   const lastChecked = localStorage.getItem(DAILY_RESET_CHECK_KEY);
   if (lastChecked === today) {
@@ -518,8 +525,13 @@ async function runDailyAutoResetIfNeeded() {
         if (current && current.autoResetDate === today) {
           continue;
         }
+        const preservedLocationCheck =
+          current && typeof current.locationCheckEnabled === "boolean"
+            ? current.locationCheckEnabled
+            : true;
         await window.FirebaseDB.saveVenueState(venueId, {
           ...createEmptyVenueState(),
+          locationCheckEnabled: preservedLocationCheck,
           autoResetDate: today
         });
         await window.FirebaseDB.clearMatches(venueId);
@@ -530,10 +542,17 @@ async function runDailyAutoResetIfNeeded() {
       syncUserTeamClaim();
       registrationMessageEl.textContent = "已完成今日自動重置（報名與比賽結果）。";
     } else {
+      const previousVenueStates = allVenueStates;
       allVenueStates = {};
       for (const venueId of Object.keys(VENUES)) {
+        const previous = previousVenueStates[venueId];
+        const preservedLocationCheck =
+          previous && typeof previous.locationCheckEnabled === "boolean"
+            ? previous.locationCheckEnabled
+            : true;
         allVenueStates[venueId] = {
           ...createEmptyVenueState(),
+          locationCheckEnabled: preservedLocationCheck,
           autoResetDate: today
         };
         delete deviceTeamMap[venueId];
@@ -714,7 +733,9 @@ function clearRegistrationForm() {
 }
 
 async function clearAllRegistrationData() {
+  const preservedLocationCheck = state.locationCheckEnabled;
   Object.assign(state, createEmptyVenueState());
+  state.locationCheckEnabled = preservedLocationCheck;
 
   renderPlayerList(teamAPlayersEl, []);
   renderPlayerList(teamBPlayersEl, []);
