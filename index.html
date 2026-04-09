@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>排球計分器</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <h1>排球計分器（單局 25 分）</h1>
+    <p id="current-time" class="time-bar"></p>
+    <div class="page-nav">
+      <button id="go-registration" type="button">報名頁面</button>
+      <button id="go-score" type="button">計分頁面</button>
+    </div>
+
+    <section id="registration-page">
+      <section class="registration-section">
+        <h2>單隊報名（每隊 6 人）</h2>
+        <div class="registration-card">
+          <label for="team-name">隊名</label>
+          <input id="team-name" type="text" placeholder="例如：北一隊">
+          <div class="player-inputs" id="team-inputs">
+            <input type="text" placeholder="第 1 位球員姓名">
+            <input type="text" placeholder="第 2 位球員姓名">
+            <input type="text" placeholder="第 3 位球員姓名">
+            <input type="text" placeholder="第 4 位球員姓名">
+            <input type="text" placeholder="第 5 位球員姓名">
+            <input type="text" placeholder="第 6 位球員姓名">
+          </div>
+        </div>
+        <button id="check-location" type="button">檢查定位</button>
+        <p id="location-message"></p>
+        <button id="register-team" type="button">報名這一隊</button>
+        <button id="reset-registration" class="danger-btn" type="button">重置報名隊伍</button>
+        <h3>已報名隊伍（依順序）</h3>
+        <ol id="registered-teams"></ol>
+        <h3>比賽結果紀錄</h3>
+        <ol id="match-history"></ol>
+        <p id="registration-message"></p>
+      </section>
+    </section>
+
+    <section id="score-page" class="hidden">
+      <p id="score-page-message" class="score-page-message">請先到報名頁面完成兩隊報名。</p>
+
+      <section class="scoreboard hidden" id="game-section">
+        <article class="team-card" id="team-a-card">
+          <h2 id="team-a-title">隊伍 A</h2>
+          <p class="score" id="score-a">0</p>
+          <div class="controls">
+            <button id="a-plus" type="button">+1</button>
+            <button id="a-minus" type="button">-1</button>
+          </div>
+          <ol id="team-a-players" class="player-list"></ol>
+        </article>
+
+        <article class="team-card" id="team-b-card">
+          <h2 id="team-b-title">隊伍 B</h2>
+          <p class="score" id="score-b">0</p>
+          <div class="controls">
+            <button id="b-plus" type="button">+1</button>
+            <button id="b-minus" type="button">-1</button>
+          </div>
+          <ol id="team-b-players" class="player-list"></ol>
+        </article>
+      </section>
+
+      <section class="status-section hidden" id="status-section">
+        <p id="status">比賽進行中</p>
+      </section>
+
+      <section class="action-section hidden" id="action-section">
+        <button id="reset" type="button">重置比賽</button>
+      </section>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
