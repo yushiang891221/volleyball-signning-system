@@ -855,6 +855,15 @@ function resetMatch() {
     return;
   }
 
+  if (!state.finished) {
+    if (state.scoreA === state.scoreB) {
+      registrationMessageEl.textContent = "目前同分，無法結束比賽，請先分出勝負。";
+      return;
+    }
+    // Allow manual match end and record current score.
+    state.finished = true;
+  }
+
   recordFinishedMatchIfNeeded();
 
   if (advanceToNextMatch()) {
