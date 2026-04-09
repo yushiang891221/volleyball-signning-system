@@ -14,6 +14,10 @@ const state = {
   currentBIndex: null,
   scorerIndex: null,
   scorerTeamId: null,
+  locationCheckEnabled: true,
+  streakTwoModeEnabled: false,
+  streakTeamId: null,
+  streakCount: 0,
   currentMatchRecorded: false
 };
 
@@ -66,6 +70,7 @@ const toggleLocationCheckBtn = document.getElementById("toggle-location-check");
 const registrationMessageEl = document.getElementById("registration-message");
 const locationMessageEl = document.getElementById("location-message");
 const locationCheckStatusEl = document.getElementById("location-check-status");
+const streakModeStatusEl = document.getElementById("streak-mode-status");
 const venueSelectEl = document.getElementById("venue-select");
 const teamNameInputEl = document.getElementById("team-name");
 const teamInputContainerEl = document.getElementById("team-inputs");
@@ -84,6 +89,7 @@ const adminControlsSectionEl = document.getElementById("admin-controls-section")
 const adminPasswordInputEl = document.getElementById("admin-password");
 const adminUnlockBtn = document.getElementById("admin-unlock");
 const adminAuthMessageEl = document.getElementById("admin-auth-message");
+const toggleStreakModeBtn = document.getElementById("toggle-streak-mode");
 let currentPage = "registration";
 let isInVenue = false;
 let selectedVenueId = DEFAULT_VENUE_ID;
@@ -120,6 +126,9 @@ function createEmptyVenueState() {
     scorerIndex: null,
     scorerTeamId: null,
     locationCheckEnabled: true,
+    streakTwoModeEnabled: false,
+    streakTeamId: null,
+    streakCount: 0,
     currentMatchRecorded: false
   };
 }
@@ -192,6 +201,9 @@ function syncActiveVenueFromState() {
     scorerIndex: state.scorerIndex,
     scorerTeamId: state.scorerTeamId,
     locationCheckEnabled: state.locationCheckEnabled,
+    streakTwoModeEnabled: state.streakTwoModeEnabled,
+    streakTeamId: state.streakTeamId,
+    streakCount: state.streakCount,
     currentMatchRecorded: state.currentMatchRecorded
   };
 }
@@ -245,6 +257,12 @@ function updateLocationCheckStatus() {
   locationCheckStatusEl.textContent = state.locationCheckEnabled
     ? "定位檢查：已啟用"
     : "定位檢查：已停用";
+}
+
+function updateStreakModeStatus() {
+  streakModeStatusEl.textContent = state.streakTwoModeEnabled
+    ? "比賽模式：連二下（開啟）"
+    : "比賽模式：一般輪轉（關閉）";
 }
 
 function ensureDeviceTeamStillExists() {
@@ -324,11 +342,15 @@ function checkLocationForRegistration() {
 
 function updateScorePageMessage() {
   const venue = VENUES[selectedVenueId];
+  const mode = state.streakTwoModeEnabled ? "連二下" : "一般";
+  const teamCount = state.registeredTeams.length;
   if (state.registeredTeams.length < 2) {
-    scorePageMessageEl.textContent = `目前球場：${venue.name}，請先完成兩隊報名。`;
+    scorePageMessageEl.textContent =
+      `目前球場：${venue.name}｜模式：${mode}｜報名隊伍：${teamCount}｜請先完成兩隊報名。`;
     return;
   }
-  scorePageMessageEl.textContent = `目前球場：${venue.name}｜對戰：${state.teamAName} vs ${state.teamBName}`;
+  scorePageMessageEl.textContent =
+    `目前球場：${venue.name}｜模式：${mode}｜對戰：${state.teamAName} vs ${state.teamBName}｜報名隊伍：${teamCount}`;
 }
 
 function showPage(page) {
@@ -384,6 +406,9 @@ function getStatePayloadForStorage() {
     scorerIndex: state.scorerIndex,
     scorerTeamId: state.scorerTeamId,
     locationCheckEnabled: state.locationCheckEnabled,
+    streakTwoModeEnabled: state.streakTwoModeEnabled,
+    streakTeamId: state.streakTeamId,
+    streakCount: state.streakCount,
     currentMatchRecorded: state.currentMatchRecorded
   };
 }
@@ -420,6 +445,10 @@ function applyVenueStatePayload(payload) {
   state.scorerTeamId = typeof payload.scorerTeamId === "string" ? payload.scorerTeamId : null;
   state.locationCheckEnabled =
     typeof payload.locationCheckEnabled === "boolean" ? payload.locationCheckEnabled : true;
+  state.streakTwoModeEnabled =
+    typeof payload.streakTwoModeEnabled === "boolean" ? payload.streakTwoModeEnabled : false;
+  state.streakTeamId = typeof payload.streakTeamId === "string" ? payload.streakTeamId : null;
+  state.streakCount = Number.isInteger(payload.streakCount) ? payload.streakCount : 0;
   state.currentMatchRecorded = Boolean(payload.currentMatchRecorded);
 
   renderPlayerList(teamAPlayersEl, state.teamAPlayers);
@@ -432,6 +461,7 @@ function applyVenueStatePayload(payload) {
   renderRegistrationHistory();
   ensureDeviceTeamStillExists();
   updateLocationCheckStatus();
+  updateStreakModeStatus();
   refreshView();
 }
 
@@ -529,9 +559,14 @@ async function runDailyAutoResetIfNeeded() {
           current && typeof current.locationCheckEnabled === "boolean"
             ? current.locationCheckEnabled
             : true;
+        const preservedStreakMode =
+          current && typeof current.streakTwoModeEnabled === "boolean"
+            ? current.streakTwoModeEnabled
+            : false;
         await window.FirebaseDB.saveVenueState(venueId, {
           ...createEmptyVenueState(),
           locationCheckEnabled: preservedLocationCheck,
+          streakTwoModeEnabled: preservedStreakMode,
           autoResetDate: today
         });
         await window.FirebaseDB.clearMatches(venueId);
@@ -550,9 +585,14 @@ async function runDailyAutoResetIfNeeded() {
           previous && typeof previous.locationCheckEnabled === "boolean"
             ? previous.locationCheckEnabled
             : true;
+        const preservedStreakMode =
+          previous && typeof previous.streakTwoModeEnabled === "boolean"
+            ? previous.streakTwoModeEnabled
+            : false;
         allVenueStates[venueId] = {
           ...createEmptyVenueState(),
           locationCheckEnabled: preservedLocationCheck,
+          streakTwoModeEnabled: preservedStreakMode,
           autoResetDate: today
         };
         delete deviceTeamMap[venueId];
@@ -734,8 +774,10 @@ function clearRegistrationForm() {
 
 async function clearAllRegistrationData() {
   const preservedLocationCheck = state.locationCheckEnabled;
+  const preservedStreakMode = state.streakTwoModeEnabled;
   Object.assign(state, createEmptyVenueState());
   state.locationCheckEnabled = preservedLocationCheck;
+  state.streakTwoModeEnabled = preservedStreakMode;
 
   renderPlayerList(teamAPlayersEl, []);
   renderPlayerList(teamBPlayersEl, []);
@@ -881,6 +923,35 @@ async function toggleLocationCheckWithPassword() {
   }
 }
 
+async function toggleStreakMode() {
+  if (!adminUnlocked) {
+    adminAuthMessageEl.textContent = "請先進入管理員模式。";
+    return;
+  }
+  const venueName = VENUES[selectedVenueId].name;
+  const target = state.streakTwoModeEnabled ? "關閉連二下模式" : "開啟連二下模式";
+  const confirmed = window.confirm(`確定要在「${venueName}」${target}嗎？`);
+  if (!confirmed) {
+    return;
+  }
+
+  state.streakTwoModeEnabled = !state.streakTwoModeEnabled;
+  state.streakTeamId = null;
+  state.streakCount = 0;
+  updateStreakModeStatus();
+  try {
+    await saveRegistrationStateStrict();
+    registrationMessageEl.textContent = state.streakTwoModeEnabled
+      ? "已開啟連二下模式。"
+      : "已關閉連二下模式。";
+  } catch (error) {
+    console.error("toggle streak mode failed:", error);
+    state.streakTwoModeEnabled = !state.streakTwoModeEnabled;
+    updateStreakModeStatus();
+    registrationMessageEl.textContent = `切換「${venueName}」比賽模式失敗，請確認 Firebase 權限。`;
+  }
+}
+
 async function resetMatchHistory() {
   if (!adminUnlocked) {
     adminAuthMessageEl.textContent = "請先進入管理員模式。";
@@ -968,6 +1039,8 @@ function startMatchWithQueue() {
     return;
   }
 
+  state.streakTeamId = null;
+  state.streakCount = 0;
   state.scorerIndex = state.registeredTeams.length >= 3 ? 2 : null;
   state.scorerTeamId = state.scorerIndex === null ? null : state.registeredTeams[state.scorerIndex].teamId;
   setTeamsByIndex(0, 1);
@@ -996,6 +1069,37 @@ function advanceToNextMatch() {
   }
   if (loserIndexRaw < challengerIndex) {
     challengerIndex -= 1;
+  }
+
+  const winnerTeamId = state.registeredTeams[winnerIndex].teamId;
+  if (state.streakTeamId === winnerTeamId) {
+    state.streakCount += 1;
+  } else {
+    state.streakTeamId = winnerTeamId;
+    state.streakCount = 1;
+  }
+
+  if (state.streakTwoModeEnabled && state.streakCount >= 2) {
+    state.scorerIndex = winnerIndex;
+    state.scorerTeamId = winnerTeamId;
+
+    const playIndices = [];
+    for (let i = 0; i < state.registeredTeams.length; i += 1) {
+      if (i !== state.scorerIndex) {
+        playIndices.push(i);
+      }
+    }
+
+    if (playIndices.length >= 2) {
+      const started = setTeamsByIndex(playIndices[0], playIndices[1]);
+      state.streakTeamId = null;
+      state.streakCount = 0;
+      registrationMessageEl.textContent = `${state.registeredTeams[state.scorerIndex].name} 連贏兩場，下場改為記分隊。`;
+      if (started) {
+        saveRegistrationState();
+      }
+      return started;
+    }
   }
 
   const nextScorerIndex = challengerIndex + 1;
@@ -1156,6 +1260,7 @@ resetRegistrationBtn.addEventListener("click", resetRegistrationWithPassword);
 resetMatchHistoryBtn.addEventListener("click", resetMatchHistory);
 checkLocationBtn.addEventListener("click", checkLocationForRegistration);
 toggleLocationCheckBtn.addEventListener("click", toggleLocationCheckWithPassword);
+toggleStreakModeBtn.addEventListener("click", toggleStreakMode);
 adminUnlockBtn.addEventListener("click", unlockAdminPage);
 venueSelectEl.addEventListener("change", () => {
   if (hasFirebase() && firebaseReady) {
@@ -1207,6 +1312,7 @@ renderRegistrationHistory();
 renderMatchHistory();
 ensureDeviceTeamStillExists();
 updateLocationCheckStatus();
+updateStreakModeStatus();
 refreshView();
 showPage("registration");
 renderAdminModeView();
