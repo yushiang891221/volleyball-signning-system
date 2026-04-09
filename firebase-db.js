@@ -40,7 +40,7 @@ window.FirebaseDB = {
 
   subscribeVenueMatches(venueId, onData, onError) {
     return getVenueMatchesRef(venueId)
-      .orderBy("finishedAt", "desc")
+      .orderBy("finishedAt", "asc")
       .limit(100)
       .onSnapshot(
         (snap) => {

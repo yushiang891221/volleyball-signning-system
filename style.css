@@ -157,6 +157,11 @@ h1 {
   padding-left: 20px;
 }
 
+#registration-history {
+  margin: 10px 0 0;
+  padding-left: 20px;
+}
+
 #registered-teams .active-match-team {
   color: #dc2626;
   font-weight: 700;

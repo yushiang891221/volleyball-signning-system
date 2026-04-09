@@ -8,6 +8,7 @@ const state = {
   teamAPlayers: [],
   teamBPlayers: [],
   registeredTeams: [],
+  registrationHistory: [],
   matchHistory: [],
   currentAIndex: null,
   currentBIndex: null,
@@ -69,6 +70,7 @@ const venueSelectEl = document.getElementById("venue-select");
 const teamNameInputEl = document.getElementById("team-name");
 const teamInputContainerEl = document.getElementById("team-inputs");
 const registeredTeamsEl = document.getElementById("registered-teams");
+const registrationHistoryEl = document.getElementById("registration-history");
 const matchHistoryEl = document.getElementById("match-history");
 const registrationPageEl = document.getElementById("registration-page");
 const scorePageEl = document.getElementById("score-page");
@@ -111,6 +113,7 @@ function createEmptyVenueState() {
     teamAPlayers: [],
     teamBPlayers: [],
     registeredTeams: [],
+    registrationHistory: [],
     matchHistory: [],
     currentAIndex: null,
     currentBIndex: null,
@@ -182,6 +185,7 @@ function syncActiveVenueFromState() {
       name: team.name,
       players: [...team.players]
     })),
+    registrationHistory: [...state.registrationHistory],
     matchHistory: state.matchHistory.map((match) => ({ ...match })),
     currentAIndex: state.currentAIndex,
     currentBIndex: state.currentBIndex,
@@ -374,6 +378,7 @@ function getStatePayloadForStorage() {
     teamAPlayers: state.teamAPlayers,
     teamBPlayers: state.teamBPlayers,
     registeredTeams: state.registeredTeams,
+    registrationHistory: state.registrationHistory,
     currentAIndex: state.currentAIndex,
     currentBIndex: state.currentBIndex,
     scorerIndex: state.scorerIndex,
@@ -408,6 +413,7 @@ function applyVenueStatePayload(payload) {
     name: team.name,
     players: Array.isArray(team.players) ? team.players : []
   }));
+  state.registrationHistory = Array.isArray(payload.registrationHistory) ? payload.registrationHistory : [];
   state.currentAIndex = Number.isInteger(payload.currentAIndex) ? payload.currentAIndex : null;
   state.currentBIndex = Number.isInteger(payload.currentBIndex) ? payload.currentBIndex : null;
   state.scorerIndex = Number.isInteger(payload.scorerIndex) ? payload.scorerIndex : null;
@@ -423,6 +429,7 @@ function applyVenueStatePayload(payload) {
     statusSectionEl.classList.remove("hidden");
   }
   renderRegisteredTeams();
+  renderRegistrationHistory();
   ensureDeviceTeamStillExists();
   updateLocationCheckStatus();
   refreshView();
@@ -679,11 +686,21 @@ function renderRegisteredTeams() {
   }
 }
 
+function renderRegistrationHistory() {
+  registrationHistoryEl.innerHTML = "";
+  for (const name of state.registrationHistory) {
+    const item = document.createElement("li");
+    item.textContent = name;
+    registrationHistoryEl.appendChild(item);
+  }
+}
+
 function renderMatchHistory() {
   matchHistoryEl.innerHTML = "";
-  for (const match of state.matchHistory) {
+  for (let index = 0; index < state.matchHistory.length; index += 1) {
+    const match = state.matchHistory[index];
     const item = document.createElement("li");
-    item.textContent = `${match.teamA} ${match.scoreA} : ${match.scoreB} ${match.teamB}（勝：${match.winner}）`;
+    item.textContent = `第 ${index + 1} 場：${match.teamA} ${match.scoreA} : ${match.scoreB} ${match.teamB}（勝：${match.winner}）`;
     matchHistoryEl.appendChild(item);
   }
 }
@@ -702,6 +719,7 @@ async function clearAllRegistrationData() {
   renderPlayerList(teamAPlayersEl, []);
   renderPlayerList(teamBPlayersEl, []);
   renderRegisteredTeams();
+  renderRegistrationHistory();
   renderMatchHistory();
   clearRegistrationForm();
 
@@ -1005,10 +1023,12 @@ function registerTeam() {
     players: teamPlayers
   };
   state.registeredTeams.push(newTeam);
+  state.registrationHistory.push(newTeam.name);
   bindDeviceTeamIfNeeded(newTeam.teamId);
   assignScorerIfMissing();
 
   renderRegisteredTeams();
+  renderRegistrationHistory();
   ensureDeviceTeamStillExists();
   clearRegistrationForm();
 
@@ -1162,6 +1182,7 @@ updateCurrentTime();
 setInterval(updateCurrentTime, 1000);
 loadRegistrationState();
 renderRegisteredTeams();
+renderRegistrationHistory();
 renderMatchHistory();
 ensureDeviceTeamStillExists();
 updateLocationCheckStatus();
@@ -1195,6 +1216,7 @@ setInterval(() => {
   }
   if (!hasFirebase() || !firebaseReady) {
     renderRegisteredTeams();
+    renderRegistrationHistory();
     renderMatchHistory();
   }
   checkLocationForRegistration();
