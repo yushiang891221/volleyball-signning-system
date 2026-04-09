@@ -39,14 +39,23 @@
         </div>
         <button id="check-location" type="button">檢查定位</button>
         <p id="location-message"></p>
-        <button id="register-team" type="button">報名這一隊</button>
-        <button id="cancel-my-registration" class="danger-btn" type="button">取消我的報名</button>
-        <button id="reset-registration" class="danger-btn" type="button">重置報名隊伍</button>
-        <h3>已報名隊伍（依順序）</h3>
-        <ol id="registered-teams"></ol>
-        <button id="reset-match-history" class="danger-btn" type="button">重置比賽結果</button>
-        <h3>比賽結果紀錄</h3>
-        <ol id="match-history"></ol>
+        <section class="panel-block">
+          <h3>報名隊伍管理</h3>
+          <div class="panel-actions">
+            <button id="register-team" type="button">報名這一隊</button>
+            <button id="cancel-my-registration" class="danger-btn" type="button">取消我的報名</button>
+            <button id="reset-registration" class="danger-btn" type="button">重置報名隊伍</button>
+          </div>
+          <ol id="registered-teams"></ol>
+        </section>
+
+        <section class="panel-block">
+          <h3>比賽結果管理</h3>
+          <div class="panel-actions">
+            <button id="reset-match-history" class="danger-btn" type="button">重置比賽結果</button>
+          </div>
+          <ol id="match-history"></ol>
+        </section>
         <p id="registration-message"></p>
       </section>
     </section>
