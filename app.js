@@ -346,11 +346,11 @@ function updateScorePageMessage() {
   const teamCount = state.registeredTeams.length;
   if (state.registeredTeams.length < 2) {
     scorePageMessageEl.textContent =
-      `目前球場：${venue.name}｜模式：${mode}｜報名隊伍：${teamCount}｜請先完成兩隊報名。`;
+      `目前球場：${venue.name}｜模式：${mode}\n報名隊伍：${teamCount}\n請先完成兩隊報名。`;
     return;
   }
   scorePageMessageEl.textContent =
-    `目前球場：${venue.name}｜模式：${mode}｜對戰：${state.teamAName} vs ${state.teamBName}｜報名隊伍：${teamCount}`;
+    `目前球場：${venue.name}｜模式：${mode}\n對戰：${state.teamAName} vs ${state.teamBName}\n報名隊伍：${teamCount}`;
 }
 
 function showPage(page) {
