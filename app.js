@@ -53,10 +53,8 @@ const aPlusBtn = document.getElementById("a-plus");
 const aMinusBtn = document.getElementById("a-minus");
 const bPlusBtn = document.getElementById("b-plus");
 const bMinusBtn = document.getElementById("b-minus");
-const resetBtn = document.getElementById("reset");
 const gameSectionEl = document.getElementById("game-section");
 const statusSectionEl = document.getElementById("status-section");
-const actionSectionEl = document.getElementById("action-section");
 const registerTeamBtn = document.getElementById("register-team");
 const cancelMyRegistrationBtn = document.getElementById("cancel-my-registration");
 const resetRegistrationBtn = document.getElementById("reset-registration");
@@ -247,7 +245,6 @@ function refreshScoringPermissionView() {
   bPlusBtn.disabled = !canScore;
   aMinusBtn.disabled = !canScore;
   bMinusBtn.disabled = !canScore;
-  resetBtn.disabled = !canScore;
 }
 
 function checkLocationForRegistration() {
@@ -340,7 +337,6 @@ function applyVenueStatePayload(payload) {
     renderPlayerList(teamBPlayersEl, []);
     gameSectionEl.classList.add("hidden");
     statusSectionEl.classList.add("hidden");
-    actionSectionEl.classList.add("hidden");
     refreshView();
     return;
   }
@@ -370,7 +366,6 @@ function applyVenueStatePayload(payload) {
   if (state.registeredTeams.length >= 2) {
     gameSectionEl.classList.remove("hidden");
     statusSectionEl.classList.remove("hidden");
-    actionSectionEl.classList.remove("hidden");
   }
   renderRegisteredTeams();
   ensureDeviceTeamStillExists();
@@ -585,7 +580,6 @@ function clearAllRegistrationData() {
 
   gameSectionEl.classList.add("hidden");
   statusSectionEl.classList.add("hidden");
-  actionSectionEl.classList.add("hidden");
 
   syncActiveVenueFromState();
   saveRegistrationState();
@@ -647,7 +641,6 @@ function cancelMyRegistration() {
   if (state.registeredTeams.length < 2) {
     gameSectionEl.classList.add("hidden");
     statusSectionEl.classList.add("hidden");
-    actionSectionEl.classList.add("hidden");
     state.currentAIndex = null;
     state.currentBIndex = null;
     state.scorerIndex = null;
@@ -738,7 +731,6 @@ function setTeamsByIndex(teamAIndex, teamBIndex) {
 
   gameSectionEl.classList.remove("hidden");
   statusSectionEl.classList.remove("hidden");
-  actionSectionEl.classList.remove("hidden");
 
   refreshView();
   return true;
@@ -888,50 +880,34 @@ function addPoint(team) {
   }
   state.serving = team;
   refreshView();
+  saveRegistrationState();
+
+  if (state.finished) {
+    recordFinishedMatchIfNeeded();
+    if (advanceToNextMatch()) {
+      return;
+    }
+    registrationMessageEl.textContent = "本場已結束，請等待下一隊報名後自動開啟下一場。";
+  }
 }
 
 function removePoint(team) {
+  if (!canDeviceScore()) {
+    return;
+  }
   if (team === "A") {
     state.scoreA = Math.max(0, state.scoreA - 1);
   } else {
     state.scoreB = Math.max(0, state.scoreB - 1);
   }
   refreshView();
-}
-
-function resetMatch() {
-  if (!canDeviceScore()) {
-    return;
-  }
-
-  if (!state.finished) {
-    if (state.scoreA === state.scoreB) {
-      registrationMessageEl.textContent = "目前同分，無法結束比賽，請先分出勝負。";
-      return;
-    }
-    // Allow manual match end and record current score.
-    state.finished = true;
-  }
-
-  recordFinishedMatchIfNeeded();
-
-  if (advanceToNextMatch()) {
-    return;
-  }
-
-  state.scoreA = 0;
-  state.scoreB = 0;
-  state.serving = null;
-  state.finished = false;
   saveRegistrationState();
-  refreshView();
 }
 
 aPlusBtn.addEventListener("click", () => addPoint("A"));
 aMinusBtn.addEventListener("click", () => removePoint("A"));
 bPlusBtn.addEventListener("click", () => addPoint("B"));
 bMinusBtn.addEventListener("click", () => removePoint("B"));
-resetBtn.addEventListener("click", resetMatch);
 registerTeamBtn.addEventListener("click", registerTeam);
 cancelMyRegistrationBtn.addEventListener("click", cancelMyRegistration);
 resetRegistrationBtn.addEventListener("click", resetRegistrationWithPassword);
@@ -950,7 +926,6 @@ venueSelectEl.addEventListener("change", () => {
     renderMatchHistory();
     gameSectionEl.classList.add("hidden");
     statusSectionEl.classList.add("hidden");
-    actionSectionEl.classList.add("hidden");
     refreshView();
     subscribeFirebaseVenue(selectedVenueId);
   } else {
@@ -968,7 +943,6 @@ venueSelectEl.addEventListener("change", () => {
     renderPlayerList(teamBPlayersEl, []);
     gameSectionEl.classList.add("hidden");
     statusSectionEl.classList.add("hidden");
-    actionSectionEl.classList.add("hidden");
     refreshView();
   }
   saveRegistrationState();
