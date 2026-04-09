@@ -21,7 +21,7 @@ const MIN_LEAD = 2;
 const STORAGE_KEY = "volleyball-registration";
 const RESET_REGISTRATION_PASSWORD = "1234";
 const DEFAULT_VENUE_ID = "fengchia";
-const DEVICE_TEAM_KEY = "volleyball-device-team-id";
+const DEVICE_TEAM_MAP_KEY = "volleyball-device-team-map";
 const VENUES = {
   fengchia: {
     name: "逢甲大學球場",
@@ -63,7 +63,6 @@ const checkLocationBtn = document.getElementById("check-location");
 const registrationMessageEl = document.getElementById("registration-message");
 const locationMessageEl = document.getElementById("location-message");
 const venueSelectEl = document.getElementById("venue-select");
-const deviceTeamSelectEl = document.getElementById("device-team-select");
 const teamNameInputEl = document.getElementById("team-name");
 const teamInputContainerEl = document.getElementById("team-inputs");
 const registeredTeamsEl = document.getElementById("registered-teams");
@@ -80,7 +79,14 @@ let allVenueStates = {};
 let firebaseReady = false;
 let unsubscribeVenueState = null;
 let unsubscribeVenueMatches = null;
-let deviceTeamId = localStorage.getItem(DEVICE_TEAM_KEY) || "";
+let deviceTeamMap = {};
+try {
+  const rawTeamMap = localStorage.getItem(DEVICE_TEAM_MAP_KEY);
+  deviceTeamMap = rawTeamMap ? JSON.parse(rawTeamMap) : {};
+} catch (_e) {
+  deviceTeamMap = {};
+}
+let deviceTeamId = typeof deviceTeamMap[selectedVenueId] === "string" ? deviceTeamMap[selectedVenueId] : "";
 
 function createEmptyVenueState() {
   return {
@@ -110,6 +116,22 @@ function generateTeamId() {
 function getTeamNameById(teamId) {
   const team = state.registeredTeams.find((item) => item.teamId === teamId);
   return team ? team.name : "未指定";
+}
+
+function persistDeviceTeamMap() {
+  localStorage.setItem(DEVICE_TEAM_MAP_KEY, JSON.stringify(deviceTeamMap));
+}
+
+function loadDeviceTeamForVenue() {
+  deviceTeamId = typeof deviceTeamMap[selectedVenueId] === "string" ? deviceTeamMap[selectedVenueId] : "";
+}
+
+function bindDeviceTeamIfNeeded(teamId) {
+  if (!deviceTeamId) {
+    deviceTeamId = teamId;
+    deviceTeamMap[selectedVenueId] = teamId;
+    persistDeviceTeamMap();
+  }
 }
 
 function syncStateFromActiveVenue() {
@@ -186,21 +208,16 @@ function applyVenueGate() {
   registerTeamBtn.disabled = !isInVenue;
 }
 
-function refreshDeviceTeamSelect() {
-  const previous = deviceTeamId;
-  deviceTeamSelectEl.innerHTML = "<option value=\"\">未選擇</option>";
-  for (const team of state.registeredTeams) {
-    const option = document.createElement("option");
-    option.value = team.teamId;
-    option.textContent = team.name;
-    deviceTeamSelectEl.appendChild(option);
+function ensureDeviceTeamStillExists() {
+  if (!deviceTeamId) {
+    return;
   }
-  const exists = state.registeredTeams.some((team) => team.teamId === previous);
+  const exists = state.registeredTeams.some((team) => team.teamId === deviceTeamId);
   if (!exists) {
     deviceTeamId = "";
-    localStorage.removeItem(DEVICE_TEAM_KEY);
+    delete deviceTeamMap[selectedVenueId];
+    persistDeviceTeamMap();
   }
-  deviceTeamSelectEl.value = deviceTeamId;
 }
 
 function canDeviceScore() {
@@ -338,7 +355,7 @@ function applyVenueStatePayload(payload) {
     actionSectionEl.classList.remove("hidden");
   }
   renderRegisteredTeams();
-  refreshDeviceTeamSelect();
+  ensureDeviceTeamStillExists();
   refreshView();
 }
 
@@ -471,9 +488,14 @@ function refreshView() {
 
   if (state.scorerTeamId) {
     const scorerName = getTeamNameById(state.scorerTeamId);
-    scorerStatusEl.textContent = canDeviceScore()
-      ? `本場記分隊：${scorerName}（你有記分權）`
-      : `本場記分隊：${scorerName}（你目前無記分權）`;
+    if (!deviceTeamId) {
+      scorerStatusEl.textContent = `本裝置尚未綁定隊伍；本場記分隊：${scorerName}`;
+    } else {
+      const myTeamName = getTeamNameById(deviceTeamId);
+      scorerStatusEl.textContent = canDeviceScore()
+        ? `本場記分隊：${scorerName}（本裝置：${myTeamName}，有記分權）`
+        : `本場記分隊：${scorerName}（本裝置：${myTeamName}，無記分權）`;
+    }
   } else {
     scorerStatusEl.textContent = "本場無下一隊可記分，請等待下一隊報名。";
   }
@@ -549,6 +571,9 @@ function clearAllRegistrationData() {
 
   syncActiveVenueFromState();
   saveRegistrationState();
+  delete deviceTeamMap[selectedVenueId];
+  persistDeviceTeamMap();
+  loadDeviceTeamForVenue();
   refreshView();
 }
 
@@ -663,14 +688,16 @@ function registerTeam() {
     return;
   }
 
-  state.registeredTeams.push({
+  const newTeam = {
     teamId: generateTeamId(),
     name: teamName,
     players: teamPlayers
-  });
+  };
+  state.registeredTeams.push(newTeam);
+  bindDeviceTeamIfNeeded(newTeam.teamId);
 
   renderRegisteredTeams();
-  refreshDeviceTeamSelect();
+  ensureDeviceTeamStillExists();
   clearRegistrationForm();
 
   if (state.registeredTeams.length === 1) {
@@ -779,10 +806,12 @@ checkLocationBtn.addEventListener("click", checkLocationForRegistration);
 venueSelectEl.addEventListener("change", () => {
   if (hasFirebase() && firebaseReady) {
     selectedVenueId = venueSelectEl.value;
+    loadDeviceTeamForVenue();
     subscribeFirebaseVenue(selectedVenueId);
   } else {
   syncActiveVenueFromState();
   selectedVenueId = venueSelectEl.value;
+  loadDeviceTeamForVenue();
   syncStateFromActiveVenue();
   renderRegisteredTeams();
   renderMatchHistory();
@@ -802,15 +831,6 @@ venueSelectEl.addEventListener("change", () => {
   applyVenueGate();
   checkLocationForRegistration();
 });
-deviceTeamSelectEl.addEventListener("change", () => {
-  deviceTeamId = deviceTeamSelectEl.value;
-  if (deviceTeamId) {
-    localStorage.setItem(DEVICE_TEAM_KEY, deviceTeamId);
-  } else {
-    localStorage.removeItem(DEVICE_TEAM_KEY);
-  }
-  refreshView();
-});
 goRegistrationBtn.addEventListener("click", () => showPage("registration"));
 goScoreBtn.addEventListener("click", () => showPage("score"));
 
@@ -819,7 +839,7 @@ setInterval(updateCurrentTime, 1000);
 loadRegistrationState();
 renderRegisteredTeams();
 renderMatchHistory();
-refreshDeviceTeamSelect();
+ensureDeviceTeamStillExists();
 refreshView();
 showPage("registration");
 venueSelectEl.value = selectedVenueId;
