@@ -479,6 +479,20 @@ function saveRegistrationState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }
 
+async function saveRegistrationStateStrict() {
+  if (hasFirebase() && firebaseReady) {
+    await window.FirebaseDB.saveVenueState(selectedVenueId, getStatePayloadForStorage());
+    return;
+  }
+  syncActiveVenueFromState();
+  const payload = {
+    date: getTodayKey(),
+    selectedVenueId,
+    venueStates: allVenueStates
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
 async function runDailyAutoResetIfNeeded() {
   if (isDailyResetRunning) {
     return;
@@ -682,7 +696,7 @@ function clearRegistrationForm() {
   }
 }
 
-function clearAllRegistrationData() {
+async function clearAllRegistrationData() {
   Object.assign(state, createEmptyVenueState());
 
   renderPlayerList(teamAPlayersEl, []);
@@ -694,8 +708,7 @@ function clearAllRegistrationData() {
   gameSectionEl.classList.add("hidden");
   statusSectionEl.classList.add("hidden");
 
-  syncActiveVenueFromState();
-  saveRegistrationState();
+  await saveRegistrationStateStrict();
   delete deviceTeamMap[selectedVenueId];
   persistDeviceTeamMap();
   loadDeviceTeamForVenue();
@@ -771,7 +784,7 @@ function cancelMyRegistration() {
   registrationMessageEl.textContent = `已取消 ${cancelledTeam.name} 的報名。`;
 }
 
-function resetRegistrationWithPassword() {
+async function resetRegistrationWithPassword() {
   if (!adminUnlocked) {
     adminAuthMessageEl.textContent = "請先進入管理員模式。";
     return;
@@ -783,11 +796,16 @@ function resetRegistrationWithPassword() {
     return;
   }
 
-  clearAllRegistrationData();
-  registrationMessageEl.textContent = `已完成「${venueName}」報名重置，請重新報名。`;
+  try {
+    await clearAllRegistrationData();
+    registrationMessageEl.textContent = `已完成「${venueName}」報名重置，請重新報名。`;
+  } catch (error) {
+    console.error("reset registration failed:", error);
+    registrationMessageEl.textContent = `重置「${venueName}」報名失敗，請確認 Firebase 權限。`;
+  }
 }
 
-function toggleLocationCheckWithPassword() {
+async function toggleLocationCheckWithPassword() {
   if (!adminUnlocked) {
     adminAuthMessageEl.textContent = "請先進入管理員模式。";
     return;
@@ -804,7 +822,17 @@ function toggleLocationCheckWithPassword() {
   isInVenue = !state.locationCheckEnabled ? true : false;
   updateLocationCheckStatus();
   applyVenueGate();
-  saveRegistrationState();
+  try {
+    await saveRegistrationStateStrict();
+  } catch (error) {
+    console.error("toggle location check failed:", error);
+    state.locationCheckEnabled = !state.locationCheckEnabled;
+    isInVenue = !state.locationCheckEnabled ? true : false;
+    updateLocationCheckStatus();
+    applyVenueGate();
+    registrationMessageEl.textContent = `切換「${venueName}」定位檢查失敗，請確認 Firebase 權限。`;
+    return;
+  }
   if (state.locationCheckEnabled) {
     checkLocationForRegistration();
     registrationMessageEl.textContent = "已啟用定位檢查。";
@@ -831,7 +859,7 @@ async function resetMatchHistory() {
       await window.FirebaseDB.clearMatches(selectedVenueId);
     } catch (error) {
       console.error("clearMatches failed:", error);
-      registrationMessageEl.textContent = "重置比賽結果失敗，請稍後再試。";
+      registrationMessageEl.textContent = `清空「${venueName}」比賽結果失敗，請確認 Firebase 權限。`;
       return;
     }
   } else {
