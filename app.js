@@ -19,8 +19,7 @@ const state = {
 const WIN_SCORE = 25;
 const MIN_LEAD = 2;
 const STORAGE_KEY = "volleyball-registration";
-const RESET_REGISTRATION_PASSWORD = "1234";
-const LOCATION_TOGGLE_PASSWORD = "1234";
+const ADMIN_PAGE_PASSWORD = "1234";
 const DEFAULT_VENUE_ID = "fengchia";
 const DEVICE_TEAM_MAP_KEY = "volleyball-device-team-map";
 const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
@@ -73,9 +72,16 @@ const registeredTeamsEl = document.getElementById("registered-teams");
 const matchHistoryEl = document.getElementById("match-history");
 const registrationPageEl = document.getElementById("registration-page");
 const scorePageEl = document.getElementById("score-page");
+const adminPageEl = document.getElementById("admin-page");
 const scorePageMessageEl = document.getElementById("score-page-message");
 const goRegistrationBtn = document.getElementById("go-registration");
 const goScoreBtn = document.getElementById("go-score");
+const goAdminBtn = document.getElementById("go-admin");
+const adminLoginSectionEl = document.getElementById("admin-login-section");
+const adminControlsSectionEl = document.getElementById("admin-controls-section");
+const adminPasswordInputEl = document.getElementById("admin-password");
+const adminUnlockBtn = document.getElementById("admin-unlock");
+const adminAuthMessageEl = document.getElementById("admin-auth-message");
 let currentPage = "registration";
 let isInVenue = false;
 let selectedVenueId = DEFAULT_VENUE_ID;
@@ -84,6 +90,7 @@ let firebaseReady = false;
 let unsubscribeVenueState = null;
 let unsubscribeVenueMatches = null;
 let isDailyResetRunning = false;
+let adminUnlocked = false;
 let deviceTeamMap = {};
 try {
   const rawTeamMap = localStorage.getItem(DEVICE_TEAM_MAP_KEY);
@@ -322,12 +329,21 @@ function updateScorePageMessage() {
 
 function showPage(page) {
   const isRegistration = page === "registration";
+  const isScore = page === "score";
+  const isAdmin = page === "admin";
   currentPage = page;
   registrationPageEl.classList.toggle("hidden", !isRegistration);
-  scorePageEl.classList.toggle("hidden", isRegistration);
+  scorePageEl.classList.toggle("hidden", !isScore);
+  adminPageEl.classList.toggle("hidden", !isAdmin);
   goRegistrationBtn.classList.toggle("active", isRegistration);
-  goScoreBtn.classList.toggle("active", !isRegistration);
+  goScoreBtn.classList.toggle("active", isScore);
+  goAdminBtn.classList.toggle("active", isAdmin);
   updateScorePageMessage();
+}
+
+function renderAdminModeView() {
+  adminLoginSectionEl.classList.toggle("hidden", adminUnlocked);
+  adminControlsSectionEl.classList.toggle("hidden", !adminUnlocked);
 }
 
 function getTodayKey() {
@@ -756,13 +772,8 @@ function cancelMyRegistration() {
 }
 
 function resetRegistrationWithPassword() {
-  const password = window.prompt("請輸入重置密碼：");
-  if (password === null) {
-    return;
-  }
-
-  if (password !== RESET_REGISTRATION_PASSWORD) {
-    registrationMessageEl.textContent = "密碼錯誤，無法重置報名隊伍。";
+  if (!adminUnlocked) {
+    adminAuthMessageEl.textContent = "請先進入管理員模式。";
     return;
   }
 
@@ -771,12 +782,8 @@ function resetRegistrationWithPassword() {
 }
 
 function toggleLocationCheckWithPassword() {
-  const password = window.prompt("請輸入密碼以切換定位檢查：");
-  if (password === null) {
-    return;
-  }
-  if (password !== LOCATION_TOGGLE_PASSWORD) {
-    registrationMessageEl.textContent = "密碼錯誤，無法切換定位檢查。";
+  if (!adminUnlocked) {
+    adminAuthMessageEl.textContent = "請先進入管理員模式。";
     return;
   }
 
@@ -795,12 +802,8 @@ function toggleLocationCheckWithPassword() {
 }
 
 async function resetMatchHistory() {
-  const password = window.prompt("請輸入重置密碼：");
-  if (password === null) {
-    return;
-  }
-  if (password !== RESET_REGISTRATION_PASSWORD) {
-    registrationMessageEl.textContent = "密碼錯誤，無法重置比賽結果。";
+  if (!adminUnlocked) {
+    adminAuthMessageEl.textContent = "請先進入管理員模式。";
     return;
   }
 
@@ -823,6 +826,18 @@ async function resetMatchHistory() {
   }
 
   registrationMessageEl.textContent = "已清空比賽結果紀錄。";
+}
+
+function unlockAdminPage() {
+  const password = adminPasswordInputEl.value;
+  if (password !== ADMIN_PAGE_PASSWORD) {
+    adminAuthMessageEl.textContent = "密碼錯誤。";
+    return;
+  }
+  adminUnlocked = true;
+  adminPasswordInputEl.value = "";
+  adminAuthMessageEl.textContent = "已進入管理員模式。";
+  renderAdminModeView();
 }
 
 function setTeamsByIndex(teamAIndex, teamBIndex) {
@@ -1058,6 +1073,7 @@ resetRegistrationBtn.addEventListener("click", resetRegistrationWithPassword);
 resetMatchHistoryBtn.addEventListener("click", resetMatchHistory);
 checkLocationBtn.addEventListener("click", checkLocationForRegistration);
 toggleLocationCheckBtn.addEventListener("click", toggleLocationCheckWithPassword);
+adminUnlockBtn.addEventListener("click", unlockAdminPage);
 venueSelectEl.addEventListener("change", () => {
   if (hasFirebase() && firebaseReady) {
     selectedVenueId = venueSelectEl.value;
@@ -1098,6 +1114,7 @@ venueSelectEl.addEventListener("change", () => {
 });
 goRegistrationBtn.addEventListener("click", () => showPage("registration"));
 goScoreBtn.addEventListener("click", () => showPage("score"));
+goAdminBtn.addEventListener("click", () => showPage("admin"));
 
 updateCurrentTime();
 setInterval(updateCurrentTime, 1000);
@@ -1108,6 +1125,7 @@ ensureDeviceTeamStillExists();
 updateLocationCheckStatus();
 refreshView();
 showPage("registration");
+renderAdminModeView();
 venueSelectEl.value = selectedVenueId;
 applyVenueGate();
 checkLocationForRegistration();

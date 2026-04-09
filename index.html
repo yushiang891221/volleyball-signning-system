@@ -13,6 +13,7 @@
     <div class="page-nav">
       <button id="go-registration" type="button">報名頁面</button>
       <button id="go-score" type="button">計分頁面</button>
+      <button id="go-admin" type="button">管理員頁面</button>
     </div>
 
     <section id="registration-page">
@@ -39,25 +40,17 @@
         </div>
         <button id="check-location" type="button">檢查定位</button>
         <p id="location-message"></p>
-        <div class="panel-actions">
-          <button id="toggle-location-check" class="danger-btn" type="button">切換定位檢查</button>
-          <p id="location-check-status"></p>
-        </div>
         <section class="panel-block">
           <h3>報名隊伍管理</h3>
           <div class="panel-actions">
             <button id="register-team" type="button">報名這一隊</button>
             <button id="cancel-my-registration" class="danger-btn" type="button">取消我的報名</button>
-            <button id="reset-registration" class="danger-btn" type="button">重置報名隊伍</button>
           </div>
           <ol id="registered-teams"></ol>
         </section>
 
         <section class="panel-block">
           <h3>比賽結果管理</h3>
-          <div class="panel-actions">
-            <button id="reset-match-history" class="danger-btn" type="button">重置比賽結果</button>
-          </div>
           <ol id="match-history"></ol>
         </section>
         <p id="registration-message"></p>
@@ -94,6 +87,31 @@
         <p id="scorer-status"></p>
       </section>
 
+    </section>
+
+    <section id="admin-page" class="hidden">
+      <section class="registration-section">
+        <h2>管理員頁面</h2>
+        <section id="admin-login-section" class="panel-block">
+          <h3>管理員登入</h3>
+          <label for="admin-password">密碼</label>
+          <input id="admin-password" type="password" placeholder="輸入管理員密碼">
+          <div class="panel-actions">
+            <button id="admin-unlock" type="button">進入管理員模式</button>
+          </div>
+          <p id="admin-auth-message"></p>
+        </section>
+
+        <section id="admin-controls-section" class="panel-block hidden">
+          <h3>系統控制</h3>
+          <p id="location-check-status"></p>
+          <div class="panel-actions">
+            <button id="toggle-location-check" class="danger-btn" type="button">切換定位檢查</button>
+            <button id="reset-registration" class="danger-btn" type="button">重置報名隊伍</button>
+            <button id="reset-match-history" class="danger-btn" type="button">重置比賽結果</button>
+          </div>
+        </section>
+      </section>
     </section>
   </main>
 

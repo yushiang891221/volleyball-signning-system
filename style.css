@@ -65,7 +65,22 @@ h1 {
   font-size: 14px;
 }
 
+#admin-login-section label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
 .registration-card input {
+  width: 100%;
+  margin-bottom: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 15px;
+}
+
+#admin-login-section input {
   width: 100%;
   margin-bottom: 8px;
   border: 1px solid #cbd5e1;
@@ -120,6 +135,12 @@ h1 {
 }
 
 #location-check-status {
+  margin: 8px 0 0;
+  font-weight: 600;
+  color: #334155;
+}
+
+#admin-auth-message {
   margin: 8px 0 0;
   font-weight: 600;
   color: #334155;
