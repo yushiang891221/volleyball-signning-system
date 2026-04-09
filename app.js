@@ -777,13 +777,26 @@ function resetRegistrationWithPassword() {
     return;
   }
 
+  const venueName = VENUES[selectedVenueId].name;
+  const confirmed = window.confirm(`確定要重置「${venueName}」的報名隊伍嗎？`);
+  if (!confirmed) {
+    return;
+  }
+
   clearAllRegistrationData();
-  registrationMessageEl.textContent = "已完成重置，請重新報名。";
+  registrationMessageEl.textContent = `已完成「${venueName}」報名重置，請重新報名。`;
 }
 
 function toggleLocationCheckWithPassword() {
   if (!adminUnlocked) {
     adminAuthMessageEl.textContent = "請先進入管理員模式。";
+    return;
+  }
+
+  const venueName = VENUES[selectedVenueId].name;
+  const targetState = state.locationCheckEnabled ? "停用" : "啟用";
+  const confirmed = window.confirm(`確定要在「${venueName}」${targetState}定位檢查嗎？`);
+  if (!confirmed) {
     return;
   }
 
@@ -807,7 +820,8 @@ async function resetMatchHistory() {
     return;
   }
 
-  const confirmed = window.confirm("確定要清空目前球場的比賽結果紀錄嗎？");
+  const venueName = VENUES[selectedVenueId].name;
+  const confirmed = window.confirm(`確定要清空「${venueName}」的比賽結果紀錄嗎？`);
   if (!confirmed) {
     return;
   }
@@ -825,7 +839,7 @@ async function resetMatchHistory() {
     renderMatchHistory();
   }
 
-  registrationMessageEl.textContent = "已清空比賽結果紀錄。";
+  registrationMessageEl.textContent = `已清空「${venueName}」比賽結果紀錄。`;
 }
 
 function unlockAdminPage() {
