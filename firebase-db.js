@@ -52,6 +52,11 @@ window.FirebaseDB = {
       );
   },
 
+  async getVenueState(venueId) {
+    const snap = await getVenueStateRef(venueId).get();
+    return snap.exists ? snap.data() : null;
+  },
+
   async saveVenueState(venueId, payload) {
     await getVenueStateRef(venueId).set(
       {

@@ -22,6 +22,7 @@ const STORAGE_KEY = "volleyball-registration";
 const RESET_REGISTRATION_PASSWORD = "1234";
 const DEFAULT_VENUE_ID = "fengchia";
 const DEVICE_TEAM_MAP_KEY = "volleyball-device-team-map";
+const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const VENUES = {
   fengchia: {
     name: "逢甲大學球場",
@@ -79,6 +80,7 @@ let allVenueStates = {};
 let firebaseReady = false;
 let unsubscribeVenueState = null;
 let unsubscribeVenueMatches = null;
+let isDailyResetRunning = false;
 let deviceTeamMap = {};
 try {
   const rawTeamMap = localStorage.getItem(DEVICE_TEAM_MAP_KEY);
@@ -436,6 +438,61 @@ function saveRegistrationState() {
     venueStates: allVenueStates
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+async function runDailyAutoResetIfNeeded() {
+  if (isDailyResetRunning) {
+    return;
+  }
+  const today = getTodayKey();
+  const lastChecked = localStorage.getItem(DAILY_RESET_CHECK_KEY);
+  if (lastChecked === today) {
+    return;
+  }
+
+  isDailyResetRunning = true;
+  try {
+    if (hasFirebase() && firebaseReady) {
+      for (const venueId of Object.keys(VENUES)) {
+        const current = await window.FirebaseDB.getVenueState(venueId);
+        if (current && current.autoResetDate === today) {
+          continue;
+        }
+        await window.FirebaseDB.saveVenueState(venueId, {
+          ...createEmptyVenueState(),
+          autoResetDate: today
+        });
+        await window.FirebaseDB.clearMatches(venueId);
+        delete deviceTeamMap[venueId];
+      }
+      persistDeviceTeamMap();
+      loadDeviceTeamForVenue();
+      syncUserTeamClaim();
+      registrationMessageEl.textContent = "已完成今日自動重置（報名與比賽結果）。";
+    } else {
+      allVenueStates = {};
+      for (const venueId of Object.keys(VENUES)) {
+        allVenueStates[venueId] = {
+          ...createEmptyVenueState(),
+          autoResetDate: today
+        };
+        delete deviceTeamMap[venueId];
+      }
+      persistDeviceTeamMap();
+      loadDeviceTeamForVenue();
+      syncStateFromActiveVenue();
+      saveRegistrationState();
+      renderRegisteredTeams();
+      renderMatchHistory();
+      refreshView();
+      registrationMessageEl.textContent = "已完成今日自動重置（報名與比賽結果）。";
+    }
+    localStorage.setItem(DAILY_RESET_CHECK_KEY, today);
+  } catch (error) {
+    console.error("Daily auto reset failed:", error);
+  } finally {
+    isDailyResetRunning = false;
+  }
 }
 
 function loadRegistrationState() {
@@ -1017,6 +1074,7 @@ window.FirebaseAppReady
     }
     syncUserTeamClaim();
     subscribeFirebaseVenue(selectedVenueId);
+    runDailyAutoResetIfNeeded();
   })
   .catch((error) => {
     console.error("Firebase init error:", error);
@@ -1031,4 +1089,5 @@ setInterval(() => {
     renderMatchHistory();
   }
   checkLocationForRegistration();
+  runDailyAutoResetIfNeeded();
 }, 1 * 60 * 1000);
