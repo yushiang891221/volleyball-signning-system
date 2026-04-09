@@ -99,6 +99,7 @@ let unsubscribeVenueState = null;
 let unsubscribeVenueMatches = null;
 let isDailyResetRunning = false;
 let adminUnlocked = false;
+let hasHydratedVenueState = false;
 let deviceTeamMap = {};
 try {
   const rawTeamMap = localStorage.getItem(DEVICE_TEAM_MAP_KEY);
@@ -266,6 +267,9 @@ function updateStreakModeStatus() {
 }
 
 function ensureDeviceTeamStillExists() {
+  if (hasFirebase() && firebaseReady && !hasHydratedVenueState) {
+    return;
+  }
   if (!deviceTeamId) {
     return;
   }
@@ -414,6 +418,7 @@ function getStatePayloadForStorage() {
 }
 
 function applyVenueStatePayload(payload) {
+  hasHydratedVenueState = true;
   if (!payload) {
     Object.assign(state, createEmptyVenueState());
     renderPlayerList(teamAPlayersEl, []);
@@ -1267,6 +1272,7 @@ venueSelectEl.addEventListener("change", () => {
     selectedVenueId = venueSelectEl.value;
     loadDeviceTeamForVenue();
     syncUserTeamClaim();
+    hasHydratedVenueState = false;
     // Avoid cross-venue stale state before snapshot returns.
     Object.assign(state, createEmptyVenueState());
     renderPlayerList(teamAPlayersEl, []);
@@ -1323,6 +1329,7 @@ checkLocationForRegistration();
 window.FirebaseAppReady
   .then(() => {
     firebaseReady = true;
+    hasHydratedVenueState = false;
     const currentUser = firebase.auth().currentUser;
     if (currentUser) {
       window.FirebaseDB.ensureUserProfile(currentUser.uid).catch((error) => {
