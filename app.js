@@ -924,6 +924,16 @@ venueSelectEl.addEventListener("change", () => {
   if (hasFirebase() && firebaseReady) {
     selectedVenueId = venueSelectEl.value;
     loadDeviceTeamForVenue();
+    // Avoid cross-venue stale state before snapshot returns.
+    Object.assign(state, createEmptyVenueState());
+    renderPlayerList(teamAPlayersEl, []);
+    renderPlayerList(teamBPlayersEl, []);
+    renderRegisteredTeams();
+    renderMatchHistory();
+    gameSectionEl.classList.add("hidden");
+    statusSectionEl.classList.add("hidden");
+    actionSectionEl.classList.add("hidden");
+    refreshView();
     subscribeFirebaseVenue(selectedVenueId);
   } else {
   syncActiveVenueFromState();
