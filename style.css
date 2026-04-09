@@ -119,6 +119,12 @@ h1 {
   color: #334155;
 }
 
+#location-check-status {
+  margin: 8px 0 0;
+  font-weight: 600;
+  color: #334155;
+}
+
 #scorer-status {
   margin: 6px 0 0;
   font-weight: 600;

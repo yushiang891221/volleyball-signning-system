@@ -20,6 +20,7 @@ const WIN_SCORE = 25;
 const MIN_LEAD = 2;
 const STORAGE_KEY = "volleyball-registration";
 const RESET_REGISTRATION_PASSWORD = "1234";
+const LOCATION_TOGGLE_PASSWORD = "1234";
 const DEFAULT_VENUE_ID = "fengchia";
 const DEVICE_TEAM_MAP_KEY = "volleyball-device-team-map";
 const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
@@ -61,8 +62,10 @@ const cancelMyRegistrationBtn = document.getElementById("cancel-my-registration"
 const resetRegistrationBtn = document.getElementById("reset-registration");
 const resetMatchHistoryBtn = document.getElementById("reset-match-history");
 const checkLocationBtn = document.getElementById("check-location");
+const toggleLocationCheckBtn = document.getElementById("toggle-location-check");
 const registrationMessageEl = document.getElementById("registration-message");
 const locationMessageEl = document.getElementById("location-message");
+const locationCheckStatusEl = document.getElementById("location-check-status");
 const venueSelectEl = document.getElementById("venue-select");
 const teamNameInputEl = document.getElementById("team-name");
 const teamInputContainerEl = document.getElementById("team-inputs");
@@ -106,6 +109,7 @@ function createEmptyVenueState() {
     currentBIndex: null,
     scorerIndex: null,
     scorerTeamId: null,
+    locationCheckEnabled: true,
     currentMatchRecorded: false
   };
 }
@@ -176,6 +180,7 @@ function syncActiveVenueFromState() {
     currentBIndex: state.currentBIndex,
     scorerIndex: state.scorerIndex,
     scorerTeamId: state.scorerTeamId,
+    locationCheckEnabled: state.locationCheckEnabled,
     currentMatchRecorded: state.currentMatchRecorded
   };
 }
@@ -221,7 +226,14 @@ function isInsideSelectedVenue(lat, lng) {
 }
 
 function applyVenueGate() {
-  registerTeamBtn.disabled = !isInVenue;
+  const passLocationGate = !state.locationCheckEnabled || isInVenue;
+  registerTeamBtn.disabled = !passLocationGate;
+}
+
+function updateLocationCheckStatus() {
+  locationCheckStatusEl.textContent = state.locationCheckEnabled
+    ? "定位檢查：已啟用"
+    : "定位檢查：已停用";
 }
 
 function ensureDeviceTeamStillExists() {
@@ -265,6 +277,13 @@ function refreshScoringPermissionView() {
 }
 
 function checkLocationForRegistration() {
+  if (!state.locationCheckEnabled) {
+    isInVenue = true;
+    locationMessageEl.textContent = "定位檢查已停用，可直接報名。";
+    applyVenueGate();
+    return;
+  }
+
   if (!navigator.geolocation) {
     isInVenue = false;
     locationMessageEl.textContent = "此裝置不支援定位，無法報名。";
@@ -343,6 +362,7 @@ function getStatePayloadForStorage() {
     currentBIndex: state.currentBIndex,
     scorerIndex: state.scorerIndex,
     scorerTeamId: state.scorerTeamId,
+    locationCheckEnabled: state.locationCheckEnabled,
     currentMatchRecorded: state.currentMatchRecorded
   };
 }
@@ -376,6 +396,8 @@ function applyVenueStatePayload(payload) {
   state.currentBIndex = Number.isInteger(payload.currentBIndex) ? payload.currentBIndex : null;
   state.scorerIndex = Number.isInteger(payload.scorerIndex) ? payload.scorerIndex : null;
   state.scorerTeamId = typeof payload.scorerTeamId === "string" ? payload.scorerTeamId : null;
+  state.locationCheckEnabled =
+    typeof payload.locationCheckEnabled === "boolean" ? payload.locationCheckEnabled : true;
   state.currentMatchRecorded = Boolean(payload.currentMatchRecorded);
 
   renderPlayerList(teamAPlayersEl, state.teamAPlayers);
@@ -386,6 +408,7 @@ function applyVenueStatePayload(payload) {
   }
   renderRegisteredTeams();
   ensureDeviceTeamStillExists();
+  updateLocationCheckStatus();
   refreshView();
 }
 
@@ -747,6 +770,30 @@ function resetRegistrationWithPassword() {
   registrationMessageEl.textContent = "已完成重置，請重新報名。";
 }
 
+function toggleLocationCheckWithPassword() {
+  const password = window.prompt("請輸入密碼以切換定位檢查：");
+  if (password === null) {
+    return;
+  }
+  if (password !== LOCATION_TOGGLE_PASSWORD) {
+    registrationMessageEl.textContent = "密碼錯誤，無法切換定位檢查。";
+    return;
+  }
+
+  state.locationCheckEnabled = !state.locationCheckEnabled;
+  isInVenue = !state.locationCheckEnabled ? true : false;
+  updateLocationCheckStatus();
+  applyVenueGate();
+  saveRegistrationState();
+  if (state.locationCheckEnabled) {
+    checkLocationForRegistration();
+    registrationMessageEl.textContent = "已啟用定位檢查。";
+  } else {
+    locationMessageEl.textContent = "定位檢查已停用，可直接報名。";
+    registrationMessageEl.textContent = "已停用定位檢查。";
+  }
+}
+
 async function resetMatchHistory() {
   const password = window.prompt("請輸入重置密碼：");
   if (password === null) {
@@ -868,7 +915,7 @@ function advanceToNextMatch() {
 }
 
 function registerTeam() {
-  if (!isInVenue) {
+  if (state.locationCheckEnabled && !isInVenue) {
     const venue = VENUES[selectedVenueId];
     registrationMessageEl.textContent = `需在「${venue.name}」範圍內才能報名。`;
     return;
@@ -1010,6 +1057,7 @@ cancelMyRegistrationBtn.addEventListener("click", cancelMyRegistration);
 resetRegistrationBtn.addEventListener("click", resetRegistrationWithPassword);
 resetMatchHistoryBtn.addEventListener("click", resetMatchHistory);
 checkLocationBtn.addEventListener("click", checkLocationForRegistration);
+toggleLocationCheckBtn.addEventListener("click", toggleLocationCheckWithPassword);
 venueSelectEl.addEventListener("change", () => {
   if (hasFirebase() && firebaseReady) {
     selectedVenueId = venueSelectEl.value;
@@ -1057,6 +1105,7 @@ loadRegistrationState();
 renderRegisteredTeams();
 renderMatchHistory();
 ensureDeviceTeamStillExists();
+updateLocationCheckStatus();
 refreshView();
 showPage("registration");
 venueSelectEl.value = selectedVenueId;
