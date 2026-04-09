@@ -19,8 +19,21 @@ const WIN_SCORE = 25;
 const MIN_LEAD = 2;
 const STORAGE_KEY = "volleyball-registration";
 const RESET_REGISTRATION_PASSWORD = "1234";
-const VENUE_CORNER_A = { lat: 24.180408, lng: 120.649766 };
-const VENUE_CORNER_B = { lat: 24.180168, lng: 120.650120 };
+const DEFAULT_VENUE_ID = "fengchia";
+const VENUES = {
+  fengchia: {
+    name: "逢甲大學球場",
+    type: "box",
+    cornerA: { lat: 24.180408, lng: 120.649766 },
+    cornerB: { lat: 24.180168, lng: 120.65012 }
+  },
+  home: {
+    name: "測試用球場",
+    type: "circle",
+    center: { lat: 24.743353, lng: 121.088657 },
+    radiusM: 80
+  }
+};
 
 const scoreAEl = document.getElementById("score-a");
 const scoreBEl = document.getElementById("score-b");
@@ -46,6 +59,7 @@ const resetRegistrationBtn = document.getElementById("reset-registration");
 const checkLocationBtn = document.getElementById("check-location");
 const registrationMessageEl = document.getElementById("registration-message");
 const locationMessageEl = document.getElementById("location-message");
+const venueSelectEl = document.getElementById("venue-select");
 const teamNameInputEl = document.getElementById("team-name");
 const teamInputContainerEl = document.getElementById("team-inputs");
 const registeredTeamsEl = document.getElementById("registered-teams");
@@ -57,13 +71,94 @@ const goRegistrationBtn = document.getElementById("go-registration");
 const goScoreBtn = document.getElementById("go-score");
 let currentPage = "registration";
 let isInVenue = false;
+let selectedVenueId = DEFAULT_VENUE_ID;
+let allVenueStates = {};
 
-function isInsideVenueBox(lat, lng) {
-  const minLat = Math.min(VENUE_CORNER_A.lat, VENUE_CORNER_B.lat);
-  const maxLat = Math.max(VENUE_CORNER_A.lat, VENUE_CORNER_B.lat);
-  const minLng = Math.min(VENUE_CORNER_A.lng, VENUE_CORNER_B.lng);
-  const maxLng = Math.max(VENUE_CORNER_A.lng, VENUE_CORNER_B.lng);
+function createEmptyVenueState() {
+  return {
+    scoreA: 0,
+    scoreB: 0,
+    serving: null,
+    finished: false,
+    teamAName: "隊伍 A",
+    teamBName: "隊伍 B",
+    teamAPlayers: [],
+    teamBPlayers: [],
+    registeredTeams: [],
+    matchHistory: [],
+    currentAIndex: null,
+    currentBIndex: null,
+    nextChallengerIndex: 0,
+    currentMatchRecorded: false
+  };
+}
+
+function syncStateFromActiveVenue() {
+  const activeState = allVenueStates[selectedVenueId] || createEmptyVenueState();
+  allVenueStates[selectedVenueId] = activeState;
+  Object.assign(state, activeState);
+}
+
+function syncActiveVenueFromState() {
+  allVenueStates[selectedVenueId] = {
+    scoreA: state.scoreA,
+    scoreB: state.scoreB,
+    serving: state.serving,
+    finished: state.finished,
+    teamAName: state.teamAName,
+    teamBName: state.teamBName,
+    teamAPlayers: [...state.teamAPlayers],
+    teamBPlayers: [...state.teamBPlayers],
+    registeredTeams: state.registeredTeams.map((team) => ({
+      name: team.name,
+      players: [...team.players]
+    })),
+    matchHistory: state.matchHistory.map((match) => ({ ...match })),
+    currentAIndex: state.currentAIndex,
+    currentBIndex: state.currentBIndex,
+    nextChallengerIndex: state.nextChallengerIndex,
+    currentMatchRecorded: state.currentMatchRecorded
+  };
+}
+
+function isInsideVenueBox(lat, lng, cornerA, cornerB) {
+  const minLat = Math.min(cornerA.lat, cornerB.lat);
+  const maxLat = Math.max(cornerA.lat, cornerB.lat);
+  const minLng = Math.min(cornerA.lng, cornerB.lng);
+  const maxLng = Math.max(cornerA.lng, cornerB.lng);
   return lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng;
+}
+
+function toRadians(value) {
+  return (value * Math.PI) / 180;
+}
+
+function distanceMeters(aLat, aLng, bLat, bLng) {
+  const earthRadius = 6371000;
+  const dLat = toRadians(bLat - aLat);
+  const dLng = toRadians(bLng - aLng);
+  const x =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRadians(aLat)) * Math.cos(toRadians(bLat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * earthRadius * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+}
+
+function isInsideSelectedVenue(lat, lng) {
+  const venue = VENUES[selectedVenueId];
+  if (!venue) {
+    return false;
+  }
+
+  if (venue.type === "box") {
+    return isInsideVenueBox(lat, lng, venue.cornerA, venue.cornerB);
+  }
+
+  if (venue.type === "circle") {
+    const distance = distanceMeters(lat, lng, venue.center.lat, venue.center.lng);
+    return distance <= venue.radiusM;
+  }
+
+  return false;
 }
 
 function applyVenueGate() {
@@ -82,10 +177,11 @@ function checkLocationForRegistration() {
   navigator.geolocation.getCurrentPosition(
     (position) => {
       const { latitude, longitude } = position.coords;
-      isInVenue = isInsideVenueBox(latitude, longitude);
+      const venue = VENUES[selectedVenueId];
+      isInVenue = isInsideSelectedVenue(latitude, longitude);
       locationMessageEl.textContent = isInVenue
-        ? "定位成功：位於球場範圍內，可報名。"
-        : "定位成功：目前不在球場對角範圍內，無法報名。";
+        ? `定位成功：位於「${venue.name}」範圍內，可報名。`
+        : `定位成功：目前不在「${venue.name}」範圍內，無法報名。`;
       applyVenueGate();
     },
     () => {
@@ -98,11 +194,12 @@ function checkLocationForRegistration() {
 }
 
 function updateScorePageMessage() {
+  const venue = VENUES[selectedVenueId];
   if (state.registeredTeams.length < 2) {
-    scorePageMessageEl.textContent = "請先到報名頁面完成兩隊報名。";
+    scorePageMessageEl.textContent = `目前球場：${venue.name}，請先完成兩隊報名。`;
     return;
   }
-  scorePageMessageEl.textContent = `目前對戰：${state.teamAName} vs ${state.teamBName}`;
+  scorePageMessageEl.textContent = `目前球場：${venue.name}｜對戰：${state.teamAName} vs ${state.teamBName}`;
 }
 
 function showPage(page) {
@@ -129,13 +226,11 @@ function updateCurrentTime() {
 }
 
 function saveRegistrationState() {
+  syncActiveVenueFromState();
   const payload = {
     date: getTodayKey(),
-    registeredTeams: state.registeredTeams,
-    matchHistory: state.matchHistory,
-    currentAIndex: state.currentAIndex,
-    currentBIndex: state.currentBIndex,
-    nextChallengerIndex: state.nextChallengerIndex
+    selectedVenueId,
+    venueStates: allVenueStates
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }
@@ -150,28 +245,26 @@ function loadRegistrationState() {
     const data = JSON.parse(raw);
     if (data.date !== getTodayKey()) {
       localStorage.removeItem(STORAGE_KEY);
-      state.registeredTeams = [];
-      state.matchHistory = [];
+      allVenueStates = {};
+      Object.assign(state, createEmptyVenueState());
       registrationMessageEl.textContent = "新的一天已開始，已自動清空昨日報名資料。";
       renderRegisteredTeams();
       renderMatchHistory();
       return;
     }
 
-    if (Array.isArray(data.registeredTeams)) {
-      state.registeredTeams = data.registeredTeams;
-      state.matchHistory = Array.isArray(data.matchHistory) ? data.matchHistory : [];
-      state.currentAIndex = Number.isInteger(data.currentAIndex) ? data.currentAIndex : null;
-      state.currentBIndex = Number.isInteger(data.currentBIndex) ? data.currentBIndex : null;
-      state.nextChallengerIndex = Number.isInteger(data.nextChallengerIndex) ? data.nextChallengerIndex : 0;
-      renderRegisteredTeams();
-      renderMatchHistory();
-      if (state.registeredTeams.length === 1) {
-        registrationMessageEl.textContent = "已載入今天報名資料，請報名第二隊。";
-      } else if (state.registeredTeams.length >= 2) {
-        registrationMessageEl.textContent = "已載入今天報名資料。";
-        startMatchWithQueue();
-      }
+    allVenueStates = data.venueStates && typeof data.venueStates === "object" ? data.venueStates : {};
+    selectedVenueId = typeof data.selectedVenueId === "string" && VENUES[data.selectedVenueId]
+      ? data.selectedVenueId
+      : DEFAULT_VENUE_ID;
+    syncStateFromActiveVenue();
+    renderRegisteredTeams();
+    renderMatchHistory();
+    if (state.registeredTeams.length === 1) {
+      registrationMessageEl.textContent = "已載入今天報名資料，請報名第二隊。";
+    } else if (state.registeredTeams.length >= 2) {
+      registrationMessageEl.textContent = "已載入今天報名資料。";
+      startMatchWithQueue();
     }
   } catch (_error) {
     localStorage.removeItem(STORAGE_KEY);
@@ -271,20 +364,7 @@ function clearRegistrationForm() {
 }
 
 function clearAllRegistrationData() {
-  state.registeredTeams = [];
-  state.matchHistory = [];
-  state.currentAIndex = null;
-  state.currentBIndex = null;
-  state.nextChallengerIndex = 0;
-  state.currentMatchRecorded = false;
-  state.teamAName = "隊伍 A";
-  state.teamBName = "隊伍 B";
-  state.teamAPlayers = [];
-  state.teamBPlayers = [];
-  state.scoreA = 0;
-  state.scoreB = 0;
-  state.serving = null;
-  state.finished = false;
+  Object.assign(state, createEmptyVenueState());
 
   renderPlayerList(teamAPlayersEl, []);
   renderPlayerList(teamBPlayersEl, []);
@@ -296,7 +376,8 @@ function clearAllRegistrationData() {
   statusSectionEl.classList.add("hidden");
   actionSectionEl.classList.add("hidden");
 
-  localStorage.removeItem(STORAGE_KEY);
+  syncActiveVenueFromState();
+  saveRegistrationState();
   refreshView();
 }
 
@@ -390,7 +471,8 @@ function advanceToNextMatch() {
 
 function registerTeam() {
   if (!isInVenue) {
-    registrationMessageEl.textContent = "需在指定球場範圍內才能報名。";
+    const venue = VENUES[selectedVenueId];
+    registrationMessageEl.textContent = `需在「${venue.name}」範圍內才能報名。`;
     return;
   }
 
@@ -499,6 +581,27 @@ resetBtn.addEventListener("click", resetMatch);
 registerTeamBtn.addEventListener("click", registerTeam);
 resetRegistrationBtn.addEventListener("click", resetRegistrationWithPassword);
 checkLocationBtn.addEventListener("click", checkLocationForRegistration);
+venueSelectEl.addEventListener("change", () => {
+  syncActiveVenueFromState();
+  selectedVenueId = venueSelectEl.value;
+  syncStateFromActiveVenue();
+  renderRegisteredTeams();
+  renderMatchHistory();
+  if (state.registeredTeams.length >= 2) {
+    startMatchWithQueue();
+  } else {
+    renderPlayerList(teamAPlayersEl, []);
+    renderPlayerList(teamBPlayersEl, []);
+    gameSectionEl.classList.add("hidden");
+    statusSectionEl.classList.add("hidden");
+    actionSectionEl.classList.add("hidden");
+    refreshView();
+  }
+  saveRegistrationState();
+  isInVenue = false;
+  applyVenueGate();
+  checkLocationForRegistration();
+});
 goRegistrationBtn.addEventListener("click", () => showPage("registration"));
 goScoreBtn.addEventListener("click", () => showPage("score"));
 
@@ -509,6 +612,7 @@ renderRegisteredTeams();
 renderMatchHistory();
 refreshView();
 showPage("registration");
+venueSelectEl.value = selectedVenueId;
 applyVenueGate();
 checkLocationForRegistration();
 setInterval(() => {
