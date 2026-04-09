@@ -73,6 +73,9 @@ let currentPage = "registration";
 let isInVenue = false;
 let selectedVenueId = DEFAULT_VENUE_ID;
 let allVenueStates = {};
+let firebaseReady = false;
+let unsubscribeVenueState = null;
+let unsubscribeVenueMatches = null;
 
 function createEmptyVenueState() {
   return {
@@ -225,7 +228,107 @@ function updateCurrentTime() {
   currentTimeEl.textContent = `現在時間：${now.toLocaleString("zh-TW", { hour12: false })}`;
 }
 
+function hasFirebase() {
+  return Boolean(window.FirebaseDB && window.FirebaseAppReady);
+}
+
+function getStatePayloadForStorage() {
+  return {
+    scoreA: state.scoreA,
+    scoreB: state.scoreB,
+    serving: state.serving,
+    finished: state.finished,
+    teamAName: state.teamAName,
+    teamBName: state.teamBName,
+    teamAPlayers: state.teamAPlayers,
+    teamBPlayers: state.teamBPlayers,
+    registeredTeams: state.registeredTeams,
+    currentAIndex: state.currentAIndex,
+    currentBIndex: state.currentBIndex,
+    nextChallengerIndex: state.nextChallengerIndex,
+    currentMatchRecorded: state.currentMatchRecorded
+  };
+}
+
+function applyVenueStatePayload(payload) {
+  if (!payload) {
+    Object.assign(state, createEmptyVenueState());
+    renderPlayerList(teamAPlayersEl, []);
+    renderPlayerList(teamBPlayersEl, []);
+    gameSectionEl.classList.add("hidden");
+    statusSectionEl.classList.add("hidden");
+    actionSectionEl.classList.add("hidden");
+    refreshView();
+    return;
+  }
+
+  state.scoreA = payload.scoreA ?? 0;
+  state.scoreB = payload.scoreB ?? 0;
+  state.serving = payload.serving ?? null;
+  state.finished = Boolean(payload.finished);
+  state.teamAName = payload.teamAName ?? "隊伍 A";
+  state.teamBName = payload.teamBName ?? "隊伍 B";
+  state.teamAPlayers = Array.isArray(payload.teamAPlayers) ? payload.teamAPlayers : [];
+  state.teamBPlayers = Array.isArray(payload.teamBPlayers) ? payload.teamBPlayers : [];
+  state.registeredTeams = Array.isArray(payload.registeredTeams) ? payload.registeredTeams : [];
+  state.currentAIndex = Number.isInteger(payload.currentAIndex) ? payload.currentAIndex : null;
+  state.currentBIndex = Number.isInteger(payload.currentBIndex) ? payload.currentBIndex : null;
+  state.nextChallengerIndex = Number.isInteger(payload.nextChallengerIndex) ? payload.nextChallengerIndex : 0;
+  state.currentMatchRecorded = Boolean(payload.currentMatchRecorded);
+
+  renderPlayerList(teamAPlayersEl, state.teamAPlayers);
+  renderPlayerList(teamBPlayersEl, state.teamBPlayers);
+  if (state.registeredTeams.length >= 2) {
+    gameSectionEl.classList.remove("hidden");
+    statusSectionEl.classList.remove("hidden");
+    actionSectionEl.classList.remove("hidden");
+  }
+  renderRegisteredTeams();
+  refreshView();
+}
+
+function subscribeFirebaseVenue(venueId) {
+  if (!hasFirebase() || !firebaseReady) {
+    return;
+  }
+  if (unsubscribeVenueState) unsubscribeVenueState();
+  if (unsubscribeVenueMatches) unsubscribeVenueMatches();
+
+  const venue = VENUES[venueId];
+  window.FirebaseDB.ensureVenueBaseDoc(venueId, venue.name, venue.type).catch(console.error);
+
+  unsubscribeVenueState = window.FirebaseDB.subscribeVenueState(
+    venueId,
+    (data) => {
+      applyVenueStatePayload(data);
+    },
+    (error) => console.error("Venue state subscribe error:", error)
+  );
+
+  unsubscribeVenueMatches = window.FirebaseDB.subscribeVenueMatches(
+    venueId,
+    (matches) => {
+      state.matchHistory = matches.map((m) => ({
+        teamA: m.teamA,
+        teamB: m.teamB,
+        scoreA: m.scoreA,
+        scoreB: m.scoreB,
+        winner: m.winner
+      }));
+      renderMatchHistory();
+    },
+    (error) => console.error("Venue matches subscribe error:", error)
+  );
+}
+
 function saveRegistrationState() {
+  if (hasFirebase() && firebaseReady) {
+    window.FirebaseDB.saveVenueState(selectedVenueId, getStatePayloadForStorage()).catch((error) => {
+      console.error("saveVenueState failed:", error);
+    });
+    return;
+  }
+
   syncActiveVenueFromState();
   const payload = {
     date: getTodayKey(),
@@ -236,6 +339,10 @@ function saveRegistrationState() {
 }
 
 function loadRegistrationState() {
+  if (hasFirebase()) {
+    return;
+  }
+
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) {
     return;
@@ -523,13 +630,21 @@ function recordFinishedMatchIfNeeded() {
   }
 
   const winner = state.scoreA > state.scoreB ? state.teamAName : state.teamBName;
-  state.matchHistory.push({
+  const match = {
     teamA: state.teamAName,
     teamB: state.teamBName,
     scoreA: state.scoreA,
     scoreB: state.scoreB,
     winner
-  });
+  };
+
+  if (hasFirebase() && firebaseReady) {
+    window.FirebaseDB.addMatch(selectedVenueId, match).catch((error) => {
+      console.error("addMatch failed:", error);
+    });
+  } else {
+    state.matchHistory.push(match);
+  }
   state.currentMatchRecorded = true;
   renderMatchHistory();
   saveRegistrationState();
@@ -582,6 +697,10 @@ registerTeamBtn.addEventListener("click", registerTeam);
 resetRegistrationBtn.addEventListener("click", resetRegistrationWithPassword);
 checkLocationBtn.addEventListener("click", checkLocationForRegistration);
 venueSelectEl.addEventListener("change", () => {
+  if (hasFirebase() && firebaseReady) {
+    selectedVenueId = venueSelectEl.value;
+    subscribeFirebaseVenue(selectedVenueId);
+  } else {
   syncActiveVenueFromState();
   selectedVenueId = venueSelectEl.value;
   syncStateFromActiveVenue();
@@ -598,6 +717,7 @@ venueSelectEl.addEventListener("change", () => {
     refreshView();
   }
   saveRegistrationState();
+  }
   isInVenue = false;
   applyVenueGate();
   checkLocationForRegistration();
@@ -615,11 +735,23 @@ showPage("registration");
 venueSelectEl.value = selectedVenueId;
 applyVenueGate();
 checkLocationForRegistration();
+
+window.FirebaseAppReady
+  .then(() => {
+    firebaseReady = true;
+    subscribeFirebaseVenue(selectedVenueId);
+  })
+  .catch((error) => {
+    console.error("Firebase init error:", error);
+  });
+
 setInterval(() => {
   if (currentPage !== "registration") {
     return;
   }
-  renderRegisteredTeams();
-  renderMatchHistory();
+  if (!hasFirebase() || !firebaseReady) {
+    renderRegisteredTeams();
+    renderMatchHistory();
+  }
   checkLocationForRegistration();
 }, 1 * 60 * 1000);
