@@ -27,6 +27,7 @@ const STORAGE_KEY = "volleyball-registration";
 const ADMIN_PAGE_PASSWORD = "0728";
 const DEFAULT_VENUE_ID = "fengchia";
 const DEVICE_TEAM_MAP_KEY = "volleyball-device-team-map";
+const DEVICE_UUID_KEY = "volleyball-device-uuid";
 const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const VENUES = {
   fengchia: {
@@ -108,6 +109,7 @@ try {
   deviceTeamMap = {};
 }
 let deviceTeamId = typeof deviceTeamMap[selectedVenueId] === "string" ? deviceTeamMap[selectedVenueId] : "";
+const deviceUuid = getOrCreateDeviceUuid();
 
 function createEmptyVenueState() {
   return {
@@ -139,6 +141,23 @@ function generateTeamId() {
   return `${selectedVenueId}_${Date.now()}_${randomPart}`;
 }
 
+function createDeviceUuid() {
+  if (window.crypto && typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
+  }
+  return `legacy-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function getOrCreateDeviceUuid() {
+  const existing = localStorage.getItem(DEVICE_UUID_KEY);
+  if (existing) {
+    return existing;
+  }
+  const created = createDeviceUuid();
+  localStorage.setItem(DEVICE_UUID_KEY, created);
+  return created;
+}
+
 function toSafeKey(value) {
   return String(value || "")
     .trim()
@@ -161,8 +180,10 @@ function normalizeRegisteredTeams(teams) {
       teamId = `legacy_${selectedVenueId}_${index}_${key || "team"}`;
       changed = true;
     }
+    const ownerDeviceId = team && typeof team.ownerDeviceId === "string" ? team.ownerDeviceId : "";
     return {
       teamId,
+      ownerDeviceId,
       name,
       players
     };
@@ -182,6 +203,20 @@ function persistDeviceTeamMap() {
 
 function loadDeviceTeamForVenue() {
   deviceTeamId = typeof deviceTeamMap[selectedVenueId] === "string" ? deviceTeamMap[selectedVenueId] : "";
+}
+
+function tryRecoverDeviceTeamByUuid() {
+  if (deviceTeamId) {
+    return;
+  }
+  const mine = state.registeredTeams.find((team) => team.ownerDeviceId === deviceUuid);
+  if (!mine) {
+    return;
+  }
+  deviceTeamId = mine.teamId;
+  deviceTeamMap[selectedVenueId] = mine.teamId;
+  persistDeviceTeamMap();
+  syncUserTeamClaim();
 }
 
 function bindDeviceTeamIfNeeded(teamId) {
@@ -224,6 +259,7 @@ function syncActiveVenueFromState() {
     teamBPlayers: [...state.teamBPlayers],
     registeredTeams: state.registeredTeams.map((team) => ({
       teamId: team.teamId,
+      ownerDeviceId: team.ownerDeviceId || "",
       name: team.name,
       players: [...team.players]
     })),
@@ -303,14 +339,21 @@ function ensureDeviceTeamStillExists() {
     return;
   }
   if (!deviceTeamId) {
+    tryRecoverDeviceTeamByUuid();
     return;
   }
-  const exists = state.registeredTeams.some((team) => team.teamId === deviceTeamId);
+  const ownedTeam = state.registeredTeams.find((team) => team.teamId === deviceTeamId);
+  const exists = Boolean(ownedTeam);
+  if (ownedTeam && !ownedTeam.ownerDeviceId) {
+    ownedTeam.ownerDeviceId = deviceUuid;
+    saveRegistrationState();
+  }
   if (!exists) {
     deviceTeamId = "";
     delete deviceTeamMap[selectedVenueId];
     persistDeviceTeamMap();
     syncUserTeamClaim();
+    tryRecoverDeviceTeamByUuid();
   }
 }
 
@@ -1181,6 +1224,7 @@ function registerTeam() {
 
   const newTeam = {
     teamId: generateTeamId(),
+    ownerDeviceId: deviceUuid,
     name: teamName,
     players: teamPlayers
   };
