@@ -11,7 +11,8 @@ const state = {
   matchHistory: [],
   currentAIndex: null,
   currentBIndex: null,
-  nextChallengerIndex: 0,
+  scorerIndex: null,
+  scorerTeamId: null,
   currentMatchRecorded: false
 };
 
@@ -20,6 +21,7 @@ const MIN_LEAD = 2;
 const STORAGE_KEY = "volleyball-registration";
 const RESET_REGISTRATION_PASSWORD = "1234";
 const DEFAULT_VENUE_ID = "fengchia";
+const DEVICE_TEAM_KEY = "volleyball-device-team-id";
 const VENUES = {
   fengchia: {
     name: "逢甲大學球場",
@@ -38,6 +40,7 @@ const VENUES = {
 const scoreAEl = document.getElementById("score-a");
 const scoreBEl = document.getElementById("score-b");
 const statusEl = document.getElementById("status");
+const scorerStatusEl = document.getElementById("scorer-status");
 const currentTimeEl = document.getElementById("current-time");
 const teamACardEl = document.getElementById("team-a-card");
 const teamBCardEl = document.getElementById("team-b-card");
@@ -60,6 +63,7 @@ const checkLocationBtn = document.getElementById("check-location");
 const registrationMessageEl = document.getElementById("registration-message");
 const locationMessageEl = document.getElementById("location-message");
 const venueSelectEl = document.getElementById("venue-select");
+const deviceTeamSelectEl = document.getElementById("device-team-select");
 const teamNameInputEl = document.getElementById("team-name");
 const teamInputContainerEl = document.getElementById("team-inputs");
 const registeredTeamsEl = document.getElementById("registered-teams");
@@ -76,6 +80,7 @@ let allVenueStates = {};
 let firebaseReady = false;
 let unsubscribeVenueState = null;
 let unsubscribeVenueMatches = null;
+let deviceTeamId = localStorage.getItem(DEVICE_TEAM_KEY) || "";
 
 function createEmptyVenueState() {
   return {
@@ -91,9 +96,20 @@ function createEmptyVenueState() {
     matchHistory: [],
     currentAIndex: null,
     currentBIndex: null,
-    nextChallengerIndex: 0,
+    scorerIndex: null,
+    scorerTeamId: null,
     currentMatchRecorded: false
   };
+}
+
+function generateTeamId() {
+  const randomPart = Math.random().toString(36).slice(2, 8);
+  return `${selectedVenueId}_${Date.now()}_${randomPart}`;
+}
+
+function getTeamNameById(teamId) {
+  const team = state.registeredTeams.find((item) => item.teamId === teamId);
+  return team ? team.name : "未指定";
 }
 
 function syncStateFromActiveVenue() {
@@ -113,13 +129,15 @@ function syncActiveVenueFromState() {
     teamAPlayers: [...state.teamAPlayers],
     teamBPlayers: [...state.teamBPlayers],
     registeredTeams: state.registeredTeams.map((team) => ({
+      teamId: team.teamId,
       name: team.name,
       players: [...team.players]
     })),
     matchHistory: state.matchHistory.map((match) => ({ ...match })),
     currentAIndex: state.currentAIndex,
     currentBIndex: state.currentBIndex,
-    nextChallengerIndex: state.nextChallengerIndex,
+    scorerIndex: state.scorerIndex,
+    scorerTeamId: state.scorerTeamId,
     currentMatchRecorded: state.currentMatchRecorded
   };
 }
@@ -166,6 +184,35 @@ function isInsideSelectedVenue(lat, lng) {
 
 function applyVenueGate() {
   registerTeamBtn.disabled = !isInVenue;
+}
+
+function refreshDeviceTeamSelect() {
+  const previous = deviceTeamId;
+  deviceTeamSelectEl.innerHTML = "<option value=\"\">未選擇</option>";
+  for (const team of state.registeredTeams) {
+    const option = document.createElement("option");
+    option.value = team.teamId;
+    option.textContent = team.name;
+    deviceTeamSelectEl.appendChild(option);
+  }
+  const exists = state.registeredTeams.some((team) => team.teamId === previous);
+  if (!exists) {
+    deviceTeamId = "";
+    localStorage.removeItem(DEVICE_TEAM_KEY);
+  }
+  deviceTeamSelectEl.value = deviceTeamId;
+}
+
+function canDeviceScore() {
+  return Boolean(deviceTeamId && state.scorerTeamId && deviceTeamId === state.scorerTeamId);
+}
+
+function refreshScoringPermissionView() {
+  const canScore = canDeviceScore() && !state.finished;
+  aPlusBtn.disabled = !canScore;
+  bPlusBtn.disabled = !canScore;
+  aMinusBtn.disabled = !canScore;
+  bMinusBtn.disabled = !canScore;
 }
 
 function checkLocationForRegistration() {
@@ -245,7 +292,8 @@ function getStatePayloadForStorage() {
     registeredTeams: state.registeredTeams,
     currentAIndex: state.currentAIndex,
     currentBIndex: state.currentBIndex,
-    nextChallengerIndex: state.nextChallengerIndex,
+    scorerIndex: state.scorerIndex,
+    scorerTeamId: state.scorerTeamId,
     currentMatchRecorded: state.currentMatchRecorded
   };
 }
@@ -271,9 +319,15 @@ function applyVenueStatePayload(payload) {
   state.teamAPlayers = Array.isArray(payload.teamAPlayers) ? payload.teamAPlayers : [];
   state.teamBPlayers = Array.isArray(payload.teamBPlayers) ? payload.teamBPlayers : [];
   state.registeredTeams = Array.isArray(payload.registeredTeams) ? payload.registeredTeams : [];
+  state.registeredTeams = state.registeredTeams.map((team) => ({
+    teamId: team.teamId || generateTeamId(),
+    name: team.name,
+    players: Array.isArray(team.players) ? team.players : []
+  }));
   state.currentAIndex = Number.isInteger(payload.currentAIndex) ? payload.currentAIndex : null;
   state.currentBIndex = Number.isInteger(payload.currentBIndex) ? payload.currentBIndex : null;
-  state.nextChallengerIndex = Number.isInteger(payload.nextChallengerIndex) ? payload.nextChallengerIndex : 0;
+  state.scorerIndex = Number.isInteger(payload.scorerIndex) ? payload.scorerIndex : null;
+  state.scorerTeamId = typeof payload.scorerTeamId === "string" ? payload.scorerTeamId : null;
   state.currentMatchRecorded = Boolean(payload.currentMatchRecorded);
 
   renderPlayerList(teamAPlayersEl, state.teamAPlayers);
@@ -284,6 +338,7 @@ function applyVenueStatePayload(payload) {
     actionSectionEl.classList.remove("hidden");
   }
   renderRegisteredTeams();
+  refreshDeviceTeamSelect();
   refreshView();
 }
 
@@ -414,6 +469,15 @@ function refreshView() {
     statusEl.classList.remove("win");
   }
 
+  if (state.scorerTeamId) {
+    const scorerName = getTeamNameById(state.scorerTeamId);
+    scorerStatusEl.textContent = canDeviceScore()
+      ? `本場記分隊：${scorerName}（你有記分權）`
+      : `本場記分隊：${scorerName}（你目前無記分權）`;
+  } else {
+    scorerStatusEl.textContent = "本場無下一隊可記分，請等待下一隊報名。";
+  }
+  refreshScoringPermissionView();
   updateScorePageMessage();
 }
 
@@ -551,7 +615,8 @@ function startMatchWithQueue() {
     return;
   }
 
-  state.nextChallengerIndex = 2;
+  state.scorerIndex = state.registeredTeams.length >= 3 ? 2 : null;
+  state.scorerTeamId = state.scorerIndex === null ? null : state.registeredTeams[state.scorerIndex].teamId;
   setTeamsByIndex(0, 1);
 }
 
@@ -560,14 +625,16 @@ function advanceToNextMatch() {
     return false;
   }
 
-  if (state.nextChallengerIndex >= state.registeredTeams.length) {
-    registrationMessageEl.textContent = "目前沒有下一隊，請先繼續報名。";
+  if (!Number.isInteger(state.scorerIndex) || state.scorerIndex >= state.registeredTeams.length) {
+    registrationMessageEl.textContent = "目前沒有下一隊可上場，請先繼續報名。";
     return false;
   }
 
   const winnerIndex = state.scoreA > state.scoreB ? state.currentAIndex : state.currentBIndex;
-  const challengerIndex = state.nextChallengerIndex;
-  state.nextChallengerIndex += 1;
+  const challengerIndex = state.scorerIndex;
+  const nextScorerIndex = challengerIndex + 1;
+  state.scorerIndex = nextScorerIndex < state.registeredTeams.length ? nextScorerIndex : null;
+  state.scorerTeamId = state.scorerIndex === null ? null : state.registeredTeams[state.scorerIndex].teamId;
   registrationMessageEl.textContent = `${state.registeredTeams[winnerIndex].name} 留場，下一場開始。`;
   const started = setTeamsByIndex(winnerIndex, challengerIndex);
   if (started) {
@@ -597,11 +664,13 @@ function registerTeam() {
   }
 
   state.registeredTeams.push({
+    teamId: generateTeamId(),
     name: teamName,
     players: teamPlayers
   });
 
   renderRegisteredTeams();
+  refreshDeviceTeamSelect();
   clearRegistrationForm();
 
   if (state.registeredTeams.length === 1) {
@@ -614,9 +683,20 @@ function registerTeam() {
     registrationMessageEl.textContent = "兩隊報名完成，已依順序開始比賽。";
     state.currentAIndex = null;
     state.currentBIndex = null;
+    state.scorerIndex = null;
+    state.scorerTeamId = null;
     startMatchWithQueue();
     saveRegistrationState();
     showPage("score");
+    return;
+  }
+
+  if (state.registeredTeams.length === 3 && state.scorerTeamId === null) {
+    state.scorerIndex = 2;
+    state.scorerTeamId = state.registeredTeams[2].teamId;
+    registrationMessageEl.textContent = "第 3 隊已加入，已取得本場記分權。";
+    refreshView();
+    saveRegistrationState();
     return;
   }
 
@@ -651,7 +731,7 @@ function recordFinishedMatchIfNeeded() {
 }
 
 function addPoint(team) {
-  if (state.finished) {
+  if (state.finished || !canDeviceScore()) {
     return;
   }
 
@@ -722,6 +802,15 @@ venueSelectEl.addEventListener("change", () => {
   applyVenueGate();
   checkLocationForRegistration();
 });
+deviceTeamSelectEl.addEventListener("change", () => {
+  deviceTeamId = deviceTeamSelectEl.value;
+  if (deviceTeamId) {
+    localStorage.setItem(DEVICE_TEAM_KEY, deviceTeamId);
+  } else {
+    localStorage.removeItem(DEVICE_TEAM_KEY);
+  }
+  refreshView();
+});
 goRegistrationBtn.addEventListener("click", () => showPage("registration"));
 goScoreBtn.addEventListener("click", () => showPage("score"));
 
@@ -730,6 +819,7 @@ setInterval(updateCurrentTime, 1000);
 loadRegistrationState();
 renderRegisteredTeams();
 renderMatchHistory();
+refreshDeviceTeamSelect();
 refreshView();
 showPage("registration");
 venueSelectEl.value = selectedVenueId;

@@ -39,6 +39,12 @@
         </div>
         <button id="check-location" type="button">檢查定位</button>
         <p id="location-message"></p>
+        <div class="registration-card">
+          <label for="device-team-select">本裝置代表隊伍（記分權限）</label>
+          <select id="device-team-select">
+            <option value="">未選擇</option>
+          </select>
+        </div>
         <button id="register-team" type="button">報名這一隊</button>
         <button id="reset-registration" class="danger-btn" type="button">重置報名隊伍</button>
         <h3>已報名隊伍（依順序）</h3>
@@ -76,6 +82,7 @@
 
       <section class="status-section hidden" id="status-section">
         <p id="status">比賽進行中</p>
+        <p id="scorer-status"></p>
       </section>
 
       <section class="action-section hidden" id="action-section">

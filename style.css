@@ -101,6 +101,12 @@ h1 {
   color: #334155;
 }
 
+#scorer-status {
+  margin: 6px 0 0;
+  font-weight: 600;
+  color: #334155;
+}
+
 #registered-teams {
   margin: 10px 0 0;
   padding-left: 20px;
