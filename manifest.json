@@ -1,0 +1,22 @@
+{
+  "name": "排球野場報隊系統",
+  "short_name": "排球報隊",
+  "description": "排球野場報名與計分系統",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F3F1FB",
+  "theme_color": "#8B72BE",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "Gemini_Generated_Image_z55cx2z55cx2z55c.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "Gemini_Generated_Image_z55cx2z55cx2z55c.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
