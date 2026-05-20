@@ -24,6 +24,7 @@ const state = {
 const WIN_SCORE = 25;
 const MIN_LEAD = 2;
 const STORAGE_KEY = "volleyball-registration";
+const FAVORITE_TEAMS_KEY = "volleyball-favorite-teams";
 const ADMIN_PAGE_PASSWORD = "0728";
 const DEFAULT_VENUE_ID = "fengchia";
 const DEVICE_TEAM_MAP_KEY = "volleyball-device-team-map";
@@ -91,6 +92,10 @@ const adminPasswordInputEl = document.getElementById("admin-password");
 const adminUnlockBtn = document.getElementById("admin-unlock");
 const adminAuthMessageEl = document.getElementById("admin-auth-message");
 const toggleStreakModeBtn = document.getElementById("toggle-streak-mode");
+const favoriteSelectEl = document.getElementById("favorite-select");
+const applyFavoriteBtnEl = document.getElementById("apply-favorite-btn");
+const saveFavoriteBtnEl = document.getElementById("save-favorite-btn");
+const deleteFavoriteBtnEl = document.getElementById("delete-favorite-btn");
 let currentPage = "registration";
 let isInVenue = false;
 let selectedVenueId = DEFAULT_VENUE_ID;
@@ -1194,6 +1199,92 @@ function advanceToNextMatch() {
   return started;
 }
 
+function loadFavoriteTeams() {
+  try {
+    const raw = localStorage.getItem(FAVORITE_TEAMS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (_e) {
+    return [];
+  }
+}
+
+function persistFavoriteTeams(favorites) {
+  localStorage.setItem(FAVORITE_TEAMS_KEY, JSON.stringify(favorites));
+}
+
+function renderFavoriteSelect() {
+  const favorites = loadFavoriteTeams();
+  const selected = favoriteSelectEl.value;
+  favoriteSelectEl.innerHTML = '<option value="">── 選擇常用隊伍 ──</option>';
+  for (const fav of favorites) {
+    const opt = document.createElement("option");
+    opt.value = fav.id;
+    opt.textContent = `${fav.name}（${fav.players.join("、")}）`;
+    favoriteSelectEl.appendChild(opt);
+  }
+  if (selected && favoriteSelectEl.querySelector(`option[value="${selected}"]`)) {
+    favoriteSelectEl.value = selected;
+  }
+}
+
+function applyFavoriteTeam() {
+  const id = favoriteSelectEl.value;
+  if (!id) {
+    registrationMessageEl.textContent = "請先選擇一支常用隊伍。";
+    return;
+  }
+  const fav = loadFavoriteTeams().find((f) => f.id === id);
+  if (!fav) return;
+  teamNameInputEl.value = fav.name;
+  const inputs = teamInputContainerEl.querySelectorAll("input");
+  for (let i = 0; i < inputs.length; i += 1) {
+    inputs[i].value = fav.players[i] || "";
+  }
+  registrationMessageEl.textContent = `已套用常用隊伍「${fav.name}」，確認後點報名。`;
+}
+
+function saveAsFavoriteTeam() {
+  const teamName = teamNameInputEl.value.trim();
+  const players = collectPlayers(teamInputContainerEl);
+  if (!teamName) {
+    registrationMessageEl.textContent = "請先填寫隊名再儲存。";
+    return;
+  }
+  if (!players) {
+    registrationMessageEl.textContent = "請完整填寫 6 位球員姓名再儲存。";
+    return;
+  }
+  const favorites = loadFavoriteTeams();
+  const existing = favorites.find((f) => f.name === teamName);
+  if (existing) {
+    existing.players = players;
+    persistFavoriteTeams(favorites);
+    renderFavoriteSelect();
+    registrationMessageEl.textContent = `已更新常用隊伍「${teamName}」的名單。`;
+    return;
+  }
+  const id = `fav_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  favorites.push({ id, name: teamName, players });
+  persistFavoriteTeams(favorites);
+  renderFavoriteSelect();
+  registrationMessageEl.textContent = `已儲存「${teamName}」為常用隊伍。`;
+}
+
+function deleteFavoriteTeam() {
+  const id = favoriteSelectEl.value;
+  if (!id) {
+    registrationMessageEl.textContent = "請先選擇要刪除的常用隊伍。";
+    return;
+  }
+  const favorites = loadFavoriteTeams();
+  const fav = favorites.find((f) => f.id === id);
+  if (!fav) return;
+  if (!window.confirm(`確定要刪除常用隊伍「${fav.name}」嗎？`)) return;
+  persistFavoriteTeams(favorites.filter((f) => f.id !== id));
+  renderFavoriteSelect();
+  registrationMessageEl.textContent = `已刪除常用隊伍「${fav.name}」。`;
+}
+
 function registerTeam() {
   if (state.locationCheckEnabled && !isInVenue) {
     const venue = VENUES[selectedVenueId];
@@ -1343,6 +1434,9 @@ checkLocationBtn.addEventListener("click", checkLocationForRegistration);
 toggleLocationCheckBtn.addEventListener("click", toggleLocationCheckWithPassword);
 toggleStreakModeBtn.addEventListener("click", toggleStreakMode);
 adminUnlockBtn.addEventListener("click", unlockAdminPage);
+applyFavoriteBtnEl.addEventListener("click", applyFavoriteTeam);
+saveFavoriteBtnEl.addEventListener("click", saveAsFavoriteTeam);
+deleteFavoriteBtnEl.addEventListener("click", deleteFavoriteTeam);
 venueSelectEl.addEventListener("change", () => {
   if (hasFirebase() && firebaseReady) {
     selectedVenueId = venueSelectEl.value;
@@ -1388,6 +1482,7 @@ goAdminBtn.addEventListener("click", () => showPage("admin"));
 
 updateCurrentTime();
 setInterval(updateCurrentTime, 1000);
+renderFavoriteSelect();
 loadRegistrationState();
 renderRegisteredTeams();
 renderRegistrationHistory();
