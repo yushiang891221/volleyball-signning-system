@@ -604,8 +604,16 @@ function saveRegistrationState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }
 
+async function ensureFirebaseAuth() {
+  if (!hasFirebase() || !firebaseReady) return;
+  if (!firebase.auth().currentUser) {
+    await firebase.auth().signInAnonymously();
+  }
+}
+
 async function saveRegistrationStateStrict() {
   if (hasFirebase() && firebaseReady) {
+    await ensureFirebaseAuth();
     await window.FirebaseDB.saveVenueState(selectedVenueId, getStatePayloadForStorage());
     return;
   }
@@ -988,7 +996,8 @@ async function toggleLocationCheckWithPassword() {
     return;
   }
 
-  state.locationCheckEnabled = !state.locationCheckEnabled;
+  const originalLocationCheck = state.locationCheckEnabled;
+  state.locationCheckEnabled = !originalLocationCheck;
   isInVenue = !state.locationCheckEnabled ? true : false;
   updateLocationCheckStatus();
   applyVenueGate();
@@ -996,11 +1005,12 @@ async function toggleLocationCheckWithPassword() {
     await saveRegistrationStateStrict();
   } catch (error) {
     console.error("toggle location check failed:", error);
-    state.locationCheckEnabled = !state.locationCheckEnabled;
+    state.locationCheckEnabled = originalLocationCheck;
     isInVenue = !state.locationCheckEnabled ? true : false;
     updateLocationCheckStatus();
     applyVenueGate();
-    registrationMessageEl.textContent = `切換「${venueName}」定位檢查失敗，請確認 Firebase 權限。`;
+    const errCode = error && error.code ? ` [${error.code}]` : "";
+    registrationMessageEl.textContent = `切換「${venueName}」定位檢查失敗${errCode}，請確認 Firebase 設定。`;
     return;
   }
   checkLocationForRegistration();
@@ -1019,7 +1029,8 @@ async function toggleStreakMode() {
     return;
   }
 
-  state.streakTwoModeEnabled = !state.streakTwoModeEnabled;
+  const originalStreakMode = state.streakTwoModeEnabled;
+  state.streakTwoModeEnabled = !originalStreakMode;
   state.streakTeamId = null;
   state.streakCount = 0;
   updateStreakModeStatus();
@@ -1030,9 +1041,10 @@ async function toggleStreakMode() {
       : "已關閉連二下模式。";
   } catch (error) {
     console.error("toggle streak mode failed:", error);
-    state.streakTwoModeEnabled = !state.streakTwoModeEnabled;
+    state.streakTwoModeEnabled = originalStreakMode;
     updateStreakModeStatus();
-    registrationMessageEl.textContent = `切換「${venueName}」比賽模式失敗，請確認 Firebase 權限。`;
+    const errCode = error && error.code ? ` [${error.code}]` : "";
+    registrationMessageEl.textContent = `切換「${venueName}」比賽模式失敗${errCode}，請確認 Firebase 設定。`;
   }
 }
 
