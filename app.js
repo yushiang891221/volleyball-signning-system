@@ -1,3 +1,55 @@
+// ── Landing / standalone detection ───────────────
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById("install-btn");
+  if (btn) btn.classList.remove("hidden");
+});
+
+function isRunningStandalone() {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true
+  );
+}
+
+function initLandingOrApp() {
+  const landingEl = document.getElementById("landing-page");
+  const appEl = document.getElementById("app-container");
+
+  if (isRunningStandalone()) {
+    landingEl.classList.add("hidden");
+    appEl.classList.remove("hidden");
+    return;
+  }
+
+  landingEl.classList.remove("hidden");
+  appEl.classList.add("hidden");
+
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (isIOS) {
+    document.getElementById("install-steps-ios").classList.remove("hidden");
+  } else {
+    document.getElementById("install-steps-android").classList.remove("hidden");
+  }
+
+  const installBtn = document.getElementById("install-btn");
+  if (installBtn) {
+    installBtn.addEventListener("click", async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      installBtn.classList.add("hidden");
+    });
+  }
+}
+
+initLandingOrApp();
+
+// ─────────────────────────────────────────────────
 const state = {
   scoreA: 0,
   scoreB: 0,

@@ -554,6 +554,162 @@ button:active {
 }
 
 /* ── Utility ─────────────────────────────────────── */
+/* ── Landing page ────────────────────────────────── */
+#landing-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse at 20% 15%, rgba(139, 100, 220, 0.2) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 80%, rgba(62, 207, 196, 0.2) 0%, transparent 55%),
+    linear-gradient(160deg, #F5F2FF 0%, #EBF9F8 100%);
+  padding: 32px 20px;
+}
+
+.landing-container {
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.landing-icon {
+  width: 160px;
+  height: 160px;
+  border-radius: 36px;
+  object-fit: cover;
+  box-shadow:
+    0 12px 40px rgba(107, 79, 175, 0.25),
+    0 2px 8px rgba(0,0,0,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.4);
+  margin-bottom: 24px;
+}
+
+.landing-title {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  background: linear-gradient(90deg, var(--purple-deep) 0%, var(--teal-deep) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 12px;
+}
+
+.landing-desc {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.8;
+  margin: 0 0 32px;
+}
+
+.landing-install-card {
+  width: 100%;
+  background: rgba(255,255,255,0.75);
+  border: 1.5px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 24px 22px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 8px 32px rgba(107, 79, 175, 0.12),
+    inset 0 1px 0 rgba(255,255,255,0.8);
+  text-align: left;
+}
+
+.landing-install-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 4px 12px;
+  border-radius: 99px;
+  margin-bottom: 14px;
+}
+
+.landing-install-heading {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.landing-install-sub {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0 0 18px;
+}
+
+.install-steps {
+  padding-left: 20px;
+  margin: 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.install-steps li {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.6;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, var(--purple-light) 0%, var(--teal-light) 100%);
+  border-radius: 10px;
+  list-style: none;
+  counter-increment: step;
+  position: relative;
+  padding-left: 40px;
+}
+
+.install-steps {
+  list-style: none;
+  padding-left: 0;
+  counter-reset: step;
+}
+
+.install-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  background: var(--purple);
+  color: var(--white);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-install-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+  box-shadow: 0 4px 16px var(--teal-glow);
+  border-radius: 12px;
+}
+
+.landing-install-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--teal-glow);
+}
+
+/* ── Utility ─────────────────────────────────────── */
 .hidden { display: none; }
 
 @media (max-width: 700px) {
