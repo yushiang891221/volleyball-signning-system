@@ -298,6 +298,45 @@ h1 {
   color: var(--teal-dark);
 }
 
+#location-message.location-fail {
+  color: var(--danger);
+}
+
+/* ── Admin team list ─────────────────────────────── */
+.admin-team-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-team-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: var(--white);
+  font-size: 14px;
+}
+
+.admin-team-del-btn {
+  font-size: 12px !important;
+  padding: 5px 12px !important;
+  min-width: auto !important;
+  min-height: auto !important;
+  flex-shrink: 0;
+}
+
+.admin-team-empty {
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+  padding: 6px 0;
+}
+
 #location-check-status,
 #streak-mode-status,
 #admin-auth-message,

@@ -408,7 +408,8 @@ function checkLocationForRegistration() {
     (position) => {
       const { latitude, longitude } = position.coords;
       isInVenue = isInsideSelectedVenue(latitude, longitude);
-      locationMessageEl.textContent = isInVenue ? "✓ 符合報隊資格" : "";
+      locationMessageEl.textContent = isInVenue ? "✓ 符合報隊資格" : "✗ 不符合報隊資格（不在球場範圍內）";
+      locationMessageEl.classList.toggle("location-fail", !isInVenue);
       applyVenueGate();
     },
     () => {
@@ -450,6 +451,7 @@ function showPage(page) {
 function renderAdminModeView() {
   adminLoginSectionEl.classList.toggle("hidden", adminUnlocked);
   adminControlsSectionEl.classList.toggle("hidden", !adminUnlocked);
+  if (adminUnlocked) renderAdminTeamList();
 }
 
 function getTodayKey() {
@@ -1028,6 +1030,81 @@ async function toggleStreakMode() {
   }
 }
 
+function renderAdminTeamList() {
+  const listEl = document.getElementById("admin-team-list");
+  if (!listEl) return;
+  listEl.innerHTML = "";
+  if (state.registeredTeams.length === 0) {
+    const empty = document.createElement("li");
+    empty.className = "admin-team-empty";
+    empty.textContent = "目前沒有報名隊伍";
+    listEl.appendChild(empty);
+    return;
+  }
+  for (let i = 0; i < state.registeredTeams.length; i += 1) {
+    const team = state.registeredTeams[i];
+    const isPlaying = i === state.currentAIndex || i === state.currentBIndex;
+    const li = document.createElement("li");
+    li.className = "admin-team-item";
+    const info = document.createElement("span");
+    info.textContent = `${team.name}${isPlaying ? "　（比賽中）" : ""}`;
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "刪除";
+    delBtn.className = "danger-btn admin-team-del-btn";
+    delBtn.addEventListener("click", () => adminForceDeleteTeam(i));
+    li.appendChild(info);
+    li.appendChild(delBtn);
+    listEl.appendChild(li);
+  }
+}
+
+function adminForceDeleteTeam(teamIndex) {
+  if (!adminUnlocked) return;
+  const team = state.registeredTeams[teamIndex];
+  if (!team) return;
+  if (teamIndex === state.currentAIndex || teamIndex === state.currentBIndex) {
+    registrationMessageEl.textContent = `「${team.name}」正在比賽中，無法刪除。`;
+    return;
+  }
+  if (!window.confirm(`確定要強制刪除「${team.name}」的報名嗎？`)) return;
+
+  state.registeredTeams.splice(teamIndex, 1);
+
+  if (Number.isInteger(state.currentAIndex) && state.currentAIndex > teamIndex) state.currentAIndex -= 1;
+  if (Number.isInteger(state.currentBIndex) && state.currentBIndex > teamIndex) state.currentBIndex -= 1;
+  if (Number.isInteger(state.scorerIndex)) {
+    if (state.scorerIndex > teamIndex) {
+      state.scorerIndex -= 1;
+    } else if (state.scorerIndex === teamIndex) {
+      state.scorerIndex = teamIndex < state.registeredTeams.length ? teamIndex : null;
+    }
+  }
+  state.scorerTeamId =
+    Number.isInteger(state.scorerIndex) && state.registeredTeams[state.scorerIndex]
+      ? state.registeredTeams[state.scorerIndex].teamId
+      : null;
+
+  if (state.registeredTeams.length < 2) {
+    gameSectionEl.classList.add("hidden");
+    statusSectionEl.classList.add("hidden");
+    state.currentAIndex = null;
+    state.currentBIndex = null;
+    state.scorerIndex = null;
+    state.scorerTeamId = null;
+    state.scoreA = 0;
+    state.scoreB = 0;
+    state.serving = null;
+    state.finished = false;
+  }
+
+  renderRegisteredTeams();
+  renderAdminTeamList();
+  ensureDeviceTeamStillExists();
+  refreshView();
+  saveRegistrationState();
+  registrationMessageEl.textContent = `已強制刪除「${team.name}」的報名。`;
+}
+
 async function resetMatchHistory() {
   if (!adminUnlocked) {
     adminAuthMessageEl.textContent = "請先進入管理員模式。";
@@ -1066,6 +1143,7 @@ function unlockAdminPage() {
   adminPasswordInputEl.value = "";
   adminAuthMessageEl.textContent = "已進入管理員模式。";
   renderAdminModeView();
+  renderAdminTeamList();
 }
 
 function setTeamsByIndex(teamAIndex, teamBIndex) {
