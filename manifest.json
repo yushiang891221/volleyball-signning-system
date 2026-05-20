@@ -1,6 +1,6 @@
 {
-  "name": "排球野場報隊系統",
-  "short_name": "排球報隊",
+  "name": "野場報隊系統",
+  "short_name": "野場報隊",
   "description": "排球野場報名與計分系統",
   "start_url": "/",
   "display": "standalone",
@@ -9,12 +9,12 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "Gemini_Generated_Image_z55cx2z55cx2z55c.png",
+      "src": "Gemini_Generated_Image_fft0pnfft0pnfft0.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "Gemini_Generated_Image_z55cx2z55cx2z55c.png",
+      "src": "Gemini_Generated_Image_fft0pnfft0pnfft0.png",
       "sizes": "512x512",
       "type": "image/png"
     }
