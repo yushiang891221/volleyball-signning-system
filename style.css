@@ -709,6 +709,25 @@ button:active {
   box-shadow: 0 8px 24px var(--teal-glow);
 }
 
+.landing-enter-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  background: transparent;
+  color: var(--purple-dark);
+  border: 2px solid var(--purple-mid);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.landing-enter-btn:hover {
+  background: var(--purple-light);
+  box-shadow: none;
+  transform: none;
+}
+
 /* ── Utility ─────────────────────────────────────── */
 .hidden { display: none; }
 

@@ -1,4 +1,5 @@
 // ── Landing / standalone detection ───────────────
+const PWA_ENTERED_KEY = "volleyball-pwa-entered";
 let deferredInstallPrompt = null;
 
 window.addEventListener("beforeinstallprompt", (e) => {
@@ -9,31 +10,24 @@ window.addEventListener("beforeinstallprompt", (e) => {
 });
 
 function isRunningStandalone() {
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true
-  );
+  if (window.navigator.standalone === true) return true;
+  try { if (window.matchMedia("(display-mode: standalone)").matches) return true; } catch (_e) {}
+  if (localStorage.getItem(PWA_ENTERED_KEY) === "true") return true;
+  return false;
 }
 
-function initLandingOrApp() {
-  const landingEl = document.getElementById("landing-page");
-  const appEl = document.getElementById("app-container");
+function showApp() {
+  document.getElementById("landing-page").classList.add("hidden");
+  document.getElementById("app-container").classList.remove("hidden");
+}
 
-  if (isRunningStandalone()) {
-    landingEl.classList.add("hidden");
-    appEl.classList.remove("hidden");
-    return;
-  }
-
-  landingEl.classList.remove("hidden");
-  appEl.classList.add("hidden");
+function showLanding() {
+  document.getElementById("landing-page").classList.remove("hidden");
+  document.getElementById("app-container").classList.add("hidden");
 
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
-  if (isIOS) {
-    document.getElementById("install-steps-ios").classList.remove("hidden");
-  } else {
-    document.getElementById("install-steps-android").classList.remove("hidden");
-  }
+  document.getElementById("install-steps-ios").classList.toggle("hidden", !isIOS);
+  document.getElementById("install-steps-android").classList.toggle("hidden", isIOS);
 
   const installBtn = document.getElementById("install-btn");
   if (installBtn) {
@@ -44,6 +38,19 @@ function initLandingOrApp() {
       deferredInstallPrompt = null;
       installBtn.classList.add("hidden");
     });
+  }
+
+  document.getElementById("enter-app-btn").addEventListener("click", () => {
+    localStorage.setItem(PWA_ENTERED_KEY, "true");
+    showApp();
+  });
+}
+
+function initLandingOrApp() {
+  if (isRunningStandalone()) {
+    showApp();
+  } else {
+    showLanding();
   }
 }
 
