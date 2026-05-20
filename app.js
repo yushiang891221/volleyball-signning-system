@@ -831,6 +831,7 @@ function renderRegisteredTeams() {
     item.classList.toggle("scorer-team", Boolean(isScorer));
     registeredTeamsEl.appendChild(item);
   }
+
 }
 
 function renderRegistrationHistory() {
@@ -1034,6 +1035,7 @@ async function toggleStreakMode() {
     registrationMessageEl.textContent = `切換「${venueName}」比賽模式失敗，請確認 Firebase 權限。`;
   }
 }
+
 
 async function adminQuickStart() {
   if (!adminUnlocked) return;
