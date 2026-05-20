@@ -67,7 +67,6 @@ const registerTeamBtn = document.getElementById("register-team");
 const cancelMyRegistrationBtn = document.getElementById("cancel-my-registration");
 const resetRegistrationBtn = document.getElementById("reset-registration");
 const resetMatchHistoryBtn = document.getElementById("reset-match-history");
-const checkLocationBtn = document.getElementById("check-location");
 const toggleLocationCheckBtn = document.getElementById("toggle-location-check");
 const registrationMessageEl = document.getElementById("registration-message");
 const locationMessageEl = document.getElementById("location-message");
@@ -392,7 +391,7 @@ function refreshScoringPermissionView() {
 function checkLocationForRegistration() {
   if (!state.locationCheckEnabled) {
     isInVenue = true;
-    locationMessageEl.textContent = "定位檢查已停用，可直接報名。";
+    locationMessageEl.textContent = "";
     applyVenueGate();
     return;
   }
@@ -404,20 +403,17 @@ function checkLocationForRegistration() {
     return;
   }
 
-  locationMessageEl.textContent = "定位檢查中...";
+  locationMessageEl.textContent = "";
   navigator.geolocation.getCurrentPosition(
     (position) => {
       const { latitude, longitude } = position.coords;
-      const venue = VENUES[selectedVenueId];
       isInVenue = isInsideSelectedVenue(latitude, longitude);
-      locationMessageEl.textContent = isInVenue
-        ? `定位成功：位於「${venue.name}」範圍內，可報名。`
-        : `定位成功：目前不在「${venue.name}」範圍內，無法報名。`;
+      locationMessageEl.textContent = isInVenue ? "✓ 符合報隊資格" : "";
       applyVenueGate();
     },
     () => {
       isInVenue = false;
-      locationMessageEl.textContent = "定位失敗或未授權，無法報名。";
+      locationMessageEl.textContent = "無法取得位置資訊，請確認定位授權。";
       applyVenueGate();
     },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 10000 }
@@ -999,13 +995,8 @@ async function toggleLocationCheckWithPassword() {
     registrationMessageEl.textContent = `切換「${venueName}」定位檢查失敗，請確認 Firebase 權限。`;
     return;
   }
-  if (state.locationCheckEnabled) {
-    checkLocationForRegistration();
-    registrationMessageEl.textContent = "已啟用定位檢查。";
-  } else {
-    locationMessageEl.textContent = "定位檢查已停用，可直接報名。";
-    registrationMessageEl.textContent = "已停用定位檢查。";
-  }
+  checkLocationForRegistration();
+  registrationMessageEl.textContent = state.locationCheckEnabled ? "已啟用定位檢查。" : "已停用定位檢查。";
 }
 
 async function toggleStreakMode() {
@@ -1430,7 +1421,6 @@ registerTeamBtn.addEventListener("click", registerTeam);
 cancelMyRegistrationBtn.addEventListener("click", cancelMyRegistration);
 resetRegistrationBtn.addEventListener("click", resetRegistrationWithPassword);
 resetMatchHistoryBtn.addEventListener("click", resetMatchHistory);
-checkLocationBtn.addEventListener("click", checkLocationForRegistration);
 toggleLocationCheckBtn.addEventListener("click", toggleLocationCheckWithPassword);
 toggleStreakModeBtn.addEventListener("click", toggleStreakMode);
 adminUnlockBtn.addEventListener("click", unlockAdminPage);

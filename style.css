@@ -292,7 +292,12 @@ h1 {
   color: var(--danger);
 }
 
-#location-message,
+#location-message {
+  margin: 10px 0 0;
+  font-weight: 700;
+  color: var(--teal-dark);
+}
+
 #location-check-status,
 #streak-mode-status,
 #admin-auth-message,
