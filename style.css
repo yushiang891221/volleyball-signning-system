@@ -603,8 +603,17 @@ button:active {
 .landing-desc {
   font-size: 15px;
   color: var(--text-muted);
-  line-height: 1.8;
+  line-height: 2;
   margin: 0 0 32px;
+}
+
+.desc-pop {
+  font-size: 17px;
+  font-weight: 800;
+  background: linear-gradient(90deg, var(--purple) 0%, var(--teal) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .landing-install-card {
@@ -710,6 +719,7 @@ button:active {
 }
 
 .landing-enter-btn {
+  display: block;
   width: 100%;
   margin-top: 10px;
   padding: 12px;
@@ -720,12 +730,14 @@ button:active {
   border: 2px solid var(--purple-mid);
   border-radius: 12px;
   box-shadow: none;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s;
 }
 
 .landing-enter-btn:hover {
   background: var(--purple-light);
-  box-shadow: none;
-  transform: none;
 }
 
 /* ── Utility ─────────────────────────────────────── */

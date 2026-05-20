@@ -2,7 +2,7 @@
   "name": "野場報隊系統",
   "short_name": "野場報隊",
   "description": "排球野場報名與計分系統",
-  "start_url": "/",
+  "start_url": "./app.html",
   "display": "standalone",
   "background_color": "#F3F1FB",
   "theme_color": "#8B72BE",

@@ -12,13 +12,15 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <!-- ── Landing page（瀏覽器開啟時顯示） ── -->
-  <section id="landing-page" class="hidden">
+  <section id="landing-page">
     <div class="landing-container">
       <img src="Gemini_Generated_Image_fft0pnfft0pnfft0.png" class="landing-icon" alt="野場報隊">
       <h1 class="landing-title">野場報隊系統</h1>
-      <p class="landing-desc">排球野場報名 × 即時計分<br>還在寫白貼(?)<br>報隊順序不再搞混!!!</p>
+      <p class="landing-desc">
+        排球野場報名 × 即時計分<br>
+        <span class="desc-pop">白貼紙 ㄅㄧㄤˋ！</span><br>
+        報隊、計分，一手掌握
+      </p>
 
       <div class="landing-install-card">
         <div class="landing-install-badge">⚠️ 使用前必讀</div>
@@ -46,147 +48,32 @@
           安裝 App 到主畫面
         </button>
 
-        <button id="enter-app-btn" class="landing-enter-btn" type="button">
+        <a href="app.html" class="landing-enter-btn">
           我已加入主畫面，進入 App →
-        </button>
+        </a>
       </div>
     </div>
   </section>
 
-  <!-- ── App 主體（從主畫面開啟時顯示） ── -->
-  <div id="app-container" class="hidden">
-    <main class="container">
-      <h1>野場報隊系統</h1>
-      <p id="current-time" class="time-bar"></p>
-      <div class="page-nav">
-        <button id="go-registration" type="button">報名頁面</button>
-        <button id="go-score" type="button">計分頁面</button>
-        <button id="go-admin" type="button">管理員頁面</button>
-      </div>
+  <script>
+    let deferredInstallPrompt = null;
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      document.getElementById("install-btn").classList.remove("hidden");
+    });
 
-      <section id="registration-page">
-        <section class="registration-section">
-          <h2>單隊報名（每隊 6 人）</h2>
-          <div class="registration-card">
-            <label for="venue-select">選擇球場</label>
-            <select id="venue-select">
-              <option value="fengchia">逢甲大學球場</option>
-              <option value="home">測試用球場</option>
-            </select>
-          </div>
-          <div class="registration-card">
-            <label for="team-name">隊名</label>
-            <input id="team-name" type="text" placeholder="例如：北一隊">
-            <div class="player-inputs" id="team-inputs">
-              <input type="text" placeholder="第 1 位球員姓名">
-              <input type="text" placeholder="第 2 位球員姓名">
-              <input type="text" placeholder="第 3 位球員姓名">
-              <input type="text" placeholder="第 4 位球員姓名">
-              <input type="text" placeholder="第 5 位球員姓名">
-              <input type="text" placeholder="第 6 位球員姓名">
-            </div>
-          </div>
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+    document.getElementById("install-steps-ios").classList.toggle("hidden", !isIOS);
+    document.getElementById("install-steps-android").classList.toggle("hidden", isIOS);
 
-          <div class="favorite-card registration-card">
-            <label>常用隊伍</label>
-            <div class="favorite-row">
-              <select id="favorite-select">
-                <option value="">── 選擇常用隊伍 ──</option>
-              </select>
-              <button id="apply-favorite-btn" type="button">套用</button>
-              <button id="delete-favorite-btn" class="danger-btn" type="button">刪除</button>
-            </div>
-            <button id="save-favorite-btn" type="button" class="save-fav-btn">＋ 儲存目前填寫為常用隊伍</button>
-          </div>
-
-          <button id="check-location" type="button">檢查定位</button>
-          <p id="location-message"></p>
-          <div class="management-grid">
-            <section class="panel-block">
-              <h3>報名隊伍管理</h3>
-              <div class="panel-actions">
-                <button id="register-team" type="button">報名這一隊</button>
-                <button id="cancel-my-registration" class="danger-btn" type="button">取消我的報名</button>
-              </div>
-              <ol id="registered-teams"></ol>
-              <h4>報名隊名紀錄</h4>
-              <ol id="registration-history"></ol>
-            </section>
-
-            <section class="panel-block">
-              <h3>比賽結果管理</h3>
-              <ol id="match-history"></ol>
-            </section>
-          </div>
-          <p id="registration-message"></p>
-        </section>
-      </section>
-
-      <section id="score-page" class="hidden">
-        <p id="score-page-message" class="score-page-message">請先到報名頁面完成兩隊報名。</p>
-
-        <section class="scoreboard hidden" id="game-section">
-          <article class="team-card" id="team-a-card">
-            <h2 id="team-a-title">隊伍 A</h2>
-            <p class="score" id="score-a">0</p>
-            <div class="controls">
-              <button id="a-plus" type="button">+1</button>
-              <button id="a-minus" type="button">-1</button>
-            </div>
-            <ol id="team-a-players" class="player-list"></ol>
-          </article>
-
-          <article class="team-card" id="team-b-card">
-            <h2 id="team-b-title">隊伍 B</h2>
-            <p class="score" id="score-b">0</p>
-            <div class="controls">
-              <button id="b-plus" type="button">+1</button>
-              <button id="b-minus" type="button">-1</button>
-            </div>
-            <ol id="team-b-players" class="player-list"></ol>
-          </article>
-        </section>
-
-        <section class="status-section hidden" id="status-section">
-          <p id="status">比賽進行中</p>
-          <p id="scorer-status"></p>
-        </section>
-      </section>
-
-      <section id="admin-page" class="hidden">
-        <section class="registration-section">
-          <h2>管理員頁面</h2>
-          <section id="admin-login-section" class="panel-block">
-            <h3>管理員登入</h3>
-            <label for="admin-password">密碼</label>
-            <input id="admin-password" type="password" placeholder="輸入管理員密碼">
-            <div class="panel-actions">
-              <button id="admin-unlock" type="button">進入管理員模式</button>
-            </div>
-            <p id="admin-auth-message"></p>
-          </section>
-
-          <section id="admin-controls-section" class="panel-block hidden">
-            <h3>系統控制</h3>
-            <p id="location-check-status"></p>
-            <p id="streak-mode-status"></p>
-            <div class="panel-actions">
-              <button id="toggle-location-check" class="danger-btn" type="button">切換定位檢查</button>
-              <button id="toggle-streak-mode" class="danger-btn" type="button">切換連二下模式</button>
-              <button id="reset-registration" class="danger-btn" type="button">重置報名隊伍</button>
-              <button id="reset-match-history" class="danger-btn" type="button">重置比賽結果</button>
-            </div>
-          </section>
-        </section>
-      </section>
-    </main>
-  </div>
-
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="firebase-db.js"></script>
-  <script src="app.js"></script>
+    document.getElementById("install-btn").addEventListener("click", async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      document.getElementById("install-btn").classList.add("hidden");
+    });
+  </script>
 </body>
 </html>
