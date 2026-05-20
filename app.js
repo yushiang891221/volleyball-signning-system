@@ -18,7 +18,8 @@ const state = {
   streakTwoModeEnabled: false,
   streakTeamId: null,
   streakCount: 0,
-  currentMatchRecorded: false
+  currentMatchRecorded: false,
+  quickStartMode: false
 };
 
 const WIN_SCORE = 25;
@@ -136,7 +137,8 @@ function createEmptyVenueState() {
     streakTwoModeEnabled: false,
     streakTeamId: null,
     streakCount: 0,
-    currentMatchRecorded: false
+    currentMatchRecorded: false,
+    quickStartMode: false
   };
 }
 
@@ -362,6 +364,7 @@ function ensureDeviceTeamStillExists() {
 }
 
 function canDeviceScore() {
+  if (state.quickStartMode) return true;
   return Boolean(deviceTeamId && state.scorerTeamId && deviceTeamId === state.scorerTeamId);
 }
 
@@ -491,7 +494,8 @@ function getStatePayloadForStorage() {
     streakTwoModeEnabled: state.streakTwoModeEnabled,
     streakTeamId: state.streakTeamId,
     streakCount: state.streakCount,
-    currentMatchRecorded: state.currentMatchRecorded
+    currentMatchRecorded: state.currentMatchRecorded,
+    quickStartMode: state.quickStartMode
   };
 }
 
@@ -529,6 +533,7 @@ function applyVenueStatePayload(payload) {
   state.streakTeamId = typeof payload.streakTeamId === "string" ? payload.streakTeamId : null;
   state.streakCount = Number.isInteger(payload.streakCount) ? payload.streakCount : 0;
   state.currentMatchRecorded = Boolean(payload.currentMatchRecorded);
+  state.quickStartMode = Boolean(payload.quickStartMode);
 
   renderPlayerList(teamAPlayersEl, state.teamAPlayers);
   renderPlayerList(teamBPlayersEl, state.teamBPlayers);
@@ -1030,6 +1035,43 @@ async function toggleStreakMode() {
   }
 }
 
+async function adminQuickStart() {
+  if (!adminUnlocked) return;
+  if (!window.confirm("直接以「A 隊 vs B 隊」開始計分，不需報名？")) return;
+
+  const preservedLocationCheck = state.locationCheckEnabled;
+  const preservedStreakMode = state.streakTwoModeEnabled;
+  Object.assign(state, createEmptyVenueState());
+  state.locationCheckEnabled = preservedLocationCheck;
+  state.streakTwoModeEnabled = preservedStreakMode;
+  state.quickStartMode = true;
+
+  const teamA = { teamId: generateTeamId(), ownerDeviceId: deviceUuid, name: "A 隊", players: [] };
+  const teamB = { teamId: generateTeamId(), ownerDeviceId: "", name: "B 隊", players: [] };
+  state.registeredTeams = [teamA, teamB];
+  state.currentAIndex = 0;
+  state.currentBIndex = 1;
+  state.teamAName = "A 隊";
+  state.teamBName = "B 隊";
+  state.teamAPlayers = [];
+  state.teamBPlayers = [];
+  state.scoreA = 0;
+  state.scoreB = 0;
+  state.serving = "B";
+  state.finished = false;
+  state.currentMatchRecorded = false;
+
+  renderPlayerList(teamAPlayersEl, []);
+  renderPlayerList(teamBPlayersEl, []);
+  renderRegisteredTeams();
+  renderAdminTeamList();
+  gameSectionEl.classList.remove("hidden");
+  statusSectionEl.classList.remove("hidden");
+  refreshView();
+  await saveRegistrationStateStrict();
+  showPage("score");
+}
+
 function renderAdminTeamList() {
   const listEl = document.getElementById("admin-team-list");
   if (!listEl) return;
@@ -1502,6 +1544,7 @@ resetMatchHistoryBtn.addEventListener("click", resetMatchHistory);
 toggleLocationCheckBtn.addEventListener("click", toggleLocationCheckWithPassword);
 toggleStreakModeBtn.addEventListener("click", toggleStreakMode);
 adminUnlockBtn.addEventListener("click", unlockAdminPage);
+document.getElementById("quick-start").addEventListener("click", adminQuickStart);
 applyFavoriteBtnEl.addEventListener("click", applyFavoriteTeam);
 saveFavoriteBtnEl.addEventListener("click", saveAsFavoriteTeam);
 deleteFavoriteBtnEl.addEventListener("click", deleteFavoriteTeam);
