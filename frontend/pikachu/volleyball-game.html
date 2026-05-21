@@ -445,9 +445,13 @@
       setTimeout(() => fireKey('KeyZ', 'keyup'), 60);
     }
 
+    function scheduleAutoPlay() {
+      Array.from({length:20},(_,i)=>1000+i*100).forEach(t=>setTimeout(pressPlay,t));
+    }
+
     const playBtn = document.getElementById('close-about-btn');
     playBtn.addEventListener('click', pressPlay);
-    Array.from({length:20},(_,i)=>1000+i*100).forEach(t=>setTimeout(pressPlay,t));
+    scheduleAutoPlay();
 
     // ── Leaderboard ──────────────────────────────────
     const LB_KEY = 'pikachu-leaderboard';
@@ -470,7 +474,7 @@
     window.__onGameEnd = function(score) {
       pendingScore = score;
       if (score <= 0) {
-        Array.from({length:20},(_,i)=>1000+i*100).forEach(t=>setTimeout(pressPlay,t));
+        scheduleAutoPlay();
         return;
       }
       scoreText.textContent = '你的得分：' + score;
@@ -495,11 +499,12 @@
           await window.FirebaseDB.addLeaderboardScore(name, pendingScore, date);
         } catch(_e) {}
       }
+      scheduleAutoPlay();
     }
 
     submitBtn.addEventListener('click', submitScore);
     nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitScore(); });
-    skipBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+    skipBtn.addEventListener('click', () => { modal.style.display = 'none'; scheduleAutoPlay(); });
 
     // ── Mute toggle ──────────────────────────────────
     let isMuted = false;
