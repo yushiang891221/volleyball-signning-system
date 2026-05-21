@@ -225,6 +225,13 @@
     </section>
   </main>
 
+  <script>
+    if (navigator.vibrate) {
+      document.addEventListener('touchstart', function(e) {
+        if (e.target.closest('button, .venue-card, a')) navigator.vibrate(10);
+      }, { passive: true });
+    }
+  </script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
