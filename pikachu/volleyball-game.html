@@ -43,7 +43,7 @@
       height: 228px;
       z-index: 999;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: flex-end;
       padding: 8px 16px 20px;
       pointer-events: none;
@@ -110,92 +110,6 @@
       font-size: 12px;
       font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
       text-align: center;
-    }
-
-    /* ── Win record panel ── */
-    #win-panel {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      pointer-events: auto;
-    }
-
-    #win-score {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(0,0,0,0.5);
-      border: 1.5px solid rgba(255,255,255,0.2);
-      border-radius: 20px;
-      padding: 4px 12px;
-      backdrop-filter: blur(8px);
-      color: #fff;
-      font-size: 15px;
-      font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    #win-score .sep { color: rgba(255,255,255,0.4); font-weight: 400; }
-
-    .win-count {
-      min-width: 22px;
-      text-align: center;
-      font-size: 18px;
-      font-weight: 800;
-    }
-
-    #win-btns {
-      display: flex;
-      gap: 6px;
-    }
-
-    .win-btn {
-      padding: 6px 10px;
-      border-radius: 10px;
-      border: 1.5px solid rgba(255,255,255,0.25);
-      background: rgba(255,255,255,0.12);
-      color: #fff;
-      font-size: 11px;
-      font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
-      font-weight: 700;
-      cursor: pointer;
-      backdrop-filter: blur(6px);
-      white-space: nowrap;
-      transition: background 0.1s;
-    }
-
-    .win-btn:active { background: rgba(255,255,255,0.3); }
-
-    #reset-wins {
-      border: none;
-      background: transparent;
-      color: rgba(255,255,255,0.4);
-      font-size: 16px;
-      cursor: pointer;
-      padding: 2px 4px;
-      line-height: 1;
-    }
-
-    /* Win toast */
-    #win-toast {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 1002;
-      background: rgba(255, 220, 60, 0.95);
-      color: #1a0a00;
-      border-radius: 16px;
-      padding: 18px 36px;
-      font-size: 24px;
-      font-weight: 800;
-      font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
-      pointer-events: none;
-      display: none;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
 
     /* ── Game layout overrides ── */
@@ -379,36 +293,7 @@
       </div>
     </div>
 
-    <!-- Win record panel (center) -->
-    <div id="win-panel">
-      <div id="win-score">
-        <span class="win-count" id="p1-wins">0</span>
-        <span class="sep">vs</span>
-        <span class="win-count" id="p2-wins">0</span>
-        <button id="reset-wins" title="重置">↺</button>
-      </div>
-      <div id="win-btns">
-        <button class="win-btn" id="p1-win-btn">P1 贏了🏆</button>
-        <button class="win-btn" id="p2-win-btn">P2 贏了🏆</button>
-      </div>
-    </div>
-
-    <!-- Player 2 (right side) — keys: ArrowLeft/ArrowRight/ArrowUp/Enter -->
-    <div class="player-controls" id="p2-controls">
-      <div class="player-label">玩家 2</div>
-      <div class="controls-row">
-        <button class="ctrl-btn jump-btn" id="p2-jump">↑</button>
-        <button class="ctrl-btn power-btn" id="p2-power">⚡</button>
-      </div>
-      <div class="controls-row">
-        <button class="ctrl-btn" id="p2-left">←</button>
-        <button class="ctrl-btn" id="p2-right">→</button>
-      </div>
-    </div>
   </div>
-
-  <!-- Win toast notification -->
-  <div id="win-toast"></div>
 
   <!-- Game bundles (same origin — key events work directly) -->
   <script defer src="runtime.bundle.js"></script>
@@ -423,16 +308,12 @@
       screen.orientation.lock('landscape').catch(() => {});
     }
 
-    // Map button id → KeyboardEvent.code
+    // Map button id → KeyboardEvent.code (single player: P1 only)
     const KEY_MAP = {
       'p1-left':  'KeyD',
       'p1-right': 'KeyG',
       'p1-jump':  'KeyR',
       'p1-power': 'KeyZ',
-      'p2-left':  'ArrowLeft',
-      'p2-right': 'ArrowRight',
-      'p2-jump':  'ArrowUp',
-      'p2-power': 'Enter',
     };
 
     function fireKey(code, type) {
@@ -464,52 +345,16 @@
       btn.addEventListener('mouseleave', release);
     }
 
-    // ── Win record ──────────────────────────────────────
-    const wins = JSON.parse(sessionStorage.getItem('pikaWins') || '[0,0]');
-    const p1WinsEl = document.getElementById('p1-wins');
-    const p2WinsEl = document.getElementById('p2-wins');
-    const toast = document.getElementById('win-toast');
-    let toastTimer;
-
-    function updateWinDisplay() {
-      p1WinsEl.textContent = wins[0];
-      p2WinsEl.textContent = wins[1];
-      sessionStorage.setItem('pikaWins', JSON.stringify(wins));
-    }
-
-    function showToast(msg) {
-      clearTimeout(toastTimer);
-      toast.textContent = msg;
-      toast.style.display = 'block';
-      toast.style.opacity = '1';
-      toastTimer = setTimeout(() => {
-        toast.style.transition = 'opacity 0.6s';
-        toast.style.opacity = '0';
-        setTimeout(() => {
-          toast.style.display = 'none';
-          toast.style.transition = '';
-        }, 650);
-      }, 1600);
-    }
-
-    document.getElementById('p1-win-btn').addEventListener('click', () => {
-      wins[0]++;
-      updateWinDisplay();
-      showToast('🏆 玩家 1 贏了！');
+    // Auto-start single player (vs CPU) when Play is clicked:
+    // fire KeyZ to skip intro → skip menu animation → confirm "with computer"
+    document.getElementById('close-about-btn').addEventListener('click', () => {
+      setTimeout(() => fireKey('KeyZ', 'keydown'), 500);
+      setTimeout(() => fireKey('KeyZ', 'keyup'),   560);
+      setTimeout(() => fireKey('KeyZ', 'keydown'), 1600);
+      setTimeout(() => fireKey('KeyZ', 'keyup'),   1660);
+      setTimeout(() => fireKey('KeyZ', 'keydown'), 1800);
+      setTimeout(() => fireKey('KeyZ', 'keyup'),   1860);
     });
-
-    document.getElementById('p2-win-btn').addEventListener('click', () => {
-      wins[1]++;
-      updateWinDisplay();
-      showToast('🏆 玩家 2 贏了！');
-    });
-
-    document.getElementById('reset-wins').addEventListener('click', () => {
-      wins[0] = wins[1] = 0;
-      updateWinDisplay();
-    });
-
-    updateWinDisplay();
   </script>
 </body>
 </html>
