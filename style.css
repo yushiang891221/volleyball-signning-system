@@ -484,6 +484,11 @@ h1 {
   list-style: none;
 }
 
+.nav-item-disabled {
+  opacity: 0.38;
+  pointer-events: none;
+}
+
 .page-back-row { margin-bottom: 8px; }
 .back-text-btn {
   background: none;

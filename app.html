@@ -32,8 +32,8 @@
     <ul id="drawer-nav">
       <li class="nav-venue-section-label">球場功能</li>
       <li><button id="go-registration" type="button"><img src="contract.png" class="nav-icon" alt="">報名頁面</button></li>
-      <li><button id="go-score" type="button"><img src="score.png" class="nav-icon" alt="">計分頁面</button></li>
-      <li><button id="go-admin" type="button"><img src="setting.png" class="nav-icon" alt="">野場管理員(NPC)</button></li>
+      <li id="nav-li-score"><button id="go-score" type="button"><img src="score.png" class="nav-icon" alt="">計分頁面</button></li>
+      <li id="nav-li-admin"><button id="go-admin" type="button"><img src="setting.png" class="nav-icon" alt="">野場管理員(NPC)</button></li>
       <li class="nav-divider-item"></li>
       <li><a href="pikachu/index.html" id="go-game">🏐 線上打排球</a></li>
       <li><button id="go-system-admin" type="button">⚙️ 系統管理</button></li>
@@ -202,6 +202,7 @@
     <section id="admin-page" class="hidden">
       <section class="registration-section">
         <h2>野場管理員(NPC)</h2>
+        <p id="admin-venue-info" class="score-page-message"></p>
         <section id="admin-login-section" class="panel-block">
           <h3>管理員登入</h3>
           <label for="admin-password">密碼</label>

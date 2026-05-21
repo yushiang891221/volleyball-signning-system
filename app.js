@@ -113,6 +113,7 @@ const goScoreBtn = document.getElementById("go-score");
 const goAdminBtn = document.getElementById("go-admin");
 const adminLoginSectionEl = document.getElementById("admin-login-section");
 const adminControlsSectionEl = document.getElementById("admin-controls-section");
+const adminVenueInfoEl = document.getElementById("admin-venue-info");
 const adminPasswordInputEl = document.getElementById("admin-password");
 const adminUnlockBtn = document.getElementById("admin-unlock");
 const adminAuthMessageEl = document.getElementById("admin-auth-message");
@@ -125,6 +126,7 @@ let currentPage = "registration";
 let isInVenue = false;
 let systemAdminUnlocked = false;
 let fengchiaAccessible = null;
+let venueSelected = false;
 let selectedVenueId = DEFAULT_VENUE_ID;
 let allVenueStates = {};
 let firebaseReady = false;
@@ -373,6 +375,7 @@ function updateStreakModeStatus() {
   streakModeStatusEl.textContent = state.streakTwoModeEnabled
     ? "比賽模式：連二下（開啟）"
     : "比賽模式：一般輪轉（關閉）";
+  updateAdminVenueInfo();
 }
 
 function ensureDeviceTeamStillExists() {
@@ -472,6 +475,25 @@ function updateScorePageMessage() {
     `目前球場：${venue.name}｜模式：${mode}\n對戰：${state.teamAName} vs ${state.teamBName}\n報名隊伍：${teamCount}`;
 }
 
+function updateDrawerVenueGate() {
+  const scoreLi = document.getElementById("nav-li-score");
+  const adminLi = document.getElementById("nav-li-admin");
+  if (scoreLi) scoreLi.classList.toggle("nav-item-disabled", !venueSelected);
+  if (adminLi) adminLi.classList.toggle("nav-item-disabled", !venueSelected);
+}
+
+function updateAdminVenueInfo() {
+  if (!adminVenueInfoEl) return;
+  if (!venueSelected) {
+    adminVenueInfoEl.textContent = "尚未選擇球場";
+    return;
+  }
+  const venue = VENUES[selectedVenueId];
+  const fullName = venue?.parentName ? `${venue.parentName} ${venue.name}` : (venue?.name || selectedVenueId);
+  const mode = state.streakTwoModeEnabled ? "連二下" : "一般";
+  adminVenueInfoEl.textContent = `目前球場：${fullName}｜模式：${mode}`;
+}
+
 function updateFengchiaCard() {
   const card = document.getElementById("select-fengchia");
   const status = document.getElementById("fengchia-card-status");
@@ -524,6 +546,7 @@ function checkFengchiaAccessible() {
 }
 
 function showVenuePage() {
+  venueSelected = false;
   venuePageEl.classList.remove("hidden");
   document.getElementById("venue-top-select").classList.remove("hidden");
   document.getElementById("court-select").classList.add("hidden");
@@ -532,11 +555,13 @@ function showVenuePage() {
   adminPageEl.classList.add("hidden");
   systemAdminPageEl.classList.add("hidden");
   closeDrawer();
+  updateDrawerVenueGate();
   checkFengchiaAccessible();
 }
 
 function selectVenue(venueId) {
   adminUnlocked = false;
+  venueSelected = true;
   venueSelectEl.value = venueId;
   venueSelectEl.dispatchEvent(new Event("change"));
   const venue = VENUES[venueId];
@@ -549,6 +574,7 @@ function selectVenue(venueId) {
     venueBadgeNameEl.textContent = venue?.name || venueId;
   }
   venuePageEl.classList.add("hidden");
+  updateDrawerVenueGate();
   showPage("registration");
   renderAdminModeView();
 }
@@ -571,6 +597,7 @@ function showPage(page) {
   const goSystemAdminBtnEl = document.getElementById("go-system-admin");
   if (goSystemAdminBtnEl) goSystemAdminBtnEl.classList.toggle("active", isSystemAdmin);
   updateScorePageMessage();
+  if (isAdmin) updateAdminVenueInfo();
 
   document.body.classList.toggle("score-page-active", isScore);
 
@@ -1837,6 +1864,7 @@ ensureDeviceTeamStillExists();
 updateStreakModeStatus();
 refreshView();
 showVenuePage();
+updateDrawerVenueGate();
 renderAdminModeView();
 venueSelectEl.value = selectedVenueId;
 applyVenueGate();
