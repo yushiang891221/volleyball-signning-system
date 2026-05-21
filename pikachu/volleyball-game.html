@@ -40,41 +40,33 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: 228px;
+      height: 300px;
       z-index: 999;
       display: flex;
-      justify-content: space-around;
+      justify-content: center;
       align-items: center;
       padding: 8px 24px 20px;
       pointer-events: none;
     }
 
-    /* Power button (center-left) */
-    .action-group {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    /* 3×3 control grid */
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 84px);
+      grid-template-rows: repeat(3, 84px);
+      gap: 8px;
       pointer-events: auto;
     }
 
-    /* D-pad (center-right) */
-    .dpad-group {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      pointer-events: auto;
-    }
-
-    .dpad-row {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-    }
+    #p1-jump  { grid-column: 2; grid-row: 1; }
+    #p1-power { grid-column: 1; grid-row: 2; }
+    #p1-left  { grid-column: 2; grid-row: 2; }
+    #p1-right { grid-column: 3; grid-row: 2; }
+    #p1-down  { grid-column: 2; grid-row: 3; }
 
     .ctrl-btn {
-      width: 100px;
-      height: 100px;
+      width: 84px;
+      height: 84px;
       border-radius: 50%;
       border: 2px solid rgba(255,255,255,0.3);
       background: rgba(255,255,255,0.15);
@@ -134,40 +126,43 @@
     /* Hide the game's own menu bar — we use the back button */
     #menu-bar { display: none !important; }
 
-    /* Portrait: canvas centered in the space above touch controls */
+    /* Portrait */
     @media (orientation: portrait) {
       #flex-container {
         padding: 0 !important;
-        height: calc(100vh - 250px) !important;
+        height: calc(100vh - 300px) !important;
         justify-content: center !important;
         align-items: center !important;
       }
-      #touch-overlay { height: 250px; }
+      #touch-overlay { height: 300px; }
       #game-canvas {
         width: 100vw !important;
         height: calc(100vw * 304 / 432) !important;
-        max-height: calc(100vh - 250px) !important;
+        max-height: calc(100vh - 300px) !important;
       }
     }
 
-    /* Landscape: fill height minus touch controls */
+    /* Landscape */
     @media (orientation: landscape) {
       #touch-overlay {
-        height: 210px;
-        padding: 6px 24px 16px;
+        height: 218px;
+        padding: 5px 20px 14px;
       }
-      .ctrl-btn { width: 80px; height: 80px; font-size: 28px; }
-      .dpad-group { gap: 8px; }
-      .dpad-row { gap: 8px; }
+      .ctrl-btn { width: 62px; height: 62px; font-size: 22px; }
+      .control-grid {
+        grid-template-columns: repeat(3, 62px);
+        grid-template-rows: repeat(3, 62px);
+        gap: 7px;
+      }
       #flex-container {
         padding: 0 !important;
-        height: calc(100dvh - 210px) !important;
+        height: calc(100dvh - 218px) !important;
         justify-content: center !important;
         align-items: center !important;
       }
       #game-canvas {
-        height: calc(100dvh - 210px) !important;
-        width: calc((100dvh - 210px) * 432 / 304) !important;
+        height: calc(100dvh - 218px) !important;
+        width: calc((100dvh - 218px) * 432 / 304) !important;
         max-width: 100vw !important;
       }
     }
@@ -295,23 +290,13 @@
 
   <!-- ── Touch controls overlay ── -->
   <div id="touch-overlay">
-    <!-- Power button (center-left) -->
-    <div class="action-group">
+    <div class="control-grid">
+      <button class="ctrl-btn jump-btn"  id="p1-jump">↑</button>
       <button class="ctrl-btn power-btn" id="p1-power">⚡</button>
+      <button class="ctrl-btn"           id="p1-left">←</button>
+      <button class="ctrl-btn"           id="p1-right">→</button>
+      <button class="ctrl-btn down-btn"  id="p1-down">↓</button>
     </div>
-
-    <!-- D-pad (center-right): ↑ on top, ← ↓ → on bottom -->
-    <div class="dpad-group" id="p1-controls">
-      <div class="dpad-row">
-        <button class="ctrl-btn jump-btn" id="p1-jump">↑</button>
-      </div>
-      <div class="dpad-row">
-        <button class="ctrl-btn" id="p1-left">←</button>
-        <button class="ctrl-btn down-btn" id="p1-down">↓</button>
-        <button class="ctrl-btn" id="p1-right">→</button>
-      </div>
-    </div>
-
   </div>
 
   <!-- Game bundles (same origin — key events work directly) -->

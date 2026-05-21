@@ -12,8 +12,8 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Hamburger toggle -->
-  <button id="nav-toggle" type="button" aria-label="開啟選單">☰</button>
+  <!-- Hamburger toggle (hidden until venue is selected) -->
+  <button id="nav-toggle" type="button" aria-label="開啟選單" style="display:none">☰</button>
   <!-- Overlay -->
   <div id="nav-overlay"></div>
   <!-- Side drawer -->
@@ -22,10 +22,15 @@
       <span>野場報隊</span>
       <button id="nav-close" type="button" aria-label="關閉">✕</button>
     </div>
+    <div id="venue-badge">
+      <span id="venue-badge-name"></span>
+      <button id="change-venue-btn" type="button">換球場</button>
+    </div>
     <ul id="drawer-nav">
       <li><button id="go-registration" type="button"><img src="contract.png" class="nav-icon" alt="">報名頁面</button></li>
       <li><button id="go-score" type="button"><img src="score.png" class="nav-icon" alt="">計分頁面</button></li>
       <li><button id="go-admin" type="button"><img src="setting.png" class="nav-icon" alt="">管理員頁面</button></li>
+      <li class="nav-divider-item"></li>
       <li><a href="pikachu/volleyball-game.html" id="go-game">🏐 線上打排球</a></li>
     </ul>
   </nav>
@@ -34,10 +39,26 @@
     <h1>野場報隊系統</h1>
     <p id="current-time" class="time-bar"></p>
 
-    <section id="registration-page">
+    <!-- ── Venue selection landing page ── -->
+    <section id="venue-page">
+      <p class="venue-page-subtitle">請選擇球場</p>
+      <div class="venue-cards">
+        <button class="venue-card" id="select-fengchia">
+          <div class="venue-card-icon">🏟</div>
+          <div class="venue-card-name">逢甲大學球場</div>
+        </button>
+        <button class="venue-card" id="select-home">
+          <div class="venue-card-icon">🏠</div>
+          <div class="venue-card-name">測試用球場</div>
+        </button>
+      </div>
+      <a href="pikachu/volleyball-game.html" class="venue-game-btn">🏐 線上打排球</a>
+    </section>
+
+    <section id="registration-page" class="hidden">
       <section class="registration-section">
         <h2>單隊報名（每隊 6 人）</h2>
-        <div class="registration-card">
+        <div class="registration-card hidden">
           <label for="venue-select">選擇球場</label>
           <select id="venue-select">
             <option value="fengchia">逢甲大學球場</option>

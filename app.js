@@ -84,6 +84,8 @@ const registrationPageEl = document.getElementById("registration-page");
 const scorePageEl = document.getElementById("score-page");
 const adminPageEl = document.getElementById("admin-page");
 const scorePageMessageEl = document.getElementById("score-page-message");
+const venuePageEl = document.getElementById("venue-page");
+const venueBadgeNameEl = document.getElementById("venue-badge-name");
 const goRegistrationBtn = document.getElementById("go-registration");
 const goScoreBtn = document.getElementById("go-score");
 const goAdminBtn = document.getElementById("go-admin");
@@ -436,6 +438,24 @@ function updateScorePageMessage() {
   }
   scorePageMessageEl.textContent =
     `目前球場：${venue.name}｜模式：${mode}\n對戰：${state.teamAName} vs ${state.teamBName}\n報名隊伍：${teamCount}`;
+}
+
+function showVenuePage() {
+  venuePageEl.classList.remove("hidden");
+  registrationPageEl.classList.add("hidden");
+  scorePageEl.classList.add("hidden");
+  adminPageEl.classList.add("hidden");
+  document.getElementById("nav-toggle").style.display = "none";
+  closeDrawer();
+}
+
+function selectVenue(venueId) {
+  venueSelectEl.value = venueId;
+  venueSelectEl.dispatchEvent(new Event("change"));
+  venueBadgeNameEl.textContent = VENUES[venueId]?.name || venueId;
+  venuePageEl.classList.add("hidden");
+  document.getElementById("nav-toggle").style.display = "";
+  showPage("registration");
 }
 
 function showPage(page) {
@@ -1609,6 +1629,9 @@ venueSelectEl.addEventListener("change", () => {
 goRegistrationBtn.addEventListener("click", () => showPage("registration"));
 goScoreBtn.addEventListener("click", () => showPage("score"));
 goAdminBtn.addEventListener("click", () => showPage("admin"));
+document.getElementById("select-fengchia").addEventListener("click", () => selectVenue("fengchia"));
+document.getElementById("select-home").addEventListener("click", () => selectVenue("home"));
+document.getElementById("change-venue-btn").addEventListener("click", () => showVenuePage());
 
 // Side drawer
 const navToggle = document.getElementById("nav-toggle");
@@ -1639,7 +1662,7 @@ ensureDeviceTeamStillExists();
 updateLocationCheckStatus();
 updateStreakModeStatus();
 refreshView();
-showPage("registration");
+showVenuePage();
 renderAdminModeView();
 venueSelectEl.value = selectedVenueId;
 applyVenueGate();

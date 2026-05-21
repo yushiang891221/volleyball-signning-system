@@ -213,6 +213,119 @@ h1 {
   flex-shrink: 0;
 }
 
+/* ── Venue selection page ────────────────────────── */
+#venue-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0 32px;
+  gap: 0;
+}
+
+.venue-page-subtitle {
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin: 0 0 20px;
+}
+
+.venue-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.venue-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 26px 32px;
+  min-width: 140px;
+  background: var(--card-bg);
+  border: 1.5px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: 0 4px 18px rgba(107, 79, 175, 0.09);
+  cursor: pointer;
+  font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+  transition: transform 0.14s, box-shadow 0.14s;
+}
+
+.venue-card:hover, .venue-card:active {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(107, 79, 175, 0.2);
+}
+
+.venue-card-icon { font-size: 2.4rem; }
+
+.venue-card-name {
+  font-size: 0.93rem;
+  font-weight: 700;
+  color: var(--purple-deep);
+}
+
+.venue-game-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 24px;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--teal-dark) 100%);
+  color: #fff;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.93rem;
+  font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+  box-shadow: 0 4px 14px var(--purple-glow);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.venue-game-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+/* ── Venue badge in drawer ───────────────────────── */
+#venue-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 10px;
+  border-bottom: 1.5px solid var(--border);
+  background: rgba(155, 127, 212, 0.06);
+}
+
+#venue-badge-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--purple-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#change-venue-btn {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+  transition: background 0.12s;
+}
+
+#change-venue-btn:hover { background: var(--purple-light); }
+
+.nav-divider-item {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 16px;
+  list-style: none;
+}
+
 /* ── Registration section ────────────────────────── */
 .registration-section {
   margin-bottom: 20px;
