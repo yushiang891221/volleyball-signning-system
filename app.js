@@ -401,20 +401,21 @@ function isInsideSelectedVenue(lat, lng) {
   return false;
 }
 
-async function hashPassword(pwd) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+async function callAdminAPI(endpoint, body, token) {
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(endpoint, { method: "POST", headers, body: JSON.stringify(body) });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "操作失敗");
+  return data;
 }
 
-let adminConfigCache = null;
-async function loadAdminConfig() {
-  if (adminConfigCache) return adminConfigCache;
-  if (!hasFirebase() || !firebaseReady) return null;
-  try {
-    const data = await window.FirebaseDB.getAdminConfig();
-    if (data) adminConfigCache = data;
-    return adminConfigCache;
-  } catch (_) { return null; }
+function getSysAdminToken() { return sessionStorage.getItem("vb_sys_token"); }
+function getAdminToken() { return sessionStorage.getItem("vb_admin_token"); }
+
+async function callAdminAction(action, extra = {}) {
+  const token = getSysAdminToken() || getAdminToken();
+  return callAdminAPI("/api/admin-action", { action, venueId: selectedVenueId, ...extra }, token);
 }
 
 function loadSystemSettings() {
@@ -449,20 +450,16 @@ function setGameDifficulty(difficulty) {
   if (!window.confirm(`確定要將遊戲難易度設為「${labels[difficulty]}」嗎？`)) return;
   const current = loadSystemSettings();
   saveSystemSettings({ ...current, gameDifficulty: difficulty });
-  localStorage.setItem('pv-offline-speed', difficulty);
-  if (hasFirebase() && firebaseReady) {
-    ensureFirebaseAuth().then(() => {
-      return window.FirebaseDB.setAdminConfig({ gameDifficulty: difficulty });
-    }).then(() => {
-      if (sysControlsMessageEl) sysControlsMessageEl.textContent = `遊戲難易度已設為「${labels[difficulty]}」（已同步至雲端）。`;
-    }).catch(e => {
-      console.error("[difficulty] write FAIL", e);
-      if (sysControlsMessageEl) sysControlsMessageEl.textContent = `遊戲難易度已設為「${labels[difficulty]}」（雲端同步失敗：${e.code || e.message}）。`;
-    });
-    if (adminConfigCache) adminConfigCache.gameDifficulty = difficulty;
-  }
+  localStorage.setItem("pv-offline-speed", difficulty);
   updateDifficultyStatus();
   if (sysControlsMessageEl) sysControlsMessageEl.textContent = `遊戲難易度已設為「${labels[difficulty]}」（同步中…）。`;
+  callAdminAction("setConfig", { config: { gameDifficulty: difficulty } })
+    .then(() => {
+      if (sysControlsMessageEl) sysControlsMessageEl.textContent = `遊戲難易度已設為「${labels[difficulty]}」（已同步至雲端）。`;
+    })
+    .catch((e) => {
+      if (sysControlsMessageEl) sysControlsMessageEl.textContent = `遊戲難易度已設為「${labels[difficulty]}」（雲端同步失敗：${e.message}）。`;
+    });
 }
 
 function renderFbStatsTable() {
@@ -815,19 +812,13 @@ async function submitMessage() {
 async function clearMessageBoard() {
   if (!systemAdminUnlocked) return;
   if (!window.confirm("確定要清除所有留言嗎？")) return;
-  if (hasFirebase() && firebaseReady) {
-    try {
-      await ensureFirebaseAuth();
-      await window.FirebaseDB.clearMessages();
-      if (sysControlsMessageEl) sysControlsMessageEl.textContent = "留言板已清除。";
-    } catch (error) {
-      console.error("clearMessages failed:", error);
-      if (sysControlsMessageEl) sysControlsMessageEl.textContent = "清除留言板失敗。";
-    }
-  } else {
-    allMessages = [];
-    saveLocalMessages();
+  try {
+    await callAdminAction("clearMessages");
     if (sysControlsMessageEl) sysControlsMessageEl.textContent = "留言板已清除。";
+    allMessages = [];
+    renderMessageCards();
+  } catch (error) {
+    if (sysControlsMessageEl) sysControlsMessageEl.textContent = `清除留言板失敗：${error.message}`;
   }
 }
 
@@ -1511,50 +1502,46 @@ async function resetRegistrationWithPassword() {
     adminAuthMessageEl.textContent = "請先進入管理員模式。";
     return;
   }
-
   const venueName = VENUES[selectedVenueId].name;
-  const confirmed = window.confirm(`確定要重置「${venueName}」的報名隊伍嗎？`);
-  if (!confirmed) {
-    return;
-  }
-
+  if (!window.confirm(`確定要重置「${venueName}」的報名隊伍嗎？`)) return;
   try {
-    await clearAllRegistrationData();
+    await callAdminAction("resetRegistration");
+    clearAllRegistrationData();
     registrationMessageEl.textContent = `已完成「${venueName}」報名重置，請重新報名。`;
   } catch (error) {
-    console.error("reset registration failed:", error);
-    registrationMessageEl.textContent = `重置「${venueName}」報名失敗，請確認 Firebase 權限。`;
+    registrationMessageEl.textContent = `重置失敗：${error.message}`;
   }
 }
 
 async function unlockSystemAdmin() {
   const pwd = sysAdminPasswordInputEl.value.trim();
-  const config = await loadAdminConfig();
-  if (!config || !config.passwords) {
-    sysAdminAuthMessageEl.textContent = "無法連線，請確認網路後再試。";
-    return;
-  }
-  const hash = await hashPassword(pwd);
-  if (hash !== config.passwords.system) {
-    sysAdminAuthMessageEl.textContent = "密碼錯誤。";
-    return;
-  }
-  systemAdminUnlocked = true;
-  sysAdminLoginSectionEl.classList.add("hidden");
-  sysAdminControlsSectionEl.classList.remove("hidden");
-  if (config.gameDifficulty) {
-    const s = loadSystemSettings();
-    saveSystemSettings({ ...s, gameDifficulty: config.gameDifficulty });
-    localStorage.setItem('pv-offline-speed', config.gameDifficulty);
-  }
-  updateSysLocationCheckStatus();
-  updateDifficultyStatus();
-  renderFbStatsTable();
-  if (hasFirebase() && firebaseReady && !unsubscribeGlobalStats) {
-    unsubscribeGlobalStats = window.FirebaseDB.subscribeGlobalStats(
-      (data) => { globalStatsData = data; if (currentPage === "system-admin" && systemAdminUnlocked) renderFbStatsTable(); },
-      () => {}
-    );
+  sysAdminAuthMessageEl.textContent = "驗證中...";
+  try {
+    const data = await callAdminAPI("/api/unlock-system-admin", { password: pwd });
+    sessionStorage.setItem("vb_sys_token", data.token);
+    systemAdminUnlocked = true;
+    sysAdminLoginSectionEl.classList.add("hidden");
+    sysAdminControlsSectionEl.classList.remove("hidden");
+    sysAdminPasswordInputEl.value = "";
+    if (data.gameDifficulty) {
+      const s = loadSystemSettings();
+      saveSystemSettings({ ...s, gameDifficulty: data.gameDifficulty });
+      localStorage.setItem("pv-offline-speed", data.gameDifficulty);
+    }
+    if (data.locationCheckEnabled !== undefined) {
+      state.locationCheckEnabled = data.locationCheckEnabled;
+    }
+    updateSysLocationCheckStatus();
+    updateDifficultyStatus();
+    renderFbStatsTable();
+    if (hasFirebase() && firebaseReady && !unsubscribeGlobalStats) {
+      unsubscribeGlobalStats = window.FirebaseDB.subscribeGlobalStats(
+        (d) => { globalStatsData = d; if (currentPage === "system-admin" && systemAdminUnlocked) renderFbStatsTable(); },
+        () => {}
+      );
+    }
+  } catch (e) {
+    sysAdminAuthMessageEl.textContent = e.message === "密碼錯誤" ? "密碼錯誤。" : `連線錯誤：${e.message}`;
   }
 }
 
@@ -1564,16 +1551,13 @@ function toggleSystemLocationCheck() {
   const label = newValue ? "啟用" : "停用";
   if (!window.confirm(`確定要${label}定位檢查嗎？`)) return;
   state.locationCheckEnabled = newValue;
-  if (hasFirebase() && firebaseReady) {
-    saveAdminSettingsStrict({ locationCheckEnabled: newValue }).catch(console.error);
-  } else {
-    persistToLocalStorage();
-  }
   updateSysLocationCheckStatus();
   isInVenue = !newValue;
   applyVenueGate();
   if (newValue) checkLocationForRegistration();
   checkFengchiaAccessible();
+  callAdminAction("setConfig", { config: { locationCheckEnabled: newValue } })
+    .catch((e) => console.error("[locationCheck] sync failed:", e));
 }
 
 async function toggleStreakMode() {
@@ -1771,46 +1755,32 @@ async function resetMatchHistory() {
     adminAuthMessageEl.textContent = "請先進入管理員模式。";
     return;
   }
-
   const venueName = VENUES[selectedVenueId].name;
-  const confirmed = window.confirm(`確定要清空「${venueName}」的比賽結果紀錄嗎？`);
-  if (!confirmed) {
-    return;
-  }
-
-  if (hasFirebase() && firebaseReady) {
-    try {
-      await window.FirebaseDB.clearMatches(selectedVenueId);
-    } catch (error) {
-      console.error("clearMatches failed:", error);
-      registrationMessageEl.textContent = `清空「${venueName}」比賽結果失敗，請確認 Firebase 權限。`;
-      return;
-    }
-  } else {
+  if (!window.confirm(`確定要清空「${venueName}」的比賽結果紀錄嗎？`)) return;
+  try {
+    await callAdminAction("resetMatchHistory");
     state.matchHistory = [];
     renderMatchHistory();
+    registrationMessageEl.textContent = `已清空「${venueName}」比賽結果紀錄。`;
+  } catch (error) {
+    registrationMessageEl.textContent = `清空失敗：${error.message}`;
   }
-
-  registrationMessageEl.textContent = `已清空「${venueName}」比賽結果紀錄。`;
 }
 
 async function unlockAdminPage() {
   const password = adminPasswordInputEl.value;
-  const config = await loadAdminConfig();
-  if (!config || !config.passwords) {
-    adminAuthMessageEl.textContent = "無法連線，請確認網路後再試。";
-    return;
+  adminAuthMessageEl.textContent = "驗證中...";
+  try {
+    const data = await callAdminAPI("/api/unlock-admin", { venueId: selectedVenueId, password });
+    sessionStorage.setItem("vb_admin_token", data.token);
+    adminUnlocked = true;
+    adminPasswordInputEl.value = "";
+    adminAuthMessageEl.textContent = "已進入管理員模式。";
+    renderAdminModeView();
+    renderAdminTeamList();
+  } catch (e) {
+    adminAuthMessageEl.textContent = e.message === "密碼錯誤" ? "密碼錯誤。" : `連線錯誤：${e.message}`;
   }
-  const hash = await hashPassword(password);
-  if (hash !== config.passwords[selectedVenueId]) {
-    adminAuthMessageEl.textContent = "密碼錯誤。";
-    return;
-  }
-  adminUnlocked = true;
-  adminPasswordInputEl.value = "";
-  adminAuthMessageEl.textContent = "已進入管理員模式。";
-  renderAdminModeView();
-  renderAdminTeamList();
 }
 
 function setTeamsByIndex(teamAIndex, teamBIndex) {
@@ -2224,15 +2194,12 @@ sysClearLeaderboardBtn.addEventListener("click", async () => {
   if (!systemAdminUnlocked) return;
   if (!window.confirm("確定要清除所有排行榜紀錄嗎？")) return;
   localStorage.removeItem("pikachu-leaderboard");
-  if (hasFirebase() && firebaseReady) {
-    try {
-      await ensureFirebaseAuth();
-      await window.FirebaseDB.clearLeaderboard();
-    } catch (error) {
-      console.error("clearLeaderboard failed:", error);
-    }
+  try {
+    await callAdminAction("clearLeaderboard");
+    if (sysControlsMessageEl) sysControlsMessageEl.textContent = "排行榜已清除。";
+  } catch (e) {
+    if (sysControlsMessageEl) sysControlsMessageEl.textContent = `清除失敗：${e.message}`;
   }
-  if (sysControlsMessageEl) sysControlsMessageEl.textContent = "排行榜已清除。";
 });
 if (sysClearMessagesBtn) sysClearMessagesBtn.addEventListener("click", clearMessageBoard);
 ["slow", "medium", "fast"].forEach(d => {
@@ -2305,11 +2272,14 @@ window.FirebaseAppReady
     firebaseReady = true;
     hasHydratedVenueState = false;
     await ensureFirebaseAuth();
-    loadAdminConfig().then(config => {
-      if (config && config.gameDifficulty) {
+    fetch("/api/public-config").then(r => r.json()).then(cfg => {
+      if (cfg.gameDifficulty) {
         const s = loadSystemSettings();
-        saveSystemSettings({ ...s, gameDifficulty: config.gameDifficulty });
-        localStorage.setItem('pv-offline-speed', config.gameDifficulty);
+        saveSystemSettings({ ...s, gameDifficulty: cfg.gameDifficulty });
+        localStorage.setItem("pv-offline-speed", cfg.gameDifficulty);
+      }
+      if (cfg.locationCheckEnabled !== undefined) {
+        state.locationCheckEnabled = cfg.locationCheckEnabled;
       }
     }).catch(() => {});
     const currentUser = firebase.auth().currentUser;

@@ -1,0 +1,9 @@
+{
+  "name": "volleyball-scoreboard",
+  "version": "1.0.0",
+  "engines": { "node": "18" },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "jsonwebtoken": "^9.0.0"
+  }
+}
