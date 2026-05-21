@@ -33,9 +33,20 @@ const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
 const MSG_BOARD_KEY = "volleyball-messages";
 const MSG_NAME_KEY = "volleyball-msg-name";
-const APP_VERSION = "1.7.2";
+const APP_VERSION = "1.7.3";
 
 const CHANGELOG = [
+  {
+    version: "v1.7.3",
+    date: "2026-05",
+    title: "推播通知精準化",
+    items: [
+      "推播通知改為只通知該隊報名裝置，不再全場廣播",
+      "報名隊伍時自動綁定推播訂閱到該隊名",
+      "PLAY1 通知只送至記分隊報名手機",
+      "PLAY2 通知只送至準計分隊報名手機"
+    ]
+  },
   {
     version: "v1.7.2",
     date: "2026-05",
@@ -461,7 +472,7 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
-async function subscribeToPush(venueId) {
+async function subscribeToPush(venueId, teamName) {
   if (!vapidPublicKey || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
   try {
     const permission = await Notification.requestPermission();
@@ -475,17 +486,17 @@ async function subscribeToPush(venueId) {
     await fetch("/api/save-subscription", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subscription, venueId })
+      body: JSON.stringify({ subscription, venueId, teamName })
     });
   } catch (_) {}
 }
 
-async function sendPlayNotification(venueId, title, body) {
+async function sendPlayNotification(venueId, teamName, title, body) {
   try {
     await fetch("/api/send-notification", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ venueId, title, body })
+      body: JSON.stringify({ venueId, teamName, title, body })
     });
   } catch (_) {}
 }
@@ -982,7 +993,6 @@ function selectVenue(venueId) {
   updateDrawerVenueGate();
   showPage("registration");
   renderAdminModeView();
-  subscribeToPush(venueId);
 }
 
 function showPage(page) {
@@ -1972,8 +1982,8 @@ function advanceToNextMatch() {
     saveRegistrationState();
     const play1Name = state.scorerIndex !== null ? state.registeredTeams[state.scorerIndex]?.name : null;
     const play2Name = state.scorerIndex !== null ? state.registeredTeams[state.scorerIndex + 1]?.name : null;
-    if (play1Name) sendPlayNotification(selectedVenueId, "目前是PLAY1了！", `${play1Name} 快來算分！下場就是你了喔`);
-    if (play2Name) sendPlayNotification(selectedVenueId, "目前是PLAY2了！", `${play2Name} 準備來算分了喔！`);
+    if (play1Name) sendPlayNotification(selectedVenueId, play1Name, "目前是PLAY1了！", `${play1Name} 快來算分！下場就是你了喔`);
+    if (play2Name) sendPlayNotification(selectedVenueId, play2Name, "目前是PLAY2了！", `${play2Name} 準備來算分了喔！`);
   }
   return started;
 }
@@ -2103,6 +2113,7 @@ function registerTeam() {
   state.registrationHistory.push(newTeam.name);
   bindDeviceTeamIfNeeded(newTeam.teamId);
   assignScorerIfMissing();
+  subscribeToPush(selectedVenueId, newTeam.name);
 
   renderRegisteredTeams();
   renderRegistrationHistory();

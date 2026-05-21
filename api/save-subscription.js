@@ -5,7 +5,7 @@ module.exports = async (req, res) => {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { subscription, venueId } = req.body;
+  const { subscription, venueId, teamName } = req.body;
   if (!subscription || !venueId) return res.status(400).json({ error: "Missing fields" });
 
   const key = Buffer.from(subscription.endpoint)
@@ -13,9 +13,11 @@ module.exports = async (req, res) => {
     .replace(/[^a-zA-Z0-9]/g, "")
     .slice(0, 128);
 
-  await db.collection("push-subscriptions").doc(venueId)
-    .collection("subscribers").doc(key)
-    .set({ subscription, updatedAt: new Date().toISOString() });
+  const ref = teamName
+    ? db.collection("push-subscriptions").doc(venueId).collection("teams").doc(teamName).collection("subscribers").doc(key)
+    : db.collection("push-subscriptions").doc(venueId).collection("subscribers").doc(key);
+
+  await ref.set({ subscription, updatedAt: new Date().toISOString() });
 
   res.json({ ok: true });
 };

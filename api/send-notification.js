@@ -12,11 +12,12 @@ module.exports = async (req, res) => {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { venueId, title, body } = req.body;
+  const { venueId, teamName, title, body } = req.body;
   if (!venueId || !title) return res.status(400).json({ error: "Missing fields" });
 
-  const snap = await db.collection("push-subscriptions").doc(venueId)
-    .collection("subscribers").get();
+  const snap = teamName
+    ? await db.collection("push-subscriptions").doc(venueId).collection("teams").doc(teamName).collection("subscribers").get()
+    : await db.collection("push-subscriptions").doc(venueId).collection("subscribers").get();
 
   if (snap.empty) return res.json({ sent: 0 });
 
