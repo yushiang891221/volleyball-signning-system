@@ -33,6 +33,8 @@ const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
 const MSG_BOARD_KEY = "volleyball-messages";
 const MSG_NAME_KEY = "volleyball-msg-name";
+const APP_VERSION = "1.6";
+
 const CHANGELOG = [
   {
     version: "v1.6",
@@ -539,36 +541,37 @@ async function runUpdate() {
       progressText.textContent = text;
       progressPct.textContent = pct + "%";
       resolve();
-    }, 450));
+    }, 400));
   }
 
-  let hasUpdate = false;
-  const swPromise = (async () => {
-    if ("serviceWorker" in navigator) {
-      const reg = await navigator.serviceWorker.getRegistration();
-      if (reg) {
-        let updateFired = false;
-        reg.addEventListener("updatefound", () => { updateFired = true; }, { once: true });
-        await reg.update();
-        await new Promise(r => setTimeout(r, 100));
-        hasUpdate = updateFired || Boolean(reg.installing || reg.waiting);
-      }
-    }
-  })();
+  await advance(20, "正在連線伺服器…");
+  await advance(50, "正在比對版本…");
 
-  await advance(20, "正在檢查 Service Worker…");
-  await advance(45, "正在連線伺服器…");
-  await advance(70, "正在比對版本…");
-  await swPromise;
+  let serverVersion = null;
+  try {
+    const res = await fetch("/version.json?t=" + Date.now(), { cache: "no-store" });
+    const data = await res.json();
+    serverVersion = data.version;
+  } catch (_) {}
+
+  await advance(70, "正在檢查更新…");
+
+  // Force SW to update too
+  if ("serviceWorker" in navigator) {
+    const reg = await navigator.serviceWorker.getRegistration().catch(() => null);
+    if (reg) await reg.update().catch(() => {});
+  }
+
+  const hasUpdate = serverVersion && serverVersion !== APP_VERSION;
 
   if (!hasUpdate) {
     await advance(100, "已是最新版本！");
-    messageEl.textContent = "✅ 目前已是最新版本，無需重新載入。";
+    messageEl.textContent = "✅ 目前已是最新版本 v" + APP_VERSION + "，無需重新載入。";
     startBtn.disabled = false;
     return;
   }
 
-  await advance(90, "正在下載更新…");
+  await advance(90, "發現新版本 v" + serverVersion + "，正在下載…");
   await advance(100, "更新完成！");
   messageEl.textContent = "正在重新載入…";
   setTimeout(() => window.location.reload(true), 700);
