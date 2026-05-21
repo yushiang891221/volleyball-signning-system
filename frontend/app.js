@@ -909,6 +909,10 @@ function selectVenue(venueId) {
 }
 
 function showPage(page) {
+  if (!venueSelected && page !== "update" && page !== "system-admin") {
+    showVenuePage();
+    return;
+  }
   const isRegistration = page === "registration";
   const isScore = page === "score";
   const isAdmin = page === "admin";
