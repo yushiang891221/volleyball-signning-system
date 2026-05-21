@@ -222,12 +222,19 @@ window.FirebaseDB = {
   },
 
   subscribeGlobalStats(onData, onError) {
+    console.log("[stats] subscribing...");
     return firebase.firestore().collection("stats")
       .orderBy(firebase.firestore.FieldPath.documentId(), "desc")
       .limit(7)
       .onSnapshot(
-        (snap) => { onData(snap.docs.map((doc) => ({ date: doc.id, ...doc.data() }))); },
-        (error) => { if (onError) onError(error); }
+        (snap) => {
+          console.log("[stats] snapshot docs:", snap.docs.length, snap.docs.map(d => d.id));
+          onData(snap.docs.map((doc) => ({ date: doc.id, ...doc.data() })));
+        },
+        (error) => {
+          console.error("[stats] snapshot error:", error);
+          if (onError) onError(error);
+        }
       );
   },
 
