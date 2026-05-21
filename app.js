@@ -374,7 +374,7 @@ function saveSystemSettings(s) {
   localStorage.setItem(SYSTEM_SETTINGS_KEY, JSON.stringify(s));
 }
 function isLocationCheckEnabled() {
-  return loadSystemSettings().locationCheckEnabled === true;
+  return state.locationCheckEnabled !== false;
 }
 function updateSysLocationCheckStatus() {
   if (sysLocationCheckStatusEl) {
@@ -1413,11 +1413,15 @@ function unlockSystemAdmin() {
 
 function toggleSystemLocationCheck() {
   if (!systemAdminUnlocked) return;
-  const current = loadSystemSettings();
-  const newValue = !current.locationCheckEnabled;
+  const newValue = !state.locationCheckEnabled;
   const label = newValue ? "啟用" : "停用";
   if (!window.confirm(`確定要${label}定位檢查嗎？`)) return;
-  saveSystemSettings({ ...current, locationCheckEnabled: newValue });
+  state.locationCheckEnabled = newValue;
+  if (hasFirebase() && firebaseReady) {
+    saveAdminSettingsStrict({ locationCheckEnabled: newValue }).catch(console.error);
+  } else {
+    persistToLocalStorage();
+  }
   updateSysLocationCheckStatus();
   isInVenue = !newValue;
   applyVenueGate();
@@ -2139,9 +2143,10 @@ venueSelectEl.value = selectedVenueId;
 applyVenueGate();
 
 window.FirebaseAppReady
-  .then(() => {
+  .then(async () => {
     firebaseReady = true;
     hasHydratedVenueState = false;
+    await ensureFirebaseAuth();
     const currentUser = firebase.auth().currentUser;
     if (currentUser) {
       window.FirebaseDB.ensureUserProfile(currentUser.uid).catch((error) => {
