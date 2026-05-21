@@ -177,15 +177,9 @@
   <!-- Back to lobby -->
   <button id="back-btn" onclick="location.href='index.html'">← 返回</button>
 
-  <!-- 2-player / practice mode toggle -->
-  <button id="two-player-btn" onclick="toggleTwoPlayerMode()"
-    style="position:fixed;top:8px;right:8px;z-index:1000;background:rgba(0,0,0,0.55);color:#fff;border:1.5px solid rgba(255,255,255,0.35);border-radius:8px;padding:4px 12px;font-size:14px;font-family:'Segoe UI','Microsoft JhengHei',sans-serif;cursor:pointer;backdrop-filter:blur(6px);">
-    👤 單人
-  </button>
-
   <!-- Mute toggle -->
   <button id="mute-btn" onclick="toggleMute()"
-    style="position:fixed;top:8px;right:90px;z-index:1000;background:rgba(0,0,0,0.55);color:#fff;border:1.5px solid rgba(255,255,255,0.35);border-radius:8px;padding:4px 12px;font-size:14px;font-family:'Segoe UI','Microsoft JhengHei',sans-serif;cursor:pointer;backdrop-filter:blur(6px);">
+    style="position:fixed;top:8px;right:8px;z-index:1000;background:rgba(0,0,0,0.55);color:#fff;border:1.5px solid rgba(255,255,255,0.35);border-radius:8px;padding:4px 12px;font-size:14px;font-family:'Segoe UI','Microsoft JhengHei',sans-serif;cursor:pointer;backdrop-filter:blur(6px);">
     🔊
   </button>
 
@@ -411,10 +405,11 @@
       btn.addEventListener('mouseleave', (e) => { e.preventDefault(); releaseBtn(id); });
     }
 
-    // Arrow key + Space/Enter for desktop keyboard play
+    // Arrow key + Space for desktop keyboard play
     // Maps to P1 (left-side player) keys — same side as mobile touch controls
-    // so scoring logic is identical on all platforms
     // P1 keys: KeyD=left, KeyG=right, KeyR=up, KeyV=down, KeyZ=power
+    // downLocked: true during menu phase to prevent navigating to 2-player mode
+    let downLocked = false;
     const ARROW_MAP = {
       'ArrowLeft':  'KeyD',
       'ArrowRight': 'KeyG',
@@ -427,6 +422,7 @@
       if (mapped) {
         e.preventDefault();
         e.stopPropagation();
+        if (e.code === 'ArrowDown' && downLocked) return;
         window.dispatchEvent(new KeyboardEvent('keydown', { code: mapped, key: mapped, bubbles: true, cancelable: true }));
       }
     }, { capture: true });
@@ -445,13 +441,16 @@
 
     // Auto-start single player (vs CPU) when Play is clicked:
     // fire KeyZ: skip intro → confirm 1P mode → confirm "with computer"
+    // lock down key during menu phase so player can't select 2-player mode
     document.getElementById('close-about-btn').addEventListener('click', () => {
+      downLocked = true;
       setTimeout(() => fireKey('KeyZ', 'keydown'), 300);
       setTimeout(() => fireKey('KeyZ', 'keyup'),   360);
       setTimeout(() => fireKey('KeyZ', 'keydown'), 1200);
       setTimeout(() => fireKey('KeyZ', 'keyup'),   1260);
       setTimeout(() => fireKey('KeyZ', 'keydown'), 2500);
       setTimeout(() => fireKey('KeyZ', 'keyup'),   2560);
+      setTimeout(() => { downLocked = false; },    3000);
     });
 
     // ── Leaderboard ──────────────────────────────────
@@ -521,21 +520,6 @@
       }
     };
 
-    // ── 2-player / practice mode toggle ──────────────
-    let isTwoPlayerMode = false;
-    window.toggleTwoPlayerMode = function() {
-      isTwoPlayerMode = !isTwoPlayerMode;
-      const btn = document.getElementById('two-player-btn');
-      if (isTwoPlayerMode) {
-        btn.textContent = '👥 雙人';
-        btn.style.borderColor = 'rgba(255,200,50,0.7)';
-        document.getElementById('practice-mode-on-btn').click();
-      } else {
-        btn.textContent = '👤 單人';
-        btn.style.borderColor = 'rgba(255,255,255,0.35)';
-        document.getElementById('practice-mode-off-btn').click();
-      }
-    };
   </script>
 </body>
 </html>
