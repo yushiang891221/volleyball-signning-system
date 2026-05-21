@@ -217,6 +217,7 @@ h1 {
 .announcement-board {
   width: 100%;
   max-width: 520px;
+  position: relative;
   background:
     repeating-linear-gradient(
       0deg,
@@ -234,6 +235,27 @@ h1 {
   border: 2px solid rgba(107, 79, 175, 0.28);
   margin-bottom: 20px;
 }
+
+/* volleyball net poles at top-left and top-right */
+.announcement-board::before,
+.announcement-board::after {
+  content: '';
+  position: absolute;
+  top: -12px;
+  width: 11px;
+  height: calc(100% + 18px);
+  border-radius: 5px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #D42222 0px,  #D42222 11px,
+    #ffffff 11px, #ffffff 22px
+  );
+  box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.28);
+  z-index: 4;
+}
+
+.announcement-board::before { left: 5px; }
+.announcement-board::after  { right: 5px; }
 
 .announcement-inner {
   background: var(--card-bg);
