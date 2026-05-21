@@ -26,17 +26,11 @@ const WIN_SCORE = 25;
 const MIN_LEAD = 2;
 const STORAGE_KEY = "volleyball-registration";
 const FAVORITE_TEAMS_KEY = "volleyball-favorite-teams";
-const ADMIN_PAGE_PASSWORDS = {
-  fengchia_1: "test1m",
-  fengchia_2: "test1f",
-  home: "test0"
-};
 const DEFAULT_VENUE_ID = "fengchia_1";
 const DEVICE_TEAM_MAP_KEY = "volleyball-device-team-map";
 const DEVICE_UUID_KEY = "volleyball-device-uuid";
 const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
-const SYSTEM_ADMIN_PASSWORD = "admin0";
 const MSG_BOARD_KEY = "volleyball-messages";
 const MSG_NAME_KEY = "volleyball-msg-name";
 const VENUES = {
@@ -1409,29 +1403,27 @@ async function resetRegistrationWithPassword() {
 
 async function unlockSystemAdmin() {
   const pwd = sysAdminPasswordInputEl.value.trim();
-  let isCorrect = false;
   const config = await loadAdminConfig();
-  if (config && config.passwords) {
-    const hash = await hashPassword(pwd);
-    isCorrect = hash === config.passwords.system;
-  } else {
-    isCorrect = pwd === SYSTEM_ADMIN_PASSWORD;
+  if (!config || !config.passwords) {
+    sysAdminAuthMessageEl.textContent = "無法連線，請確認網路後再試。";
+    return;
   }
-  if (isCorrect) {
-    systemAdminUnlocked = true;
-    sysAdminLoginSectionEl.classList.add("hidden");
-    sysAdminControlsSectionEl.classList.remove("hidden");
-    updateSysLocationCheckStatus();
-    updateDifficultyStatus();
-    renderFbStatsTable();
-    if (hasFirebase() && firebaseReady && !unsubscribeGlobalStats) {
-      unsubscribeGlobalStats = window.FirebaseDB.subscribeGlobalStats(
-        (data) => { globalStatsData = data; if (currentPage === "system-admin" && systemAdminUnlocked) renderFbStatsTable(); },
-        () => {}
-      );
-    }
-  } else {
+  const hash = await hashPassword(pwd);
+  if (hash !== config.passwords.system) {
     sysAdminAuthMessageEl.textContent = "密碼錯誤。";
+    return;
+  }
+  systemAdminUnlocked = true;
+  sysAdminLoginSectionEl.classList.add("hidden");
+  sysAdminControlsSectionEl.classList.remove("hidden");
+  updateSysLocationCheckStatus();
+  updateDifficultyStatus();
+  renderFbStatsTable();
+  if (hasFirebase() && firebaseReady && !unsubscribeGlobalStats) {
+    unsubscribeGlobalStats = window.FirebaseDB.subscribeGlobalStats(
+      (data) => { globalStatsData = data; if (currentPage === "system-admin" && systemAdminUnlocked) renderFbStatsTable(); },
+      () => {}
+    );
   }
 }
 
@@ -1673,15 +1665,13 @@ async function resetMatchHistory() {
 
 async function unlockAdminPage() {
   const password = adminPasswordInputEl.value;
-  let isCorrect = false;
   const config = await loadAdminConfig();
-  if (config && config.passwords) {
-    const hash = await hashPassword(password);
-    isCorrect = hash === config.passwords[selectedVenueId];
-  } else {
-    isCorrect = password === ADMIN_PAGE_PASSWORDS[selectedVenueId];
+  if (!config || !config.passwords) {
+    adminAuthMessageEl.textContent = "無法連線，請確認網路後再試。";
+    return;
   }
-  if (!isCorrect) {
+  const hash = await hashPassword(password);
+  if (hash !== config.passwords[selectedVenueId]) {
     adminAuthMessageEl.textContent = "密碼錯誤。";
     return;
   }
@@ -2192,19 +2182,6 @@ window.FirebaseAppReady
   .catch((error) => {
     console.error("Firebase init error:", error);
   });
-
-window._setupAdminPasswords = async function() {
-  if (!hasFirebase() || !firebaseReady) { console.log('Firebase 未就緒，請稍後再試'); return; }
-  await ensureFirebaseAuth();
-  const PASSWORDS = { ...ADMIN_PAGE_PASSWORDS, system: SYSTEM_ADMIN_PASSWORD };
-  const hashed = {};
-  for (const [key, pwd] of Object.entries(PASSWORDS)) {
-    hashed[key] = await hashPassword(pwd);
-  }
-  await window.FirebaseDB.setAdminConfig({ passwords: hashed });
-  adminConfigCache = { passwords: hashed };
-  console.log('✅ 密碼已遷移至 Firebase，明文可從 app.js 移除。');
-};
 
 setInterval(() => {
   if (currentPage !== "registration") {
