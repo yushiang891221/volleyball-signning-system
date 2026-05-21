@@ -33,9 +33,20 @@ const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
 const MSG_BOARD_KEY = "volleyball-messages";
 const MSG_NAME_KEY = "volleyball-msg-name";
-const APP_VERSION = "1.7";
+const APP_VERSION = "1.7.1";
 
 const CHANGELOG = [
+  {
+    version: "v1.7.1",
+    date: "2025-05",
+    title: "遊戲與導覽細節修正",
+    items: [
+      "排球遊戲桌機鍵盤改控制左側玩家，計分規則與手機一致",
+      "排球遊戲新增靜音按鈕",
+      "選單期間鎖定下鍵，防止進入雙人模式",
+      "留言板不需選擇球場即可進入"
+    ]
+  },
   {
     version: "v1.7",
     date: "2025-05",
@@ -45,8 +56,7 @@ const CHANGELOG = [
       "修正橫向計分頁面在手機無法固定的問題",
       "修正重開 App 仍可繞過定位檢查的問題",
       "修正有時隊伍列表未載入的問題（3 秒補救讀取）",
-      "皮卡丘遊戲計分修正（右側玩家分數正確記錄）",
-      "遊戲新增雙人練習模式（不計入排行榜）",
+      "皮卡丘遊戲計分修正，桌機操作更直覺",
       "未選擇球場時報名 / 計分 / 管理選項全部灰化攔截",
       "更新頁面改用版本號比對，正確偵測新版本"
     ]
