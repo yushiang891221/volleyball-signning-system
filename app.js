@@ -1428,6 +1428,11 @@ async function unlockSystemAdmin() {
   systemAdminUnlocked = true;
   sysAdminLoginSectionEl.classList.add("hidden");
   sysAdminControlsSectionEl.classList.remove("hidden");
+  if (config.gameDifficulty) {
+    const s = loadSystemSettings();
+    saveSystemSettings({ ...s, gameDifficulty: config.gameDifficulty });
+    localStorage.setItem('pv-offline-speed', config.gameDifficulty);
+  }
   updateSysLocationCheckStatus();
   updateDifficultyStatus();
   renderFbStatsTable();
