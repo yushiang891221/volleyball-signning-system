@@ -399,6 +399,30 @@
       btn.addEventListener('mouseleave', (e) => { e.preventDefault(); releaseBtn(id); });
     }
 
+    // Arrow key + Space support for desktop keyboard play
+    // Maps to P2 controls (right-side player) so desktop feels natural:
+    // ← → ↑ ↓ = move,  Space / Enter = power hit
+    const ARROW_MAP = {
+      'ArrowLeft':  'ArrowLeft',
+      'ArrowRight': 'ArrowRight',
+      'ArrowUp':    'ArrowUp',
+      'ArrowDown':  'ArrowDown',
+      'Space':      'Enter',
+      'Enter':      'Enter',
+    };
+    document.addEventListener('keydown', (e) => {
+      if (ARROW_MAP[e.code] && e.code !== ARROW_MAP[e.code]) {
+        e.preventDefault();
+        window.dispatchEvent(new KeyboardEvent('keydown', { code: ARROW_MAP[e.code], key: ARROW_MAP[e.code], bubbles: true, cancelable: true }));
+      }
+      if (e.code === 'Space') e.preventDefault();
+    }, { capture: true });
+    document.addEventListener('keyup', (e) => {
+      if (ARROW_MAP[e.code] && e.code !== ARROW_MAP[e.code]) {
+        window.dispatchEvent(new KeyboardEvent('keyup', { code: ARROW_MAP[e.code], key: ARROW_MAP[e.code], bubbles: true, cancelable: true }));
+      }
+    }, { capture: true });
+
     // Apply difficulty from system settings before game bundles read it
     try {
       const sys = JSON.parse(localStorage.getItem('volleyball-system-settings') || '{}');

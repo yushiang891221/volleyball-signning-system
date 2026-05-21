@@ -24,6 +24,7 @@ const state = {
 
 const WIN_SCORE = 25;
 const MIN_LEAD = 2;
+const MAX_TEAMS = 20;
 const STORAGE_KEY = "volleyball-registration";
 const FAVORITE_TEAMS_KEY = "volleyball-favorite-teams";
 const DEFAULT_VENUE_ID = "fengchia_1";
@@ -211,7 +212,6 @@ function createEmptyVenueState() {
     currentBIndex: null,
     scorerIndex: null,
     scorerTeamId: null,
-    locationCheckEnabled: true,
     streakTwoModeEnabled: false,
     streakTeamId: null,
     streakCount: 0,
@@ -353,7 +353,6 @@ function syncActiveVenueFromState() {
     currentBIndex: state.currentBIndex,
     scorerIndex: state.scorerIndex,
     scorerTeamId: state.scorerTeamId,
-    locationCheckEnabled: state.locationCheckEnabled,
     streakTwoModeEnabled: state.streakTwoModeEnabled,
     streakTeamId: state.streakTeamId,
     streakCount: state.streakCount,
@@ -968,6 +967,7 @@ function showPage(page) {
   }
 
   document.body.classList.toggle("score-page-active", isScore);
+  document.documentElement.classList.toggle("score-page-active", isScore);
 
   if (screen.orientation && screen.orientation.lock) {
     if (isScore) {
@@ -1051,8 +1051,6 @@ function applyVenueStatePayload(payload) {
   state.currentBIndex = Number.isInteger(payload.currentBIndex) ? payload.currentBIndex : null;
   state.scorerIndex = Number.isInteger(payload.scorerIndex) ? payload.scorerIndex : null;
   state.scorerTeamId = typeof payload.scorerTeamId === "string" ? payload.scorerTeamId : null;
-  state.locationCheckEnabled =
-    typeof payload.locationCheckEnabled === "boolean" ? payload.locationCheckEnabled : true;
   state.streakTwoModeEnabled =
     typeof payload.streakTwoModeEnabled === "boolean" ? payload.streakTwoModeEnabled : false;
   state.streakTeamId = typeof payload.streakTeamId === "string" ? payload.streakTeamId : null;
@@ -1182,17 +1180,12 @@ async function runDailyAutoResetIfNeeded() {
         if (current && current.autoResetDate === today) {
           continue;
         }
-        const preservedLocationCheck =
-          current && typeof current.locationCheckEnabled === "boolean"
-            ? current.locationCheckEnabled
-            : true;
         const preservedStreakMode =
           current && typeof current.streakTwoModeEnabled === "boolean"
             ? current.streakTwoModeEnabled
             : false;
         await window.FirebaseDB.saveVenueState(venueId, {
           ...createEmptyVenueState(),
-          locationCheckEnabled: preservedLocationCheck,
           streakTwoModeEnabled: preservedStreakMode,
           autoResetDate: today
         });
@@ -1208,17 +1201,12 @@ async function runDailyAutoResetIfNeeded() {
       allVenueStates = {};
       for (const venueId of Object.keys(VENUES)) {
         const previous = previousVenueStates[venueId];
-        const preservedLocationCheck =
-          previous && typeof previous.locationCheckEnabled === "boolean"
-            ? previous.locationCheckEnabled
-            : true;
         const preservedStreakMode =
           previous && typeof previous.streakTwoModeEnabled === "boolean"
             ? previous.streakTwoModeEnabled
             : false;
         allVenueStates[venueId] = {
           ...createEmptyVenueState(),
-          locationCheckEnabled: preservedLocationCheck,
           streakTwoModeEnabled: preservedStreakMode,
           autoResetDate: today
         };
@@ -1405,10 +1393,8 @@ function clearRegistrationForm() {
 }
 
 async function clearAllRegistrationData() {
-  const preservedLocationCheck = state.locationCheckEnabled;
   const preservedStreakMode = state.streakTwoModeEnabled;
   Object.assign(state, createEmptyVenueState());
-  state.locationCheckEnabled = preservedLocationCheck;
   state.streakTwoModeEnabled = preservedStreakMode;
 
   renderPlayerList(teamAPlayersEl, []);
@@ -1998,6 +1984,11 @@ function registerTeam() {
     return;
   }
 
+  if (state.registeredTeams.length >= MAX_TEAMS) {
+    registrationMessageEl.textContent = `報名隊伍已達上限（${MAX_TEAMS} 隊）。`;
+    return;
+  }
+
   if (deviceTeamId) {
     const exists = state.registeredTeams.some((team) => team.teamId === deviceTeamId);
     if (exists) {
@@ -2291,6 +2282,14 @@ window.FirebaseAppReady
     syncUserTeamClaim();
     subscribeFirebaseVenue(selectedVenueId);
     runDailyAutoResetIfNeeded();
+    setTimeout(async () => {
+      if (!hasHydratedVenueState) {
+        try {
+          const data = await window.FirebaseDB.getVenueState(selectedVenueId);
+          if (!hasHydratedVenueState) applyVenueStatePayload(data);
+        } catch (_) {}
+      }
+    }, 5000);
   })
   .catch((error) => {
     console.error("Firebase init error:", error);

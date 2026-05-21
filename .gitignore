@@ -1,0 +1,15 @@
+# Firebase service account keys — never commit
+*service-account*.json
+*firebase-adminsdk*.json
+*.serviceAccount.json
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# Vercel
+.vercel/

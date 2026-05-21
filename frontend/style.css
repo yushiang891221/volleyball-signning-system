@@ -1405,20 +1405,38 @@ button:active {
 @media (orientation: landscape) {
   .scoreboard { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 
-  body.score-page-active {
+  html.score-page-active,
+  html.score-page-active body {
     overflow: hidden;
     height: 100dvh;
-    position: fixed;
     width: 100%;
   }
 
+  body.score-page-active {
+    display: flex;
+    flex-direction: column;
+  }
+
   body.score-page-active .container {
-    padding: 8px 12px;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 6px 12px 4px;
+    min-height: 0;
   }
 
   body.score-page-active h1,
   body.score-page-active #current-time {
     display: none;
+  }
+
+  body.score-page-active #score-page {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
   }
 
   body.score-page-active #nav-toggle {
@@ -1429,7 +1447,8 @@ button:active {
   }
 
   body.score-page-active #game-section {
-    height: calc(100dvh - 72px);
+    flex: 1;
+    min-height: 0;
   }
 
   body.score-page-active .team-card {
@@ -1445,12 +1464,12 @@ button:active {
 
   body.score-page-active .score-page-message {
     font-size: 12px;
-    margin: 0 0 6px;
+    margin: 0 0 4px;
     line-height: 1.4;
   }
 
   body.score-page-active #status-section {
-    margin-top: 6px;
+    margin-top: 4px;
   }
 }
 
