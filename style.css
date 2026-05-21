@@ -236,15 +236,15 @@ h1 {
   margin-bottom: 20px;
 }
 
-/* volleyball net poles — extend upward from top corners */
+/* volleyball net poles — extend upward from top corners to page top */
 .announcement-board::before,
 .announcement-board::after {
   content: '';
   position: absolute;
-  top: -72px;
+  top: -100vh;
   width: 11px;
-  height: 72px;
-  border-radius: 5px 5px 0 0;
+  height: 100vh;
+  border-radius: 0;
   background: repeating-linear-gradient(
     to bottom,
     #D42222 0px,  #D42222 11px,
