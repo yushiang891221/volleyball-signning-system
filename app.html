@@ -22,19 +22,19 @@
       <span>野場報隊</span>
       <button id="nav-close" type="button" aria-label="關閉">✕</button>
     </div>
-    <div id="venue-badge" class="venue-only">
+    <div id="venue-badge">
       <div id="venue-badge-info">
         <span id="venue-badge-label" class="venue-badge-label">目前球場</span>
-        <span id="venue-badge-name"></span>
+        <span id="venue-badge-name">未選擇</span>
       </div>
       <button id="change-venue-btn" type="button">換球場</button>
     </div>
     <ul id="drawer-nav">
-      <li class="venue-only nav-venue-section-label">球場功能</li>
-      <li class="venue-only"><button id="go-registration" type="button"><img src="contract.png" class="nav-icon" alt="">報名頁面</button></li>
-      <li class="venue-only"><button id="go-score" type="button"><img src="score.png" class="nav-icon" alt="">計分頁面</button></li>
-      <li class="venue-only"><button id="go-admin" type="button"><img src="setting.png" class="nav-icon" alt="">野場管理員(NPC)</button></li>
-      <li class="venue-only nav-divider-item"></li>
+      <li class="nav-venue-section-label">球場功能</li>
+      <li><button id="go-registration" type="button"><img src="contract.png" class="nav-icon" alt="">報名頁面</button></li>
+      <li><button id="go-score" type="button"><img src="score.png" class="nav-icon" alt="">計分頁面</button></li>
+      <li><button id="go-admin" type="button"><img src="setting.png" class="nav-icon" alt="">野場管理員(NPC)</button></li>
+      <li class="nav-divider-item"></li>
       <li><a href="pikachu/index.html" id="go-game">🏐 線上打排球</a></li>
       <li><button id="go-system-admin" type="button">⚙️ 系統管理</button></li>
     </ul>
@@ -77,6 +77,7 @@
           <button class="venue-card" id="select-fengchia">
             <div class="venue-card-icon">🏟</div>
             <div class="venue-card-name">逢甲大學球場</div>
+            <div class="venue-card-status" id="fengchia-card-status"></div>
           </button>
           <button class="venue-card" id="select-home">
             <div class="venue-card-icon">🏠</div>

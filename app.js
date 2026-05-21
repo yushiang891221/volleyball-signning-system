@@ -123,6 +123,7 @@ const deleteFavoriteBtnEl = document.getElementById("delete-favorite-btn");
 let currentPage = "registration";
 let isInVenue = false;
 let systemAdminUnlocked = false;
+let fengchiaAccessible = null;
 let selectedVenueId = DEFAULT_VENUE_ID;
 let allVenueStates = {};
 let firebaseReady = false;
@@ -470,6 +471,57 @@ function updateScorePageMessage() {
     `目前球場：${venue.name}｜模式：${mode}\n對戰：${state.teamAName} vs ${state.teamBName}\n報名隊伍：${teamCount}`;
 }
 
+function updateFengchiaCard() {
+  const card = document.getElementById("select-fengchia");
+  const status = document.getElementById("fengchia-card-status");
+  if (!card || !status) return;
+  if (!isLocationCheckEnabled()) {
+    card.classList.remove("venue-card--disabled");
+    status.textContent = "";
+    return;
+  }
+  if (fengchiaAccessible === null) {
+    card.classList.remove("venue-card--disabled");
+    status.textContent = "🔍 定位中...";
+  } else if (fengchiaAccessible === true) {
+    card.classList.remove("venue-card--disabled");
+    status.textContent = "";
+  } else {
+    card.classList.add("venue-card--disabled");
+    status.textContent = "📍 不在球場範圍內";
+  }
+}
+
+function checkFengchiaAccessible() {
+  if (!isLocationCheckEnabled()) {
+    fengchiaAccessible = true;
+    updateFengchiaCard();
+    return;
+  }
+  fengchiaAccessible = null;
+  updateFengchiaCard();
+  const fengchiaVenue = VENUES["fengchia_1"];
+  if (!fengchiaVenue || fengchiaVenue.noLocationCheck) {
+    fengchiaAccessible = true;
+    updateFengchiaCard();
+    return;
+  }
+  if (!navigator.geolocation) {
+    fengchiaAccessible = false;
+    updateFengchiaCard();
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      fengchiaAccessible = isInsideVenueBox(latitude, longitude, fengchiaVenue.cornerA, fengchiaVenue.cornerB);
+      updateFengchiaCard();
+    },
+    () => { fengchiaAccessible = false; updateFengchiaCard(); },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+  );
+}
+
 function showVenuePage() {
   venuePageEl.classList.remove("hidden");
   document.getElementById("venue-top-select").classList.remove("hidden");
@@ -478,9 +530,8 @@ function showVenuePage() {
   scorePageEl.classList.add("hidden");
   adminPageEl.classList.add("hidden");
   systemAdminPageEl.classList.add("hidden");
-  document.getElementById("side-drawer").classList.add("no-venue");
-  document.getElementById("nav-toggle").style.removeProperty("display");
   closeDrawer();
+  checkFengchiaAccessible();
 }
 
 function selectVenue(venueId) {
@@ -497,7 +548,6 @@ function selectVenue(venueId) {
     venueBadgeNameEl.textContent = venue?.name || venueId;
   }
   venuePageEl.classList.add("hidden");
-  document.getElementById("side-drawer").classList.remove("no-venue");
   showPage("registration");
   renderAdminModeView();
 }
@@ -1090,6 +1140,7 @@ function toggleSystemLocationCheck() {
   isInVenue = !newValue;
   applyVenueGate();
   if (newValue) checkLocationForRegistration();
+  checkFengchiaAccessible();
 }
 
 async function toggleStreakMode() {
@@ -1735,6 +1786,7 @@ document.getElementById("sys-admin-back-btn").addEventListener("click", () => {
   if (noVenue) showVenuePage(); else showPage("registration");
 });
 document.getElementById("select-fengchia").addEventListener("click", () => {
+  if (isLocationCheckEnabled() && !fengchiaAccessible) return;
   document.getElementById("venue-top-select").classList.add("hidden");
   document.getElementById("court-select").classList.remove("hidden");
 });

@@ -470,8 +470,6 @@ h1 {
   list-style: none;
 }
 
-#side-drawer.no-venue .venue-only { display: none; }
-
 .page-back-row { margin-bottom: 8px; }
 .back-text-btn {
   background: none;
