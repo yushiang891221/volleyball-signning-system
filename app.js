@@ -558,6 +558,7 @@ function showPage(page) {
   const isAdmin = page === "admin";
   const isSystemAdmin = page === "system-admin";
   currentPage = page;
+  window.scrollTo(0, 0);
   venuePageEl.classList.add("hidden");
   registrationPageEl.classList.toggle("hidden", !isRegistration);
   scorePageEl.classList.toggle("hidden", !isScore);
