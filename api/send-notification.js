@@ -1,16 +1,19 @@
 const webpush = require("web-push");
 const { db, cors } = require("./_lib/admin");
 
-webpush.setVapidDetails(
-  `mailto:${process.env.VAPID_EMAIL}`,
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-);
-
 module.exports = async (req, res) => {
   cors(res);
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+  if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+    return res.status(500).json({ error: "VAPID keys not configured" });
+  }
+  webpush.setVapidDetails(
+    `mailto:${process.env.VAPID_EMAIL}`,
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
 
   const { venueId, teamName, title, body } = req.body;
   if (!venueId || !title) return res.status(400).json({ error: "Missing fields" });
