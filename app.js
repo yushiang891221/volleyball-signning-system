@@ -27,22 +27,32 @@ const MIN_LEAD = 2;
 const STORAGE_KEY = "volleyball-registration";
 const FAVORITE_TEAMS_KEY = "volleyball-favorite-teams";
 const ADMIN_PAGE_PASSWORDS = {
-  fengchia: "test1",
+  fengchia_1: "test1",
+  fengchia_2: "test1",
   home: "test0"
 };
-const DEFAULT_VENUE_ID = "fengchia";
+const DEFAULT_VENUE_ID = "fengchia_1";
 const DEVICE_TEAM_MAP_KEY = "volleyball-device-team-map";
 const DEVICE_UUID_KEY = "volleyball-device-uuid";
 const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const VENUES = {
-  fengchia: {
-    name: "逢甲大學球場",
+  fengchia_1: {
+    name: "場地一",
+    parentName: "逢甲大學球場",
+    type: "box",
+    cornerA: { lat: 24.180507, lng: 120.649742 },
+    cornerB: { lat: 24.180058, lng: 120.650191 }
+  },
+  fengchia_2: {
+    name: "場地二",
+    parentName: "逢甲大學球場",
     type: "box",
     cornerA: { lat: 24.180507, lng: 120.649742 },
     cornerB: { lat: 24.180058, lng: 120.650191 }
   },
   home: {
     name: "測試用球場",
+    parentName: null,
     type: "circle",
     center: { lat: 24.743353, lng: 121.088657 },
     radiusM: 80,
@@ -445,6 +455,8 @@ function updateScorePageMessage() {
 
 function showVenuePage() {
   venuePageEl.classList.remove("hidden");
+  document.getElementById("venue-top-select").classList.remove("hidden");
+  document.getElementById("court-select").classList.add("hidden");
   registrationPageEl.classList.add("hidden");
   scorePageEl.classList.add("hidden");
   adminPageEl.classList.add("hidden");
@@ -456,7 +468,15 @@ function selectVenue(venueId) {
   adminUnlocked = false;
   venueSelectEl.value = venueId;
   venueSelectEl.dispatchEvent(new Event("change"));
-  venueBadgeNameEl.textContent = VENUES[venueId]?.name || venueId;
+  const venue = VENUES[venueId];
+  const labelEl = document.getElementById("venue-badge-label");
+  if (venue?.parentName) {
+    labelEl.textContent = venue.parentName;
+    venueBadgeNameEl.textContent = venue.name;
+  } else {
+    labelEl.textContent = "目前球場";
+    venueBadgeNameEl.textContent = venue?.name || venueId;
+  }
   venuePageEl.classList.add("hidden");
   document.getElementById("nav-toggle").style.display = "";
   showPage("registration");
@@ -1634,7 +1654,16 @@ venueSelectEl.addEventListener("change", () => {
 goRegistrationBtn.addEventListener("click", () => showPage("registration"));
 goScoreBtn.addEventListener("click", () => showPage("score"));
 goAdminBtn.addEventListener("click", () => showPage("admin"));
-document.getElementById("select-fengchia").addEventListener("click", () => selectVenue("fengchia"));
+document.getElementById("select-fengchia").addEventListener("click", () => {
+  document.getElementById("venue-top-select").classList.add("hidden");
+  document.getElementById("court-select").classList.remove("hidden");
+});
+document.getElementById("back-to-venues").addEventListener("click", () => {
+  document.getElementById("court-select").classList.add("hidden");
+  document.getElementById("venue-top-select").classList.remove("hidden");
+});
+document.getElementById("select-fengchia-1").addEventListener("click", () => selectVenue("fengchia_1"));
+document.getElementById("select-fengchia-2").addEventListener("click", () => selectVenue("fengchia_2"));
 document.getElementById("select-home").addEventListener("click", () => selectVenue("home"));
 document.getElementById("change-venue-btn").addEventListener("click", () => showVenuePage());
 

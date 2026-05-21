@@ -24,7 +24,7 @@
     </div>
     <div id="venue-badge">
       <div id="venue-badge-info">
-        <span class="venue-badge-label">目前球場</span>
+        <span id="venue-badge-label" class="venue-badge-label">目前球場</span>
         <span id="venue-badge-name"></span>
       </div>
       <button id="change-venue-btn" type="button">換球場</button>
@@ -45,16 +45,38 @@
 
     <!-- ── Venue selection landing page ── -->
     <section id="venue-page">
-      <p class="venue-page-subtitle">請選擇球場</p>
-      <div class="venue-cards">
-        <button class="venue-card" id="select-fengchia">
-          <div class="venue-card-icon">🏟</div>
-          <div class="venue-card-name">逢甲大學球場</div>
-        </button>
-        <button class="venue-card" id="select-home">
-          <div class="venue-card-icon">🏠</div>
-          <div class="venue-card-name">測試用球場</div>
-        </button>
+      <!-- Top-level: pick venue -->
+      <div id="venue-top-select">
+        <p class="venue-page-subtitle">請選擇球場</p>
+        <div class="venue-cards">
+          <button class="venue-card" id="select-fengchia">
+            <div class="venue-card-icon">🏟</div>
+            <div class="venue-card-name">逢甲大學球場</div>
+          </button>
+          <button class="venue-card" id="select-home">
+            <div class="venue-card-icon">🏠</div>
+            <div class="venue-card-name">測試用球場</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Court selection: shown after picking 逢甲 -->
+      <div id="court-select" class="hidden">
+        <div class="court-select-header">
+          <button id="back-to-venues" type="button" class="back-btn">← 返回</button>
+          <p class="venue-page-subtitle">逢甲大學球場</p>
+          <p class="venue-page-hint">請選擇場地</p>
+        </div>
+        <div class="venue-cards">
+          <button class="venue-card" id="select-fengchia-1">
+            <div class="venue-card-icon">①</div>
+            <div class="venue-card-name">場地一</div>
+          </button>
+          <button class="venue-card" id="select-fengchia-2">
+            <div class="venue-card-icon">②</div>
+            <div class="venue-card-name">場地二</div>
+          </button>
+        </div>
       </div>
     </section>
 
@@ -64,7 +86,8 @@
         <div class="registration-card hidden">
           <label for="venue-select">選擇球場</label>
           <select id="venue-select">
-            <option value="fengchia">逢甲大學球場</option>
+            <option value="fengchia_1">逢甲大學球場 場地一</option>
+            <option value="fengchia_2">逢甲大學球場 場地二</option>
             <option value="home">測試用球場</option>
           </select>
         </div>
