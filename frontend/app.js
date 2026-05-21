@@ -33,9 +33,24 @@ const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
 const MSG_BOARD_KEY = "volleyball-messages";
 const MSG_NAME_KEY = "volleyball-msg-name";
-const APP_VERSION = "1.6";
+const APP_VERSION = "1.7";
 
 const CHANGELOG = [
+  {
+    version: "v1.7",
+    date: "2025-05",
+    title: "安全強化 & 體驗修正",
+    items: [
+      "前後端分離：管理員密碼移至後端，防止 F12 洩漏",
+      "修正橫向計分頁面在手機無法固定的問題",
+      "修正重開 App 仍可繞過定位檢查的問題",
+      "修正有時隊伍列表未載入的問題（3 秒補救讀取）",
+      "皮卡丘遊戲計分修正（右側玩家分數正確記錄）",
+      "遊戲新增雙人練習模式（不計入排行榜）",
+      "未選擇球場時報名 / 計分 / 管理選項全部灰化攔截",
+      "更新頁面改用版本號比對，正確偵測新版本"
+    ]
+  },
   {
     version: "v1.6",
     date: "2025-05",
