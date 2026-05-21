@@ -54,6 +54,7 @@
           <h3 class="announcement-title">📢 公告</h3>
           <div class="announcement-text">
             <p>感謝大家在開發階段協助測試！目前版本為 v1.6</p>
+            <p>可以善用留言板匿名或是實名給予建議喔!</p>
             <p>現階段以使用<strong>測試球場</strong>為主</p>
             <p>以下說明本 APP 特色及操作事項：</p>
             <p><strong>特色</strong></p>
@@ -285,6 +286,38 @@
       </section>
       <div id="msg-cards-container" class="msg-cards-grid"></div>
       <p id="msg-empty-hint" class="msg-empty-hint hidden">目前沒有留言，來第一個留言吧！</p>
+    </section>
+
+    <section id="update-page" class="hidden">
+      <div class="subpage-header">
+        <button id="update-back-btn" type="button" class="subpage-back-btn">← 返回</button>
+        <h2 class="subpage-title">🔄 更新版本</h2>
+      </div>
+      <section class="registration-section">
+        <div class="registration-card update-status-card">
+          <div class="update-version-row">
+            <span class="update-version-label">目前版本</span>
+            <span id="update-current-version" class="update-version-badge">v1.6</span>
+          </div>
+          <div id="update-progress-wrap" class="update-progress-wrap hidden">
+            <div class="update-progress-label">
+              <span id="update-progress-text">正在更新...</span>
+              <span id="update-progress-pct">0%</span>
+            </div>
+            <div class="update-progress-bar-bg">
+              <div id="update-progress-bar" class="update-progress-bar" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="panel-actions" style="margin-top:16px;">
+            <button id="update-start-btn" type="button">🔄 檢查並更新</button>
+          </div>
+          <p id="update-message"></p>
+        </div>
+        <div class="registration-card">
+          <h3 style="margin:0 0 12px;font-size:1rem;">📋 版本更新紀錄</h3>
+          <div id="update-changelog"></div>
+        </div>
+      </section>
     </section>
   </main>
 

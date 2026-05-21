@@ -33,6 +33,45 @@ const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
 const MSG_BOARD_KEY = "volleyball-messages";
 const MSG_NAME_KEY = "volleyball-msg-name";
+const CHANGELOG = [
+  {
+    version: "v1.6",
+    date: "2025-05",
+    title: "留言板 & 系統強化",
+    items: [
+      "新增留言板功能（Firebase 即時同步）",
+      "系統管理新增 Firebase 作業統計表",
+      "新增更新版本頁面（目前版本）",
+      "Service Worker 網路優先策略，解決快取更新問題",
+      "遊戲難易度跨裝置同步",
+      "新裝置定位檢查預設啟用",
+      "密碼改為後端儲存（SHA-256 雜湊）"
+    ]
+  },
+  {
+    version: "v1.5",
+    date: "2025-04",
+    title: "野場管理員 & 排行榜",
+    items: [
+      "野場管理員(NPC) 功能",
+      "皮卡丘打排球線上遊戲",
+      "遊戲排行榜（Firebase 同步）",
+      "快速開局功能",
+      "常用隊伍儲存"
+    ]
+  },
+  {
+    version: "v1.0",
+    date: "2025-03",
+    title: "初始版本",
+    items: [
+      "球場報名系統",
+      "計分板功能",
+      "定位檢查（逢甲大學球場）",
+      "Firebase 即時同步"
+    ]
+  }
+];
 const VENUES = {
   fengchia_1: {
     name: "場地一",
@@ -118,6 +157,7 @@ const msgSubmitMessageEl = document.getElementById("msg-submit-message");
 const msgCardsContainerEl = document.getElementById("msg-cards-container");
 const msgEmptyHintEl = document.getElementById("msg-empty-hint");
 const sysClearMessagesBtn = document.getElementById("sys-clear-messages");
+const updatePageEl = document.getElementById("update-page");
 const sysControlsMessageEl = document.getElementById("sys-controls-message");
 const adminPasswordInputEl = document.getElementById("admin-password");
 const adminUnlockBtn = document.getElementById("admin-unlock");
@@ -470,6 +510,69 @@ function updateStreakModeStatus() {
   updateAdminVenueInfo();
 }
 
+function renderChangelog() {
+  const container = document.getElementById("update-changelog");
+  if (!container || container.children.length > 0) return;
+  container.innerHTML = CHANGELOG.map((entry, i) => `
+    <div class="changelog-entry${i === 0 ? " changelog-entry-latest" : ""}">
+      <div class="changelog-header">
+        <span class="changelog-version">${entry.version}</span>
+        <span class="changelog-date">${entry.date}</span>
+        <span class="changelog-title">${entry.title}</span>
+      </div>
+      <ul class="changelog-list">
+        ${entry.items.map(item => `<li>${item}</li>`).join("")}
+      </ul>
+    </div>`).join("");
+}
+
+async function runUpdate() {
+  const startBtn = document.getElementById("update-start-btn");
+  const progressWrap = document.getElementById("update-progress-wrap");
+  const progressBar = document.getElementById("update-progress-bar");
+  const progressText = document.getElementById("update-progress-text");
+  const progressPct = document.getElementById("update-progress-pct");
+  const messageEl = document.getElementById("update-message");
+
+  startBtn.disabled = true;
+  progressWrap.classList.remove("hidden");
+  messageEl.textContent = "";
+
+  const steps = [
+    { pct: 20, text: "正在檢查 Service Worker…" },
+    { pct: 45, text: "正在清除舊版快取…" },
+    { pct: 70, text: "正在下載最新版本…" },
+    { pct: 90, text: "即將完成…" },
+    { pct: 100, text: "更新完成！" }
+  ];
+
+  function advance(step) {
+    return new Promise(resolve => setTimeout(() => {
+      progressBar.style.width = step.pct + "%";
+      progressText.textContent = step.text;
+      progressPct.textContent = step.pct + "%";
+      resolve();
+    }, 450));
+  }
+
+  const swPromise = (async () => {
+    if ("serviceWorker" in navigator) {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) await reg.update();
+    }
+  })();
+
+  await advance(steps[0]);
+  await advance(steps[1]);
+  await advance(steps[2]);
+  await swPromise;
+  await advance(steps[3]);
+  await advance(steps[4]);
+
+  messageEl.textContent = "正在重新載入…";
+  setTimeout(() => window.location.reload(true), 700);
+}
+
 function ensureDeviceTeamStillExists() {
   if (hasFirebase() && firebaseReady && !hasHydratedVenueState) {
     return;
@@ -813,6 +916,7 @@ function showPage(page) {
   const isAdmin = page === "admin";
   const isSystemAdmin = page === "system-admin";
   const isMessageBoard = page === "message-board";
+  const isUpdate = page === "update";
   currentPage = page;
   window.scrollTo(0, 0);
   venuePageEl.classList.add("hidden");
@@ -821,6 +925,8 @@ function showPage(page) {
   adminPageEl.classList.toggle("hidden", !isAdmin);
   systemAdminPageEl.classList.toggle("hidden", !isSystemAdmin);
   messageBoardPageEl.classList.toggle("hidden", !isMessageBoard);
+  updatePageEl.classList.toggle("hidden", !isUpdate);
+  if (isUpdate) { renderChangelog(); }
   goRegistrationBtn.classList.toggle("active", isRegistration);
   goScoreBtn.classList.toggle("active", isScore);
   goAdminBtn.classList.toggle("active", isAdmin);
@@ -2134,6 +2240,10 @@ document.getElementById("go-message-board").addEventListener("click", () => { sh
 document.getElementById("msg-board-back-btn").addEventListener("click", () => {
   if (!venueSelected) showVenuePage(); else showPage("registration");
 });
+document.getElementById("update-back-btn").addEventListener("click", () => {
+  if (!venueSelected) showVenuePage(); else showPage("registration");
+});
+document.getElementById("update-start-btn").addEventListener("click", runUpdate);
 if (msgSubmitBtn) msgSubmitBtn.addEventListener("click", submitMessage);
 document.getElementById("select-fengchia").addEventListener("click", () => {
   if (isLocationCheckEnabled() && !fengchiaAccessible) return;
@@ -2148,13 +2258,7 @@ document.getElementById("select-fengchia-1").addEventListener("click", () => sel
 document.getElementById("select-fengchia-2").addEventListener("click", () => selectVenue("fengchia_2"));
 document.getElementById("select-home").addEventListener("click", () => selectVenue("home"));
 document.getElementById("change-venue-btn").addEventListener("click", () => showVenuePage());
-document.getElementById("force-update-btn").addEventListener("click", async () => {
-  if ('serviceWorker' in navigator) {
-    const reg = await navigator.serviceWorker.getRegistration();
-    if (reg) await reg.update();
-  }
-  window.location.reload();
-});
+document.getElementById("force-update-btn").addEventListener("click", () => { showPage("update"); closeDrawer(); });
 
 // Side drawer
 const navToggle = document.getElementById("nav-toggle");
