@@ -267,24 +267,6 @@ h1 {
   color: var(--purple-deep);
 }
 
-.venue-game-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 11px 24px;
-  background: linear-gradient(135deg, var(--purple) 0%, var(--teal-dark) 100%);
-  color: #fff;
-  border-radius: 12px;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.93rem;
-  font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
-  box-shadow: 0 4px 14px var(--purple-glow);
-  transition: opacity 0.15s, transform 0.15s;
-}
-
-.venue-game-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-
 /* ── Venue badge in drawer ───────────────────────── */
 #venue-badge {
   display: flex;
