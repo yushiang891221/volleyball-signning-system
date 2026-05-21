@@ -479,6 +479,7 @@ function showVenuePage() {
   adminPageEl.classList.add("hidden");
   systemAdminPageEl.classList.add("hidden");
   document.getElementById("side-drawer").classList.add("no-venue");
+  document.getElementById("nav-toggle").style.removeProperty("display");
   closeDrawer();
 }
 
@@ -507,6 +508,7 @@ function showPage(page) {
   const isAdmin = page === "admin";
   const isSystemAdmin = page === "system-admin";
   currentPage = page;
+  venuePageEl.classList.add("hidden");
   registrationPageEl.classList.toggle("hidden", !isRegistration);
   scorePageEl.classList.toggle("hidden", !isScore);
   adminPageEl.classList.toggle("hidden", !isAdmin);
@@ -1728,6 +1730,10 @@ goAdminBtn.addEventListener("click", () => showPage("admin"));
 document.getElementById("go-system-admin").addEventListener("click", () => { showPage("system-admin"); closeDrawer(); });
 sysAdminUnlockBtn.addEventListener("click", unlockSystemAdmin);
 sysToggleLocationCheckBtn.addEventListener("click", toggleSystemLocationCheck);
+document.getElementById("sys-admin-back-btn").addEventListener("click", () => {
+  const noVenue = document.getElementById("side-drawer").classList.contains("no-venue");
+  if (noVenue) showVenuePage(); else showPage("registration");
+});
 document.getElementById("select-fengchia").addEventListener("click", () => {
   document.getElementById("venue-top-select").classList.add("hidden");
   document.getElementById("court-select").classList.remove("hidden");

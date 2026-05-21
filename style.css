@@ -472,6 +472,17 @@ h1 {
 
 #side-drawer.no-venue .venue-only { display: none; }
 
+.page-back-row { margin-bottom: 8px; }
+.back-text-btn {
+  background: none;
+  box-shadow: none;
+  color: var(--purple-dark);
+  font-size: 0.9rem;
+  padding: 4px 0;
+  font-weight: 600;
+}
+.back-text-btn:hover { background: none; box-shadow: none; filter: brightness(0.8); }
+
 /* ── Registration section ────────────────────────── */
 .registration-section {
   margin-bottom: 20px;
