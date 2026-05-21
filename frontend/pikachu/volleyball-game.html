@@ -438,25 +438,28 @@
       localStorage.setItem('pv-offline-speed', sys.gameDifficulty || 'medium');
     } catch(_e) {}
 
-    // Track menu state to detect 1P vs 2P mode for leaderboard gating
-    // States: 'TITLE' → (attack) → 'MODE_SELECT' → (attack) → 'PLAYING'
-    let menuState = 'TITLE';
+    // Track 1P vs 2P mode for leaderboard gating
+    // MENU phase: any time before game runs (after end or page load)
+    // PLAYING phase: once enough attacks pressed to confirm mode
+    let gamePhase = 'MENU';
+    let menuAttacks = 0;
     let isTwoPlayer = false;
 
     function onMenuInput(action) {
       if (!action) return;
-      if (menuState === 'TITLE' && action === 'attack') {
-        menuState = 'MODE_SELECT';
-        isTwoPlayer = false; // cursor starts on 1P
-      } else if (menuState === 'MODE_SELECT') {
+      if (gamePhase === 'MENU') {
         if (action === 'down') isTwoPlayer = true;
         else if (action === 'up') isTwoPlayer = false;
-        else if (action === 'attack') menuState = 'PLAYING';
+        else if (action === 'attack') {
+          menuAttacks++;
+          if (menuAttacks >= 2) gamePhase = 'PLAYING';
+        }
       }
     }
 
     document.getElementById('close-about-btn').addEventListener('click', () => {
-      menuState = 'TITLE';
+      gamePhase = 'MENU';
+      menuAttacks = 0;
       isTwoPlayer = false;
     });
 
@@ -481,7 +484,8 @@
     window.__onGameEnd = function(score) {
       pendingScore = score;
       const wasOnePlayer = !isTwoPlayer;
-      menuState = 'TITLE';
+      gamePhase = 'MENU';
+      menuAttacks = 0;
       isTwoPlayer = false;
       if (score <= 0) return;
       submitBtn.disabled = !wasOnePlayer;
