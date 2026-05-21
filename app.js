@@ -26,7 +26,10 @@ const WIN_SCORE = 25;
 const MIN_LEAD = 2;
 const STORAGE_KEY = "volleyball-registration";
 const FAVORITE_TEAMS_KEY = "volleyball-favorite-teams";
-const ADMIN_PAGE_PASSWORD = "0728";
+const ADMIN_PAGE_PASSWORDS = {
+  fengchia: "test1",
+  home: "test0"
+};
 const DEFAULT_VENUE_ID = "fengchia";
 const DEVICE_TEAM_MAP_KEY = "volleyball-device-team-map";
 const DEVICE_UUID_KEY = "volleyball-device-uuid";
@@ -450,12 +453,14 @@ function showVenuePage() {
 }
 
 function selectVenue(venueId) {
+  adminUnlocked = false;
   venueSelectEl.value = venueId;
   venueSelectEl.dispatchEvent(new Event("change"));
   venueBadgeNameEl.textContent = VENUES[venueId]?.name || venueId;
   venuePageEl.classList.add("hidden");
   document.getElementById("nav-toggle").style.display = "";
   showPage("registration");
+  renderAdminModeView();
 }
 
 function showPage(page) {
@@ -1213,7 +1218,7 @@ async function resetMatchHistory() {
 
 function unlockAdminPage() {
   const password = adminPasswordInputEl.value;
-  if (password !== ADMIN_PAGE_PASSWORD) {
+  if (password !== ADMIN_PAGE_PASSWORDS[selectedVenueId]) {
     adminAuthMessageEl.textContent = "密碼錯誤。";
     return;
   }
