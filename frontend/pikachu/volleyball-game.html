@@ -364,6 +364,7 @@
 
     function pressBtn(id) {
       if (pressedIds.has(id)) return;
+      cancelAutoPlay();
       pressedIds.add(id);
       document.getElementById(id).classList.add('pressed');
       fireKey(KEY_MAP[id], 'keydown');
@@ -420,6 +421,7 @@
       if (mapped) {
         e.preventDefault();
         e.stopPropagation();
+        cancelAutoPlay();
         if (e.code === 'ArrowDown' && downLocked) return;
         window.dispatchEvent(new KeyboardEvent('keydown', { code: mapped, key: mapped, bubbles: true, cancelable: true }));
       }
@@ -440,13 +442,21 @@
     // Auto-start single player (vs CPU) when Play is clicked:
     // fire KeyZ: skip intro → confirm 1P mode → confirm "with computer"
     // lock down key during menu phase so player can't select 2-player mode
+    let autoPlayTimers = [];
+
     function pressPlay() {
       fireKey('KeyZ', 'keydown');
       setTimeout(() => fireKey('KeyZ', 'keyup'), 60);
     }
 
+    function cancelAutoPlay() {
+      autoPlayTimers.forEach(t => clearTimeout(t));
+      autoPlayTimers = [];
+    }
+
     function scheduleAutoPlay() {
-      Array.from({length:40},(_,i)=>1000+i*100).forEach(t=>setTimeout(pressPlay,t));
+      cancelAutoPlay();
+      autoPlayTimers = Array.from({length:40},(_,i)=>1000+i*100).map(t=>setTimeout(pressPlay,t));
     }
 
     const playBtn = document.getElementById('close-about-btn');
