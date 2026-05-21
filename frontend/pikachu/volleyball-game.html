@@ -447,14 +447,7 @@
 
     const playBtn = document.getElementById('close-about-btn');
     playBtn.addEventListener('click', pressPlay);
-    setTimeout(() => playBtn.click(), 1000);
-    setTimeout(() => playBtn.click(), 1800);
-    setTimeout(() => playBtn.click(), 2600);
-    setTimeout(() => playBtn.click(), 3400);
-    setTimeout(() => playBtn.click(), 4200);
-    setTimeout(() => playBtn.click(), 5000);
-    setTimeout(() => playBtn.click(), 5800);
-    setTimeout(() => playBtn.click(), 6600);
+    [1000,1800,2600,3400,4200,5000,5800,6600].forEach(t => setTimeout(pressPlay, t));
 
     // ── Leaderboard ──────────────────────────────────
     const LB_KEY = 'pikachu-leaderboard';
