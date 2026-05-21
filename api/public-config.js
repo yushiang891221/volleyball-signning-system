@@ -9,9 +9,10 @@ module.exports = async (req, res) => {
     const config = await getAdminConfig();
     res.json({
       gameDifficulty: config?.gameDifficulty ?? "medium",
-      locationCheckEnabled: config?.locationCheckEnabled ?? true
+      locationCheckEnabled: config?.locationCheckEnabled ?? true,
+      vapidPublicKey: process.env.VAPID_PUBLIC_KEY || null
     });
   } catch (_) {
-    res.json({ gameDifficulty: "medium", locationCheckEnabled: true });
+    res.json({ gameDifficulty: "medium", locationCheckEnabled: true, vapidPublicKey: null });
   }
 };

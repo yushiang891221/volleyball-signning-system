@@ -33,9 +33,19 @@ const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
 const MSG_BOARD_KEY = "volleyball-messages";
 const MSG_NAME_KEY = "volleyball-msg-name";
-const APP_VERSION = "1.7.1";
+const APP_VERSION = "1.7.2";
 
 const CHANGELOG = [
+  {
+    version: "v1.7.2",
+    date: "2026-05",
+    title: "推播通知",
+    items: [
+      "PLAY2 上場時推播通知「準備來算分了喔！」",
+      "PLAY1（記分隊）更換時推播通知「快來算分！下場就是你了喔」",
+      "選擇球場後自動請求通知授權"
+    ]
+  },
   {
     version: "v1.7.1",
     date: "2025-05",
@@ -197,6 +207,7 @@ const deleteFavoriteBtnEl = document.getElementById("delete-favorite-btn");
 let currentPage = "registration";
 let isInVenue = false;
 let systemAdminUnlocked = false;
+let vapidPublicKey = null;
 let fengchiaAccessible = null;
 let venueSelected = false;
 let selectedVenueId = DEFAULT_VENUE_ID;
@@ -441,6 +452,42 @@ function getAdminToken() { return sessionStorage.getItem("vb_admin_token"); }
 async function callAdminAction(action, extra = {}) {
   const token = getSysAdminToken() || getAdminToken();
   return callAdminAPI("/api/admin-action", { action, venueId: selectedVenueId, ...extra }, token);
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = window.atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function subscribeToPush(venueId) {
+  if (!vapidPublicKey || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") return;
+    const reg = await navigator.serviceWorker.ready;
+    const existing = await reg.pushManager.getSubscription();
+    const subscription = existing || await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+    });
+    await fetch("/api/save-subscription", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subscription, venueId })
+    });
+  } catch (_) {}
+}
+
+async function sendPlayNotification(venueId, title, body) {
+  try {
+    await fetch("/api/send-notification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ venueId, title, body })
+    });
+  } catch (_) {}
 }
 
 function loadSystemSettings() {
@@ -935,6 +982,7 @@ function selectVenue(venueId) {
   updateDrawerVenueGate();
   showPage("registration");
   renderAdminModeView();
+  subscribeToPush(venueId);
 }
 
 function showPage(page) {
@@ -1922,6 +1970,10 @@ function advanceToNextMatch() {
   const started = setTeamsByIndex(winnerIndex, challengerIndex);
   if (started) {
     saveRegistrationState();
+    const play2Name = state.registeredTeams[state.currentBIndex]?.name;
+    const play1Name = state.scorerIndex !== null ? state.registeredTeams[state.scorerIndex]?.name : null;
+    if (play2Name) sendPlayNotification(selectedVenueId, "目前是PLAY2了！", `${play2Name} 準備來算分了喔！`);
+    if (play1Name) sendPlayNotification(selectedVenueId, "目前是PLAY1了！", `${play1Name} 快來算分！下場就是你了喔`);
   }
   return started;
 }
@@ -2302,6 +2354,9 @@ window.FirebaseAppReady
       }
       if (cfg.locationCheckEnabled !== undefined) {
         state.locationCheckEnabled = cfg.locationCheckEnabled;
+      }
+      if (cfg.vapidPublicKey) {
+        vapidPublicKey = cfg.vapidPublicKey;
       }
     }).catch(() => {});
     const currentUser = firebase.auth().currentUser;

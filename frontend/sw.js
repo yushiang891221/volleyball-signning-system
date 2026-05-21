@@ -1,4 +1,4 @@
-const CACHE_NAME = 'volleyball-cache-v1.7.1';
+const CACHE_NAME = 'volleyball-cache-v1.7.2';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -7,6 +7,30 @@ self.addEventListener('activate', event => {
     caches.keys()
       .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('push', event => {
+  const data = event.data ? event.data.json() : {};
+  event.waitUntil(
+    self.registration.showNotification(data.title || '野場報隊', {
+      body: data.body || '',
+      icon: '/Gemini_Generated_Image_fft0pnfft0pnfft0.png',
+      tag: 'play-notification',
+      renotify: true
+    })
+  );
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then(list => {
+      for (const client of list) {
+        if (client.url.includes('app.html') && 'focus' in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow('/app.html');
+    })
   );
 });
 
