@@ -27,6 +27,17 @@
     }
     s[type] = (s[type] || 0) + (count || 1);
     try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (_) {}
+    // Sync to global Firestore counter — direct call, bypasses FirebaseStats to avoid self-counting
+    try {
+      if (typeof firebase !== "undefined" && firebase.apps && firebase.apps.length > 0) {
+        const d = new Date();
+        const docId = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        firebase.firestore().collection("stats").doc(docId).set(
+          { [type]: firebase.firestore.FieldValue.increment(count || 1) },
+          { merge: true }
+        ).catch(() => {});
+      }
+    } catch (_) {}
   }
 
   window.FirebaseStats = {
@@ -208,6 +219,16 @@ window.FirebaseDB = {
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     window.FirebaseStats.write();
+  },
+
+  subscribeGlobalStats(onData, onError) {
+    return firebase.firestore().collection("stats")
+      .orderBy(firebase.firestore.FieldPath.documentId(), "desc")
+      .limit(7)
+      .onSnapshot(
+        (snap) => { onData(snap.docs.map((doc) => ({ date: doc.id, ...doc.data() }))); },
+        (error) => { if (onError) onError(error); }
+      );
   },
 
   async clearLeaderboard() {

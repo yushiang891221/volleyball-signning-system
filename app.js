@@ -145,6 +145,8 @@ let unsubscribeVenueState = null;
 let unsubscribeVenueMatches = null;
 let isDailyResetRunning = false;
 let unsubscribeMessages = null;
+let unsubscribeGlobalStats = null;
+let globalStatsData = null;
 let allMessages = [];
 let adminUnlocked = false;
 let hasHydratedVenueState = false;
@@ -404,11 +406,21 @@ function setGameDifficulty(difficulty) {
 function renderFbStatsTable() {
   const wrap = document.getElementById("fb-stats-table-wrap");
   if (!wrap) return;
-  const s = window.FirebaseStats ? window.FirebaseStats.load() : {};
-  const rows = [{ label: "今天", reads: s.reads || 0, writes: s.writes || 0, deletes: s.deletes || 0, today: true }];
-  if (Array.isArray(s.history)) {
-    for (const h of s.history) {
-      rows.push({ label: h.date || "—", reads: h.reads || 0, writes: h.writes || 0, deletes: h.deletes || 0, today: false });
+  const noteEl = wrap.previousElementSibling;
+  let rows;
+  if (globalStatsData && globalStatsData.length > 0) {
+    if (noteEl) noteEl.textContent = "全平台累計（即時）";
+    rows = globalStatsData.map((r, i) => ({
+      label: r.date, reads: r.reads || 0, writes: r.writes || 0, deletes: r.deletes || 0, today: i === 0
+    }));
+  } else {
+    if (noteEl) noteEl.textContent = "本裝置累計（估算）";
+    const s = window.FirebaseStats ? window.FirebaseStats.load() : {};
+    rows = [{ label: "今天", reads: s.reads || 0, writes: s.writes || 0, deletes: s.deletes || 0, today: true }];
+    if (Array.isArray(s.history)) {
+      for (const h of s.history) {
+        rows.push({ label: h.date || "—", reads: h.reads || 0, writes: h.writes || 0, deletes: h.deletes || 0, today: false });
+      }
     }
   }
   const totR = rows.reduce((a, r) => a + r.reads, 0);
@@ -2112,6 +2124,13 @@ window.FirebaseAppReady
         if (currentPage === "message-board") renderMessageCards();
       },
       (error) => console.error("Messages subscribe error:", error)
+    );
+    unsubscribeGlobalStats = window.FirebaseDB.subscribeGlobalStats(
+      (data) => {
+        globalStatsData = data;
+        if (currentPage === "system-admin" && systemAdminUnlocked) renderFbStatsTable();
+      },
+      () => {}
     );
     runDailyAutoResetIfNeeded();
   })
