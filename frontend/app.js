@@ -675,8 +675,10 @@ function updateScorePageMessage() {
 }
 
 function updateDrawerVenueGate() {
+  const regLi = document.getElementById("nav-li-registration");
   const scoreLi = document.getElementById("nav-li-score");
   const adminLi = document.getElementById("nav-li-admin");
+  if (regLi) regLi.classList.toggle("nav-item-disabled", !venueSelected);
   if (scoreLi) scoreLi.classList.toggle("nav-item-disabled", !venueSelected);
   if (adminLi) adminLi.classList.toggle("nav-item-disabled", !venueSelected);
 }
