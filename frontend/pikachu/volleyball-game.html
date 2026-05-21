@@ -364,7 +364,6 @@
 
     function pressBtn(id) {
       if (pressedIds.has(id)) return;
-      if (id === 'p1-down' && downLocked) return;
       pressedIds.add(id);
       document.getElementById(id).classList.add('pressed');
       fireKey(KEY_MAP[id], 'keydown');
@@ -409,8 +408,6 @@
     // Arrow key + Space for desktop keyboard play
     // Maps to P1 (left-side player) keys — same side as mobile touch controls
     // P1 keys: KeyD=left, KeyG=right, KeyR=up, KeyV=down, KeyZ=power
-    // downLocked: true during menu phase to prevent navigating to 2-player mode
-    let downLocked = true;
     const ARROW_MAP = {
       'ArrowLeft':  'KeyD',
       'ArrowRight': 'KeyG',
@@ -443,16 +440,19 @@
     // Auto-start single player (vs CPU) when Play is clicked:
     // fire KeyZ: skip intro → confirm 1P mode → confirm "with computer"
     // lock down key during menu phase so player can't select 2-player mode
-    document.getElementById('close-about-btn').addEventListener('click', () => {
-      downLocked = true;
+    function autoStartSinglePlayer() {
       setTimeout(() => fireKey('KeyZ', 'keydown'), 300);
       setTimeout(() => fireKey('KeyZ', 'keyup'),   360);
       setTimeout(() => fireKey('KeyZ', 'keydown'), 1200);
       setTimeout(() => fireKey('KeyZ', 'keyup'),   1260);
       setTimeout(() => fireKey('KeyZ', 'keydown'), 2500);
       setTimeout(() => fireKey('KeyZ', 'keyup'),   2560);
-      setTimeout(() => { downLocked = false; },    3000);
-    });
+    }
+
+    const playBtn = document.getElementById('close-about-btn');
+    playBtn.addEventListener('click', autoStartSinglePlayer);
+    // Auto-click on page load to skip title screen and enter 1P mode immediately
+    setTimeout(() => playBtn.click(), 500);
 
     // ── Leaderboard ──────────────────────────────────
     const LB_KEY = 'pikachu-leaderboard';
