@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git -C \"d:\\\\volleyball-scoreboard\\\\_pikachu_temp\" checkout origin/gh-pages -- .)",
+      "Bash(cp -r \"d:\\\\volleyball-scoreboard\\\\_pikachu_temp/runtime.bundle.js\" \"d:\\\\volleyball-scoreboard\\\\_pikachu_temp/27.bundle.js\" \"d:\\\\volleyball-scoreboard\\\\_pikachu_temp/main.bundle.js\" \"d:\\\\volleyball-scoreboard\\\\_pikachu_temp/dark_color_scheme.bundle.js\" \"d:\\\\volleyball-scoreboard\\\\_pikachu_temp/is_embedded_in_other_website.bundle.js\" \"d:\\\\volleyball-scoreboard\\\\pikachu/\")",
+      "Bash(cp -r \"d:\\\\volleyball-scoreboard/_pikachu_temp/resources\" \"d:\\\\volleyball-scoreboard/pikachu/resources\")",
+      "Bash(grep -o '\\(e,ne\\)\\\\|function.\\\\{5\\\\}e\\\\b.\\\\{5\\\\}ne\\\\b' \"d:/volleyball-scoreboard/pikachu/main.bundle.js\")",
+      "Bash(grep -o 'const [a-z]\\\\{1,3\\\\}=new [A-Z][a-zA-Z]*' \"d:/volleyball-scoreboard/pikachu/main.bundle.js\")",
+      "Bash(powershell -Command ' *)"
+    ]
+  }
+}
