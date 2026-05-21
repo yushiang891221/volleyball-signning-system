@@ -13,6 +13,6 @@ module.exports = async (req, res) => {
       vapidPublicKey: process.env.VAPID_PUBLIC_KEY || null
     });
   } catch (_) {
-    res.json({ gameDifficulty: "medium", locationCheckEnabled: true, vapidPublicKey: null });
+    res.json({ gameDifficulty: "medium", locationCheckEnabled: true, vapidPublicKey: process.env.VAPID_PUBLIC_KEY || null });
   }
 };
