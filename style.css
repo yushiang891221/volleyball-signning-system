@@ -38,7 +38,7 @@ body {
 .container {
   max-width: 900px;
   margin: 0 auto;
-  padding: 72px 20px 56px;
+  padding: 72px 10px 56px;
 }
 
 /* ── Header ─────────────────────────────────────── */
@@ -230,7 +230,7 @@ h1 {
       rgba(107, 79, 175, 0.18) 15px, rgba(107, 79, 175, 0.18) 16px
     ),
     linear-gradient(135deg, rgba(155, 127, 212, 0.1) 0%, rgba(62, 207, 196, 0.08) 100%);
-  padding: 12px 8px;
+  padding: 10px 4px;
   border-radius: 20px;
   border: 2px solid rgba(107, 79, 175, 0.28);
   margin-bottom: 20px;
@@ -260,7 +260,7 @@ h1 {
 .announcement-inner {
   background: var(--card-bg);
   border-radius: 12px;
-  padding: 14px 12px;
+  padding: 12px 8px;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
