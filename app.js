@@ -367,6 +367,22 @@ function isInsideSelectedVenue(lat, lng) {
   return false;
 }
 
+async function hashPassword(pwd) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+let adminConfigCache = null;
+async function loadAdminConfig() {
+  if (adminConfigCache) return adminConfigCache;
+  if (!hasFirebase() || !firebaseReady) return null;
+  try {
+    const data = await window.FirebaseDB.getAdminConfig();
+    if (data) adminConfigCache = data;
+    return adminConfigCache;
+  } catch (_) { return null; }
+}
+
 function loadSystemSettings() {
   try { return JSON.parse(localStorage.getItem(SYSTEM_SETTINGS_KEY) || "{}"); } catch (_e) { return {}; }
 }
@@ -1391,9 +1407,17 @@ async function resetRegistrationWithPassword() {
   }
 }
 
-function unlockSystemAdmin() {
+async function unlockSystemAdmin() {
   const pwd = sysAdminPasswordInputEl.value.trim();
-  if (pwd === SYSTEM_ADMIN_PASSWORD) {
+  let isCorrect = false;
+  const config = await loadAdminConfig();
+  if (config && config.passwords) {
+    const hash = await hashPassword(pwd);
+    isCorrect = hash === config.passwords.system;
+  } else {
+    isCorrect = pwd === SYSTEM_ADMIN_PASSWORD;
+  }
+  if (isCorrect) {
     systemAdminUnlocked = true;
     sysAdminLoginSectionEl.classList.add("hidden");
     sysAdminControlsSectionEl.classList.remove("hidden");
@@ -1647,9 +1671,17 @@ async function resetMatchHistory() {
   registrationMessageEl.textContent = `已清空「${venueName}」比賽結果紀錄。`;
 }
 
-function unlockAdminPage() {
+async function unlockAdminPage() {
   const password = adminPasswordInputEl.value;
-  if (password !== ADMIN_PAGE_PASSWORDS[selectedVenueId]) {
+  let isCorrect = false;
+  const config = await loadAdminConfig();
+  if (config && config.passwords) {
+    const hash = await hashPassword(password);
+    isCorrect = hash === config.passwords[selectedVenueId];
+  } else {
+    isCorrect = password === ADMIN_PAGE_PASSWORDS[selectedVenueId];
+  }
+  if (!isCorrect) {
     adminAuthMessageEl.textContent = "密碼錯誤。";
     return;
   }
@@ -2160,6 +2192,19 @@ window.FirebaseAppReady
   .catch((error) => {
     console.error("Firebase init error:", error);
   });
+
+window._setupAdminPasswords = async function() {
+  if (!hasFirebase() || !firebaseReady) { console.log('Firebase 未就緒，請稍後再試'); return; }
+  await ensureFirebaseAuth();
+  const PASSWORDS = { ...ADMIN_PAGE_PASSWORDS, system: SYSTEM_ADMIN_PASSWORD };
+  const hashed = {};
+  for (const [key, pwd] of Object.entries(PASSWORDS)) {
+    hashed[key] = await hashPassword(pwd);
+  }
+  await window.FirebaseDB.setAdminConfig({ passwords: hashed });
+  adminConfigCache = { passwords: hashed };
+  console.log('✅ 密碼已遷移至 Firebase，明文可從 app.js 移除。');
+};
 
 setInterval(() => {
   if (currentPage !== "registration") {

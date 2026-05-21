@@ -239,5 +239,14 @@ window.FirebaseDB = {
     snap.docs.forEach((doc) => batch.delete(doc.ref));
     await batch.commit();
     window.FirebaseStats.del(snap.docs.length);
+  },
+
+  async getAdminConfig() {
+    const snap = await firebase.firestore().collection("config").doc("admin").get();
+    return snap.exists ? snap.data() : null;
+  },
+
+  async setAdminConfig(data) {
+    await firebase.firestore().collection("config").doc("admin").set(data, { merge: true });
   }
 };
