@@ -216,7 +216,7 @@ h1 {
 /* ── Announcement board ──────────────────────────── */
 .announcement-board {
   width: 100%;
-  max-width: 520px;
+  max-width: 600px;
   position: relative;
   background:
     repeating-linear-gradient(
@@ -230,7 +230,7 @@ h1 {
       rgba(107, 79, 175, 0.18) 15px, rgba(107, 79, 175, 0.18) 16px
     ),
     linear-gradient(135deg, rgba(155, 127, 212, 0.1) 0%, rgba(62, 207, 196, 0.08) 100%);
-  padding: 14px;
+  padding: 12px 8px;
   border-radius: 20px;
   border: 2px solid rgba(107, 79, 175, 0.28);
   margin-bottom: 20px;
@@ -260,7 +260,7 @@ h1 {
 .announcement-inner {
   background: var(--card-bg);
   border-radius: 12px;
-  padding: 16px 20px;
+  padding: 14px 12px;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
