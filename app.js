@@ -393,13 +393,12 @@ function updateDifficultyStatus() {
 
 function setGameDifficulty(difficulty) {
   if (!systemAdminUnlocked) return;
+  const labels = { slow: "簡單", medium: "中等", fast: "困難" };
+  if (!window.confirm(`確定要將遊戲難易度設為「${labels[difficulty]}」嗎？`)) return;
   const current = loadSystemSettings();
   saveSystemSettings({ ...current, gameDifficulty: difficulty });
   updateDifficultyStatus();
-  if (sysControlsMessageEl) {
-    const labels = { slow: "簡單", medium: "中等", fast: "困難" };
-    sysControlsMessageEl.textContent = `遊戲難易度已設為「${labels[difficulty]}」。`;
-  }
+  if (sysControlsMessageEl) sysControlsMessageEl.textContent = `遊戲難易度已設為「${labels[difficulty]}」。`;
 }
 
 function renderFbStatsTable() {
@@ -1372,6 +1371,8 @@ function toggleSystemLocationCheck() {
   if (!systemAdminUnlocked) return;
   const current = loadSystemSettings();
   const newValue = !current.locationCheckEnabled;
+  const label = newValue ? "啟用" : "停用";
+  if (!window.confirm(`確定要${label}定位檢查嗎？`)) return;
   saveSystemSettings({ ...current, locationCheckEnabled: newValue });
   updateSysLocationCheckStatus();
   isInVenue = !newValue;
