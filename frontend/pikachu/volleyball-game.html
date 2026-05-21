@@ -447,7 +447,7 @@
 
     const playBtn = document.getElementById('close-about-btn');
     playBtn.addEventListener('click', pressPlay);
-    [1000,1400,1800,2200,2600,3000,3400,3800].forEach(t => setTimeout(pressPlay, t));
+    Array.from({length:20},(_,i)=>1000+i*100).forEach(t=>setTimeout(pressPlay,t));
 
     // ── Leaderboard ──────────────────────────────────
     const LB_KEY = 'pikachu-leaderboard';
@@ -470,7 +470,7 @@
     window.__onGameEnd = function(score) {
       pendingScore = score;
       if (score <= 0) {
-        [1000,1400,1800,2200,2600,3000,3400,3800].forEach(t => setTimeout(pressPlay, t));
+        Array.from({length:20},(_,i)=>1000+i*100).forEach(t=>setTimeout(pressPlay,t));
         return;
       }
       scoreText.textContent = '你的得分：' + score;
