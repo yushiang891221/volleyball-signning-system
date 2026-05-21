@@ -114,6 +114,7 @@ const saveFavoriteBtnEl = document.getElementById("save-favorite-btn");
 const deleteFavoriteBtnEl = document.getElementById("delete-favorite-btn");
 let currentPage = "registration";
 let isInVenue = false;
+let fengchiaAccessible = null; // null=checking, true=in range, false=out of range
 let selectedVenueId = DEFAULT_VENUE_ID;
 let allVenueStates = {};
 let firebaseReady = false;
@@ -453,6 +454,51 @@ function updateScorePageMessage() {
     `目前球場：${venue.name}｜模式：${mode}\n對戰：${state.teamAName} vs ${state.teamBName}\n報名隊伍：${teamCount}`;
 }
 
+function updateFengchiaCard() {
+  const card = document.getElementById("select-fengchia");
+  const status = document.getElementById("fengchia-card-status");
+  if (!card || !status) return;
+  if (fengchiaAccessible === null) {
+    card.classList.remove("venue-card--disabled");
+    status.textContent = "🔍 定位中...";
+  } else if (fengchiaAccessible === true) {
+    card.classList.remove("venue-card--disabled");
+    status.textContent = "";
+  } else {
+    card.classList.add("venue-card--disabled");
+    status.textContent = "📍 不在球場範圍內";
+  }
+}
+
+function checkFengchiaAccessible() {
+  fengchiaAccessible = null;
+  updateFengchiaCard();
+
+  const fengchiaVenue = VENUES["fengchia_1"];
+  if (!fengchiaVenue || fengchiaVenue.noLocationCheck) {
+    fengchiaAccessible = true;
+    updateFengchiaCard();
+    return;
+  }
+  if (!navigator.geolocation) {
+    fengchiaAccessible = false;
+    updateFengchiaCard();
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude } = pos.coords;
+      fengchiaAccessible = isInsideVenueBox(latitude, longitude, fengchiaVenue.cornerA, fengchiaVenue.cornerB);
+      updateFengchiaCard();
+    },
+    () => {
+      fengchiaAccessible = false;
+      updateFengchiaCard();
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+  );
+}
+
 function showVenuePage() {
   venuePageEl.classList.remove("hidden");
   document.getElementById("venue-top-select").classList.remove("hidden");
@@ -462,6 +508,7 @@ function showVenuePage() {
   adminPageEl.classList.add("hidden");
   document.getElementById("nav-toggle").style.display = "none";
   closeDrawer();
+  checkFengchiaAccessible();
 }
 
 function selectVenue(venueId) {
@@ -1718,6 +1765,14 @@ goRegistrationBtn.addEventListener("click", () => showPage("registration"));
 goScoreBtn.addEventListener("click", () => showPage("score"));
 goAdminBtn.addEventListener("click", () => showPage("admin"));
 document.getElementById("select-fengchia").addEventListener("click", () => {
+  if (fengchiaAccessible === null) {
+    document.getElementById("fengchia-card-status").textContent = "🔍 定位中，請稍候...";
+    return;
+  }
+  if (fengchiaAccessible === false) {
+    document.getElementById("fengchia-card-status").textContent = "📍 須位於逢甲球場範圍內才可選擇";
+    return;
+  }
   document.getElementById("venue-top-select").classList.add("hidden");
   document.getElementById("court-select").classList.remove("hidden");
 });

@@ -353,6 +353,24 @@ h1 {
   color: var(--purple-deep);
 }
 
+.venue-card-status {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  min-height: 1em;
+  font-weight: 500;
+}
+
+.venue-card--disabled {
+  opacity: 0.45;
+  filter: grayscale(0.55);
+  cursor: not-allowed;
+}
+
+.venue-card--disabled .venue-card-status {
+  color: #C03A3A;
+}
+
 /* ── Venue badge in drawer ───────────────────────── */
 #venue-badge {
   display: flex;
