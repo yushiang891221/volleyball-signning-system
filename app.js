@@ -585,14 +585,7 @@ function subscribeFirebaseVenue(venueId) {
   );
 }
 
-function saveRegistrationState() {
-  if (hasFirebase() && firebaseReady) {
-    window.FirebaseDB.saveVenueState(selectedVenueId, getStatePayloadForStorage()).catch((error) => {
-      console.error("saveVenueState failed:", error);
-    });
-    return;
-  }
-
+function persistToLocalStorage() {
   syncActiveVenueFromState();
   const payload = {
     date: getTodayKey(),
@@ -600,6 +593,15 @@ function saveRegistrationState() {
     venueStates: allVenueStates
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+function saveRegistrationState() {
+  persistToLocalStorage();
+  if (hasFirebase() && firebaseReady) {
+    window.FirebaseDB.saveVenueState(selectedVenueId, getStatePayloadForStorage()).catch((error) => {
+      console.error("saveVenueState failed:", error);
+    });
+  }
 }
 
 async function ensureFirebaseAuth() {
@@ -610,34 +612,20 @@ async function ensureFirebaseAuth() {
 }
 
 async function saveRegistrationStateStrict() {
+  persistToLocalStorage();
   if (hasFirebase() && firebaseReady) {
     const payload = getStatePayloadForStorage();
     await ensureFirebaseAuth();
     await window.FirebaseDB.saveVenueState(selectedVenueId, payload);
-    return;
   }
-  syncActiveVenueFromState();
-  const payload = {
-    date: getTodayKey(),
-    selectedVenueId,
-    venueStates: allVenueStates
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }
 
 async function saveAdminSettingsStrict(settings) {
+  persistToLocalStorage();
   if (hasFirebase() && firebaseReady) {
     await ensureFirebaseAuth();
     await window.FirebaseDB.saveVenueState(selectedVenueId, settings);
-    return;
   }
-  syncActiveVenueFromState();
-  const payload = {
-    date: getTodayKey(),
-    selectedVenueId,
-    venueStates: allVenueStates
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }
 
 async function runDailyAutoResetIfNeeded() {
@@ -725,10 +713,6 @@ async function runDailyAutoResetIfNeeded() {
 }
 
 function loadRegistrationState() {
-  if (hasFirebase()) {
-    return;
-  }
-
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) {
     return;
@@ -740,9 +724,11 @@ function loadRegistrationState() {
       localStorage.removeItem(STORAGE_KEY);
       allVenueStates = {};
       Object.assign(state, createEmptyVenueState());
-      registrationMessageEl.textContent = "新的一天已開始，已自動清空昨日報名資料。";
-      renderRegisteredTeams();
-      renderMatchHistory();
+      if (!hasFirebase()) {
+        registrationMessageEl.textContent = "新的一天已開始，已自動清空昨日報名資料。";
+        renderRegisteredTeams();
+        renderMatchHistory();
+      }
       return;
     }
 
@@ -753,11 +739,13 @@ function loadRegistrationState() {
     syncStateFromActiveVenue();
     renderRegisteredTeams();
     renderMatchHistory();
-    if (state.registeredTeams.length === 1) {
-      registrationMessageEl.textContent = "已載入今天報名資料，請報名第二隊。";
-    } else if (state.registeredTeams.length >= 2) {
-      registrationMessageEl.textContent = "已載入今天報名資料。";
-      startMatchWithQueue();
+    if (!hasFirebase()) {
+      if (state.registeredTeams.length === 1) {
+        registrationMessageEl.textContent = "已載入今天報名資料，請報名第二隊。";
+      } else if (state.registeredTeams.length >= 2) {
+        registrationMessageEl.textContent = "已載入今天報名資料。";
+        startMatchWithQueue();
+      }
     }
   } catch (_error) {
     localStorage.removeItem(STORAGE_KEY);
