@@ -38,6 +38,7 @@
       <li><button id="go-message-board" type="button">💬 留言板</button></li>
       <li><button id="go-system-admin" type="button">⚙️ 系統管理</button></li>
       <li><a href="pikachu/index.html" id="go-game">🏐 線上打排球</a></li>
+      <li><button id="force-update-btn" type="button">🔄 更新版本</button></li>
     </ul>
   </nav>
 
@@ -292,6 +293,9 @@
       document.addEventListener('touchstart', function(e) {
         if (e.target.closest('button, .venue-card, a')) navigator.vibrate(10);
       }, { passive: true });
+    }
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
     }
   </script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>

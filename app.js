@@ -2148,6 +2148,13 @@ document.getElementById("select-fengchia-1").addEventListener("click", () => sel
 document.getElementById("select-fengchia-2").addEventListener("click", () => selectVenue("fengchia_2"));
 document.getElementById("select-home").addEventListener("click", () => selectVenue("home"));
 document.getElementById("change-venue-btn").addEventListener("click", () => showVenuePage());
+document.getElementById("force-update-btn").addEventListener("click", async () => {
+  if ('serviceWorker' in navigator) {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg) await reg.update();
+  }
+  window.location.reload();
+});
 
 // Side drawer
 const navToggle = document.getElementById("nav-toggle");
