@@ -35,7 +35,7 @@
         firebase.firestore().collection("stats").doc(docId).set(
           { [type]: firebase.firestore.FieldValue.increment(count || 1) },
           { merge: true }
-        ).catch(() => {});
+        ).catch((e) => console.error("[track write]", e));
       }
     } catch (_) {}
   }
