@@ -405,27 +405,29 @@
       btn.addEventListener('mouseleave', (e) => { e.preventDefault(); releaseBtn(id); });
     }
 
-    // Arrow key + Space support for desktop keyboard play
-    // Maps to P2 controls (right-side player) so desktop feels natural:
-    // ← → ↑ ↓ = move,  Space / Enter = power hit
+    // Arrow key + Space/Enter for desktop keyboard play
+    // Maps to P1 (left-side player) keys — same side as mobile touch controls
+    // so scoring logic is identical on all platforms
+    // P1 keys: KeyD=left, KeyG=right, KeyR=up, KeyV=down, KeyZ=power
     const ARROW_MAP = {
-      'ArrowLeft':  'ArrowLeft',
-      'ArrowRight': 'ArrowRight',
-      'ArrowUp':    'ArrowUp',
-      'ArrowDown':  'ArrowDown',
-      'Space':      'Enter',
-      'Enter':      'Enter',
+      'ArrowLeft':  'KeyD',
+      'ArrowRight': 'KeyG',
+      'ArrowUp':    'KeyR',
+      'ArrowDown':  'KeyV',
+      'Space':      'KeyZ',
     };
     document.addEventListener('keydown', (e) => {
-      if (ARROW_MAP[e.code] && e.code !== ARROW_MAP[e.code]) {
+      const mapped = ARROW_MAP[e.code];
+      if (mapped) {
         e.preventDefault();
-        window.dispatchEvent(new KeyboardEvent('keydown', { code: ARROW_MAP[e.code], key: ARROW_MAP[e.code], bubbles: true, cancelable: true }));
+        e.stopPropagation();
+        window.dispatchEvent(new KeyboardEvent('keydown', { code: mapped, key: mapped, bubbles: true, cancelable: true }));
       }
-      if (e.code === 'Space') e.preventDefault();
     }, { capture: true });
     document.addEventListener('keyup', (e) => {
-      if (ARROW_MAP[e.code] && e.code !== ARROW_MAP[e.code]) {
-        window.dispatchEvent(new KeyboardEvent('keyup', { code: ARROW_MAP[e.code], key: ARROW_MAP[e.code], bubbles: true, cancelable: true }));
+      const mapped = ARROW_MAP[e.code];
+      if (mapped) {
+        window.dispatchEvent(new KeyboardEvent('keyup', { code: mapped, key: mapped, bubbles: true, cancelable: true }));
       }
     }, { capture: true });
 
