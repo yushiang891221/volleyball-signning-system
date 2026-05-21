@@ -55,6 +55,21 @@
       text-align: center;
     }
 
+    .difficulty-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+    .difficulty-badge span { color: var(--purple-dark); }
+
     .lobby-btns { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 320px; }
 
     .lobby-btn {
@@ -80,36 +95,33 @@
       box-shadow: 0 6px 22px rgba(107,79,175,0.38);
     }
 
-    .lb-btn {
-      background: var(--card-bg);
-      color: var(--purple-deep);
-      border: 1.5px solid var(--border);
-      box-shadow: 0 4px 14px rgba(107,79,175,0.1);
-    }
-
     .lobby-btn:hover, .lobby-btn:active { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(107,79,175,0.28); }
 
-    /* ── Leaderboard page ── */
-    h2 {
-      font-size: 1.6rem;
+    /* ── Leaderboard (inline) ── */
+    .lb-section {
+      width: 100%;
+      max-width: 480px;
+      margin-top: 36px;
+    }
+
+    .lb-section h2 {
+      font-size: 1.3rem;
       font-weight: 900;
       background: linear-gradient(90deg, var(--purple-deep) 0%, var(--teal-deep) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 24px;
+      margin-bottom: 14px;
       text-align: center;
     }
 
     .lb-table-wrap {
       width: 100%;
-      max-width: 480px;
       background: var(--card-bg);
       border-radius: 16px;
       border: 1.5px solid rgba(255,255,255,0.55);
       box-shadow: 0 4px 22px rgba(107,79,175,0.1);
       overflow: hidden;
-      margin-bottom: 20px;
     }
 
     table { width: 100%; border-collapse: collapse; }
@@ -126,34 +138,7 @@
     td:last-child { text-align: right; font-weight: 700; color: var(--purple-dark); }
 
     .rank-medal { font-size: 1.1rem; }
-
     .empty-lb { text-align: center; padding: 32px; color: var(--text-muted); font-size: 0.95rem; }
-
-    .lb-actions { display: flex; gap: 12px; margin-top: 4px; }
-
-    .btn-back {
-      padding: 11px 22px;
-      border-radius: 12px;
-      border: 1.5px solid var(--border);
-      background: var(--card-bg);
-      color: var(--purple-deep);
-      font-size: 0.95rem;
-      font-weight: 700;
-      font-family: inherit;
-      cursor: pointer;
-    }
-
-    .btn-clear {
-      padding: 11px 22px;
-      border-radius: 12px;
-      border: none;
-      background: rgba(224,82,82,0.1);
-      color: #C03A3A;
-      font-size: 0.95rem;
-      font-weight: 700;
-      font-family: inherit;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
@@ -162,31 +147,25 @@
   <div class="page" id="lobby-page">
     <a href="../app.html" class="back-link">← 返回主頁</a>
     <h1>🏐 線上打排球</h1>
+    <div class="difficulty-badge">難度：<span id="difficulty-label">中等</span></div>
     <div class="lobby-btns">
       <a href="volleyball-game.html" class="lobby-btn play-btn">🎮 開始遊戲</a>
-      <button class="lobby-btn lb-btn" id="show-lb-btn">🏆 排行榜</button>
     </div>
-  </div>
-
-  <!-- Leaderboard page -->
-  <div class="page hidden" id="lb-page">
-    <button class="back-link" id="back-to-lobby-btn" style="background:none;border:none;cursor:pointer;">← 返回</button>
-    <h2>🏆 排行榜</h2>
-    <div class="lb-table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>名次</th>
-            <th>名字</th>
-            <th>日期</th>
-            <th>分數</th>
-          </tr>
-        </thead>
-        <tbody id="lb-body"></tbody>
-      </table>
-    </div>
-    <div class="lb-actions">
-      <button class="btn-back" id="lb-back-btn">← 返回</button>
+    <div class="lb-section">
+      <h2>🏆 排行榜</h2>
+      <div class="lb-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>名次</th>
+              <th>名字</th>
+              <th>日期</th>
+              <th>分數</th>
+            </tr>
+          </thead>
+          <tbody id="lb-body"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -198,6 +177,7 @@
   <script>
     const LB_KEY = 'pikachu-leaderboard';
     const MEDALS = ['🥇','🥈','🥉'];
+    const DIFFICULTY_LABELS = { slow: '簡單', medium: '中等', fast: '困難' };
     let boardData = [];
     let unsubLb = null;
 
@@ -225,9 +205,20 @@
       ).join('');
     }
 
-    function showLeaderboard() {
-      document.getElementById('lobby-page').classList.add('hidden');
-      document.getElementById('lb-page').classList.remove('hidden');
+    function loadDifficulty() {
+      const local = localStorage.getItem('pv-offline-speed') || 'medium';
+      document.getElementById('difficulty-label').textContent = DIFFICULTY_LABELS[local] || '中等';
+      fetch('/api/public-config')
+        .then(r => r.json())
+        .then(cfg => {
+          if (cfg.gameDifficulty) {
+            document.getElementById('difficulty-label').textContent = DIFFICULTY_LABELS[cfg.gameDifficulty] || '中等';
+          }
+        })
+        .catch(() => {});
+    }
+
+    function loadLeaderboard() {
       if (window.FirebaseAppReady && window.FirebaseDB) {
         window.FirebaseAppReady.then(() => {
           if (unsubLb) unsubLb();
@@ -242,15 +233,8 @@
       }
     }
 
-    function backToLobby() {
-      if (unsubLb) { unsubLb(); unsubLb = null; }
-      document.getElementById('lb-page').classList.add('hidden');
-      document.getElementById('lobby-page').classList.remove('hidden');
-    }
-
-    document.getElementById('show-lb-btn').addEventListener('click', showLeaderboard);
-    document.getElementById('back-to-lobby-btn').addEventListener('click', backToLobby);
-    document.getElementById('lb-back-btn').addEventListener('click', backToLobby);
+    loadDifficulty();
+    loadLeaderboard();
   </script>
 </body>
 </html>
