@@ -483,7 +483,10 @@
       const wasOnePlayer = !isTwoPlayer;
       menuState = 'TITLE';
       isTwoPlayer = false;
-      if (score <= 0 || !wasOnePlayer) return;
+      if (score <= 0) return;
+      submitBtn.disabled = !wasOnePlayer;
+      submitBtn.style.opacity = wasOnePlayer ? '' : '0.35';
+      submitBtn.title = wasOnePlayer ? '' : '2P 模式不可記錄排行榜';
       scoreText.textContent = '你的得分：' + score;
       nameInput.value = '';
       modal.style.display = 'flex';
@@ -500,6 +503,7 @@
       if (board.length > 100) board.splice(100);
       saveLeaderboard(board);
       modal.style.display = 'none';
+      resetSubmitBtn();
       if (window.FirebaseAppReady && window.FirebaseDB) {
         try {
           await window.FirebaseAppReady;
@@ -508,9 +512,21 @@
       }
     }
 
+    function resetSubmitBtn() {
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '';
+      submitBtn.title = '';
+    }
+
     submitBtn.addEventListener('click', submitScore);
     nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitScore(); });
-    skipBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+    skipBtn.addEventListener('click', () => { modal.style.display = 'none'; resetSubmitBtn(); });
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'KeyZ' && modal.style.display === 'flex') {
+        modal.style.display = 'none';
+        resetSubmitBtn();
+      }
+    });
 
     // ── Mute toggle ──────────────────────────────────
     let isMuted = false;
