@@ -12,15 +12,27 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Hamburger toggle -->
+  <button id="nav-toggle" type="button" aria-label="開啟選單">☰</button>
+  <!-- Overlay -->
+  <div id="nav-overlay"></div>
+  <!-- Side drawer -->
+  <nav id="side-drawer">
+    <div id="drawer-header">
+      <span>野場報隊</span>
+      <button id="nav-close" type="button" aria-label="關閉">✕</button>
+    </div>
+    <ul id="drawer-nav">
+      <li><button id="go-registration" type="button"><img src="contract.png" class="nav-icon" alt="">報名頁面</button></li>
+      <li><button id="go-score" type="button"><img src="score.png" class="nav-icon" alt="">計分頁面</button></li>
+      <li><button id="go-admin" type="button"><img src="setting.png" class="nav-icon" alt="">管理員頁面</button></li>
+      <li><a href="pikachu/volleyball-game.html" id="go-game">🏐 線上打排球</a></li>
+    </ul>
+  </nav>
+
   <main class="container">
     <h1>野場報隊系統</h1>
     <p id="current-time" class="time-bar"></p>
-    <div class="page-nav">
-      <button id="go-registration" type="button"><img src="contract.png" class="nav-icon" alt="">報名頁面</button>
-      <button id="go-score" type="button"><img src="score.png" class="nav-icon" alt="">計分頁面</button>
-      <button id="go-admin" type="button"><img src="setting.png" class="nav-icon" alt="">管理員頁面</button>
-      <a href="pikachu/volleyball-game.html" id="go-game">🏐 線上打排球</a>
-    </div>
 
     <section id="registration-page">
       <section class="registration-section">

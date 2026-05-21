@@ -1610,6 +1610,24 @@ goRegistrationBtn.addEventListener("click", () => showPage("registration"));
 goScoreBtn.addEventListener("click", () => showPage("score"));
 goAdminBtn.addEventListener("click", () => showPage("admin"));
 
+// Side drawer
+const navToggle = document.getElementById("nav-toggle");
+const navOverlay = document.getElementById("nav-overlay");
+const sideDrawer = document.getElementById("side-drawer");
+const navClose = document.getElementById("nav-close");
+function openDrawer() {
+  sideDrawer.classList.add("open");
+  navOverlay.classList.add("open");
+}
+function closeDrawer() {
+  sideDrawer.classList.remove("open");
+  navOverlay.classList.remove("open");
+}
+navToggle.addEventListener("click", openDrawer);
+navClose.addEventListener("click", closeDrawer);
+navOverlay.addEventListener("click", closeDrawer);
+[goRegistrationBtn, goScoreBtn, goAdminBtn].forEach(btn => btn.addEventListener("click", closeDrawer));
+
 updateCurrentTime();
 setInterval(updateCurrentTime, 1000);
 renderFavoriteSelect();
