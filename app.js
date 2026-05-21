@@ -409,6 +409,11 @@ function setGameDifficulty(difficulty) {
   if (!window.confirm(`確定要將遊戲難易度設為「${labels[difficulty]}」嗎？`)) return;
   const current = loadSystemSettings();
   saveSystemSettings({ ...current, gameDifficulty: difficulty });
+  localStorage.setItem('pv-offline-speed', difficulty);
+  if (hasFirebase() && firebaseReady) {
+    window.FirebaseDB.setAdminConfig({ gameDifficulty: difficulty }).catch(console.error);
+    if (adminConfigCache) adminConfigCache.gameDifficulty = difficulty;
+  }
   updateDifficultyStatus();
   if (sysControlsMessageEl) sysControlsMessageEl.textContent = `遊戲難易度已設為「${labels[difficulty]}」。`;
 }
@@ -2169,6 +2174,13 @@ window.FirebaseAppReady
     firebaseReady = true;
     hasHydratedVenueState = false;
     await ensureFirebaseAuth();
+    loadAdminConfig().then(config => {
+      if (config && config.gameDifficulty) {
+        const s = loadSystemSettings();
+        saveSystemSettings({ ...s, gameDifficulty: config.gameDifficulty });
+        localStorage.setItem('pv-offline-speed', config.gameDifficulty);
+      }
+    }).catch(() => {});
     const currentUser = firebase.auth().currentUser;
     if (currentUser) {
       window.FirebaseDB.ensureUserProfile(currentUser.uid).catch((error) => {
