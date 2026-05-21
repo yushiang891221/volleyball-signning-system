@@ -469,7 +469,10 @@
 
     window.__onGameEnd = function(score) {
       pendingScore = score;
-      if (score <= 0) return;
+      if (score <= 0) {
+        [1000,1800,2600,3400,4200,5000,5800,6600].forEach(t => setTimeout(pressPlay, t));
+        return;
+      }
       scoreText.textContent = '你的得分：' + score;
       nameInput.value = '';
       modal.style.display = 'flex';
