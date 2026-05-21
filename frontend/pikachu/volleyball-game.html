@@ -364,6 +364,7 @@
 
     function pressBtn(id) {
       if (pressedIds.has(id)) return;
+      if (id === 'p1-down' && downLocked) return;
       pressedIds.add(id);
       document.getElementById(id).classList.add('pressed');
       fireKey(KEY_MAP[id], 'keydown');
