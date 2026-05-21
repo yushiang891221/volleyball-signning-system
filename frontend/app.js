@@ -928,7 +928,7 @@ function selectVenue(venueId) {
 }
 
 function showPage(page) {
-  if (!venueSelected && page !== "update" && page !== "system-admin") {
+  if (!venueSelected && page !== "update" && page !== "system-admin" && page !== "message-board") {
     showVenuePage();
     return;
   }
