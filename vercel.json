@@ -1,22 +1,29 @@
 {
+  "outputDirectory": "frontend",
+  "functions": {
+    "backend/api/public-config.js": {},
+    "backend/api/unlock-admin.js": {},
+    "backend/api/unlock-system-admin.js": {},
+    "backend/api/admin-action.js": {}
+  },
+  "rewrites": [
+    { "source": "/api/public-config",        "destination": "/backend/api/public-config" },
+    { "source": "/api/unlock-admin",          "destination": "/backend/api/unlock-admin" },
+    { "source": "/api/unlock-system-admin",   "destination": "/backend/api/unlock-system-admin" },
+    { "source": "/api/admin-action",          "destination": "/backend/api/admin-action" }
+  ],
   "headers": [
     {
       "source": "/sw.js",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
     },
     {
       "source": "/(.*)\\.html",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
     },
     {
       "source": "/(.*)\\.js",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
     }
   ]
 }
