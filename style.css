@@ -470,6 +470,8 @@ h1 {
   list-style: none;
 }
 
+#side-drawer.no-venue .venue-only { display: none; }
+
 /* ── Registration section ────────────────────────── */
 .registration-section {
   margin-bottom: 20px;

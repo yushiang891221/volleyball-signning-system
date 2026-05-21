@@ -35,6 +35,8 @@ const DEFAULT_VENUE_ID = "fengchia_1";
 const DEVICE_TEAM_MAP_KEY = "volleyball-device-team-map";
 const DEVICE_UUID_KEY = "volleyball-device-uuid";
 const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
+const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
+const SYSTEM_ADMIN_PASSWORD = "admin0";
 const VENUES = {
   fengchia_1: {
     name: "場地一",
@@ -82,11 +84,17 @@ const registerTeamBtn = document.getElementById("register-team");
 const cancelMyRegistrationBtn = document.getElementById("cancel-my-registration");
 const resetRegistrationBtn = document.getElementById("reset-registration");
 const resetMatchHistoryBtn = document.getElementById("reset-match-history");
-const toggleLocationCheckBtn = document.getElementById("toggle-location-check");
 const registrationMessageEl = document.getElementById("registration-message");
 const locationMessageEl = document.getElementById("location-message");
-const locationCheckStatusEl = document.getElementById("location-check-status");
 const streakModeStatusEl = document.getElementById("streak-mode-status");
+const systemAdminPageEl = document.getElementById("system-admin-page");
+const sysAdminLoginSectionEl = document.getElementById("sys-admin-login-section");
+const sysAdminControlsSectionEl = document.getElementById("sys-admin-controls-section");
+const sysAdminPasswordInputEl = document.getElementById("sys-admin-password");
+const sysAdminUnlockBtn = document.getElementById("sys-admin-unlock");
+const sysAdminAuthMessageEl = document.getElementById("sys-admin-auth-message");
+const sysLocationCheckStatusEl = document.getElementById("sys-location-check-status");
+const sysToggleLocationCheckBtn = document.getElementById("sys-toggle-location-check");
 const venueSelectEl = document.getElementById("venue-select");
 const teamNameInputEl = document.getElementById("team-name");
 const teamInputContainerEl = document.getElementById("team-inputs");
@@ -114,7 +122,7 @@ const saveFavoriteBtnEl = document.getElementById("save-favorite-btn");
 const deleteFavoriteBtnEl = document.getElementById("delete-favorite-btn");
 let currentPage = "registration";
 let isInVenue = false;
-let fengchiaAccessible = null; // null=checking, true=in range, false=out of range
+let systemAdminUnlocked = false;
 let selectedVenueId = DEFAULT_VENUE_ID;
 let allVenueStates = {};
 let firebaseReady = false;
@@ -340,15 +348,23 @@ function isInsideSelectedVenue(lat, lng) {
   return false;
 }
 
-function applyVenueGate() {
-  const passLocationGate = !state.locationCheckEnabled || isInVenue;
-  registerTeamBtn.disabled = !passLocationGate;
+function loadSystemSettings() {
+  try { return JSON.parse(localStorage.getItem(SYSTEM_SETTINGS_KEY) || "{}"); } catch (_e) { return {}; }
+}
+function saveSystemSettings(s) {
+  localStorage.setItem(SYSTEM_SETTINGS_KEY, JSON.stringify(s));
+}
+function isLocationCheckEnabled() {
+  return loadSystemSettings().locationCheckEnabled === true;
+}
+function updateSysLocationCheckStatus() {
+  if (sysLocationCheckStatusEl) {
+    sysLocationCheckStatusEl.textContent = isLocationCheckEnabled() ? "定位檢查：已啟用" : "定位檢查：已停用";
+  }
 }
 
-function updateLocationCheckStatus() {
-  locationCheckStatusEl.textContent = state.locationCheckEnabled
-    ? "定位檢查：已啟用"
-    : "定位檢查：已停用";
+function applyVenueGate() {
+  registerTeamBtn.disabled = isLocationCheckEnabled() && !isInVenue;
 }
 
 function updateStreakModeStatus() {
@@ -409,9 +425,9 @@ function refreshScoringPermissionView() {
 }
 
 function checkLocationForRegistration() {
-  if (!state.locationCheckEnabled || VENUES[selectedVenueId]?.noLocationCheck) {
+  if (!isLocationCheckEnabled() || VENUES[selectedVenueId]?.noLocationCheck) {
     isInVenue = true;
-    locationMessageEl.textContent = "";
+    if (locationMessageEl) locationMessageEl.textContent = "";
     applyVenueGate();
     return;
   }
@@ -454,51 +470,6 @@ function updateScorePageMessage() {
     `目前球場：${venue.name}｜模式：${mode}\n對戰：${state.teamAName} vs ${state.teamBName}\n報名隊伍：${teamCount}`;
 }
 
-function updateFengchiaCard() {
-  const card = document.getElementById("select-fengchia");
-  const status = document.getElementById("fengchia-card-status");
-  if (!card || !status) return;
-  if (fengchiaAccessible === null) {
-    card.classList.remove("venue-card--disabled");
-    status.textContent = "🔍 定位中...";
-  } else if (fengchiaAccessible === true) {
-    card.classList.remove("venue-card--disabled");
-    status.textContent = "";
-  } else {
-    card.classList.add("venue-card--disabled");
-    status.textContent = "📍 不在球場範圍內";
-  }
-}
-
-function checkFengchiaAccessible() {
-  fengchiaAccessible = null;
-  updateFengchiaCard();
-
-  const fengchiaVenue = VENUES["fengchia_1"];
-  if (!fengchiaVenue || fengchiaVenue.noLocationCheck) {
-    fengchiaAccessible = true;
-    updateFengchiaCard();
-    return;
-  }
-  if (!navigator.geolocation) {
-    fengchiaAccessible = false;
-    updateFengchiaCard();
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      const { latitude, longitude } = pos.coords;
-      fengchiaAccessible = isInsideVenueBox(latitude, longitude, fengchiaVenue.cornerA, fengchiaVenue.cornerB);
-      updateFengchiaCard();
-    },
-    () => {
-      fengchiaAccessible = false;
-      updateFengchiaCard();
-    },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
-  );
-}
-
 function showVenuePage() {
   venuePageEl.classList.remove("hidden");
   document.getElementById("venue-top-select").classList.remove("hidden");
@@ -506,9 +477,9 @@ function showVenuePage() {
   registrationPageEl.classList.add("hidden");
   scorePageEl.classList.add("hidden");
   adminPageEl.classList.add("hidden");
-  document.getElementById("nav-toggle").style.display = "none";
+  systemAdminPageEl.classList.add("hidden");
+  document.getElementById("side-drawer").classList.add("no-venue");
   closeDrawer();
-  checkFengchiaAccessible();
 }
 
 function selectVenue(venueId) {
@@ -525,7 +496,7 @@ function selectVenue(venueId) {
     venueBadgeNameEl.textContent = venue?.name || venueId;
   }
   venuePageEl.classList.add("hidden");
-  document.getElementById("nav-toggle").style.display = "";
+  document.getElementById("side-drawer").classList.remove("no-venue");
   showPage("registration");
   renderAdminModeView();
 }
@@ -534,13 +505,17 @@ function showPage(page) {
   const isRegistration = page === "registration";
   const isScore = page === "score";
   const isAdmin = page === "admin";
+  const isSystemAdmin = page === "system-admin";
   currentPage = page;
   registrationPageEl.classList.toggle("hidden", !isRegistration);
   scorePageEl.classList.toggle("hidden", !isScore);
   adminPageEl.classList.toggle("hidden", !isAdmin);
+  systemAdminPageEl.classList.toggle("hidden", !isSystemAdmin);
   goRegistrationBtn.classList.toggle("active", isRegistration);
   goScoreBtn.classList.toggle("active", isScore);
   goAdminBtn.classList.toggle("active", isAdmin);
+  const goSystemAdminBtnEl = document.getElementById("go-system-admin");
+  if (goSystemAdminBtnEl) goSystemAdminBtnEl.classList.toggle("active", isSystemAdmin);
   updateScorePageMessage();
 
   document.body.classList.toggle("score-page-active", isScore);
@@ -646,7 +621,6 @@ function applyVenueStatePayload(payload) {
   renderRegistrationHistory();
   renderAdminTeamList();
   ensureDeviceTeamStillExists();
-  updateLocationCheckStatus();
   updateStreakModeStatus();
   refreshView();
 
@@ -1093,39 +1067,27 @@ async function resetRegistrationWithPassword() {
   }
 }
 
-async function toggleLocationCheckWithPassword() {
-  if (!adminUnlocked) {
-    adminAuthMessageEl.textContent = "請先進入管理員模式。";
-    return;
+function unlockSystemAdmin() {
+  const pwd = sysAdminPasswordInputEl.value.trim();
+  if (pwd === SYSTEM_ADMIN_PASSWORD) {
+    systemAdminUnlocked = true;
+    sysAdminLoginSectionEl.classList.add("hidden");
+    sysAdminControlsSectionEl.classList.remove("hidden");
+    updateSysLocationCheckStatus();
+  } else {
+    sysAdminAuthMessageEl.textContent = "密碼錯誤。";
   }
+}
 
-  const venueName = VENUES[selectedVenueId].name;
-  const targetState = state.locationCheckEnabled ? "停用" : "啟用";
-  const confirmed = window.confirm(`確定要在「${venueName}」${targetState}定位檢查嗎？`);
-  if (!confirmed) {
-    return;
-  }
-
-  const originalLocationCheck = state.locationCheckEnabled;
-  const newValue = !originalLocationCheck;
-  state.locationCheckEnabled = newValue;
+function toggleSystemLocationCheck() {
+  if (!systemAdminUnlocked) return;
+  const current = loadSystemSettings();
+  const newValue = !current.locationCheckEnabled;
+  saveSystemSettings({ ...current, locationCheckEnabled: newValue });
+  updateSysLocationCheckStatus();
   isInVenue = !newValue;
-  updateLocationCheckStatus();
   applyVenueGate();
-  try {
-    await saveAdminSettingsStrict({ locationCheckEnabled: newValue });
-  } catch (error) {
-    console.error("toggle location check failed:", error);
-    state.locationCheckEnabled = originalLocationCheck;
-    isInVenue = !originalLocationCheck;
-    updateLocationCheckStatus();
-    applyVenueGate();
-    const errCode = error && error.code ? ` [${error.code}]` : "";
-    locationCheckStatusEl.textContent = `切換失敗${errCode}，請確認 Firebase 設定。`;
-    return;
-  }
-  checkLocationForRegistration();
-  locationCheckStatusEl.textContent = newValue ? "定位檢查：已啟用" : "定位檢查：已停用";
+  if (newValue) checkLocationForRegistration();
 }
 
 async function toggleStreakMode() {
@@ -1568,7 +1530,7 @@ function deleteFavoriteTeam() {
 }
 
 function registerTeam() {
-  if (state.locationCheckEnabled && !isInVenue) {
+  if (isLocationCheckEnabled() && !isInVenue) {
     const venue = VENUES[selectedVenueId];
     registrationMessageEl.textContent = `需在「${venue.name}」範圍內才能報名。`;
     return;
@@ -1715,7 +1677,6 @@ registerTeamBtn.addEventListener("click", registerTeam);
 cancelMyRegistrationBtn.addEventListener("click", cancelMyRegistration);
 resetRegistrationBtn.addEventListener("click", resetRegistrationWithPassword);
 resetMatchHistoryBtn.addEventListener("click", resetMatchHistory);
-toggleLocationCheckBtn.addEventListener("click", toggleLocationCheckWithPassword);
 toggleStreakModeBtn.addEventListener("click", toggleStreakMode);
 adminUnlockBtn.addEventListener("click", unlockAdminPage);
 document.getElementById("quick-start").addEventListener("click", quickStart);
@@ -1759,13 +1720,15 @@ venueSelectEl.addEventListener("change", () => {
   }
   isInVenue = false;
   applyVenueGate();
-  checkLocationForRegistration();
+  if (isLocationCheckEnabled()) checkLocationForRegistration();
 });
 goRegistrationBtn.addEventListener("click", () => showPage("registration"));
 goScoreBtn.addEventListener("click", () => showPage("score"));
 goAdminBtn.addEventListener("click", () => showPage("admin"));
+document.getElementById("go-system-admin").addEventListener("click", () => { showPage("system-admin"); closeDrawer(); });
+sysAdminUnlockBtn.addEventListener("click", unlockSystemAdmin);
+sysToggleLocationCheckBtn.addEventListener("click", toggleSystemLocationCheck);
 document.getElementById("select-fengchia").addEventListener("click", () => {
-  if (!fengchiaAccessible) return;
   document.getElementById("venue-top-select").classList.add("hidden");
   document.getElementById("court-select").classList.remove("hidden");
 });
@@ -1804,14 +1767,12 @@ renderRegisteredTeams();
 renderRegistrationHistory();
 renderMatchHistory();
 ensureDeviceTeamStillExists();
-updateLocationCheckStatus();
 updateStreakModeStatus();
 refreshView();
 showVenuePage();
 renderAdminModeView();
 venueSelectEl.value = selectedVenueId;
 applyVenueGate();
-checkLocationForRegistration();
 
 window.FirebaseAppReady
   .then(() => {

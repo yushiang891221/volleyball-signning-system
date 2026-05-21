@@ -12,8 +12,8 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Hamburger toggle (hidden until venue is selected) -->
-  <button id="nav-toggle" type="button" aria-label="開啟選單" style="display:none">☰</button>
+  <!-- Hamburger toggle -->
+  <button id="nav-toggle" type="button" aria-label="開啟選單">☰</button>
   <!-- Overlay -->
   <div id="nav-overlay"></div>
   <!-- Side drawer -->
@@ -22,7 +22,7 @@
       <span>野場報隊</span>
       <button id="nav-close" type="button" aria-label="關閉">✕</button>
     </div>
-    <div id="venue-badge">
+    <div id="venue-badge" class="venue-only">
       <div id="venue-badge-info">
         <span id="venue-badge-label" class="venue-badge-label">目前球場</span>
         <span id="venue-badge-name"></span>
@@ -30,12 +30,13 @@
       <button id="change-venue-btn" type="button">換球場</button>
     </div>
     <ul id="drawer-nav">
-      <li class="nav-venue-section-label">球場功能</li>
-      <li><button id="go-registration" type="button"><img src="contract.png" class="nav-icon" alt="">報名頁面</button></li>
-      <li><button id="go-score" type="button"><img src="score.png" class="nav-icon" alt="">計分頁面</button></li>
-      <li><button id="go-admin" type="button"><img src="setting.png" class="nav-icon" alt="">管理員頁面</button></li>
-      <li class="nav-divider-item"></li>
+      <li class="venue-only nav-venue-section-label">球場功能</li>
+      <li class="venue-only"><button id="go-registration" type="button"><img src="contract.png" class="nav-icon" alt="">報名頁面</button></li>
+      <li class="venue-only"><button id="go-score" type="button"><img src="score.png" class="nav-icon" alt="">計分頁面</button></li>
+      <li class="venue-only"><button id="go-admin" type="button"><img src="setting.png" class="nav-icon" alt="">野場管理員(NPC)</button></li>
+      <li class="venue-only nav-divider-item"></li>
       <li><a href="pikachu/index.html" id="go-game">🏐 線上打排球</a></li>
+      <li><button id="go-system-admin" type="button">⚙️ 系統管理</button></li>
     </ul>
   </nav>
 
@@ -54,7 +55,7 @@
             <p>現階段以使用<strong>測試球場</strong>為主</p>
             <p>以下說明本 APP 特色及操作事項：</p>
             <p><strong>特色</strong></p>
-            <p>▸ 球場報隊具定位檢查功能，因此須位於實際球場內才可報隊</p>
+            <p>▸ 球場報隊可開啟定位檢查功能，詳見系統管理</p>
             <p>▸ 只有 Play1 可以使用記分板功能</p>
             <p>▸ 具備管理員功能，密碼為 test0</p>
             <p>▸ 皮卡丘打排球，稱霸一下排行榜吧！</p>
@@ -76,7 +77,6 @@
           <button class="venue-card" id="select-fengchia">
             <div class="venue-card-icon">🏟</div>
             <div class="venue-card-name">逢甲大學球場</div>
-            <div class="venue-card-status" id="fengchia-card-status"></div>
           </button>
           <button class="venue-card" id="select-home">
             <div class="venue-card-icon">🏠</div>
@@ -197,7 +197,7 @@
 
     <section id="admin-page" class="hidden">
       <section class="registration-section">
-        <h2>管理員頁面</h2>
+        <h2>野場管理員(NPC)</h2>
         <section id="admin-login-section" class="panel-block">
           <h3>管理員登入</h3>
           <label for="admin-password">密碼</label>
@@ -209,17 +209,36 @@
         </section>
 
         <section id="admin-controls-section" class="panel-block hidden">
-          <h3>系統控制</h3>
-          <p id="location-check-status"></p>
+          <h3>球場控制</h3>
           <p id="streak-mode-status"></p>
           <div class="panel-actions">
-            <button id="toggle-location-check" class="danger-btn" type="button">切換定位檢查</button>
             <button id="toggle-streak-mode" class="danger-btn" type="button">切換連二下模式</button>
             <button id="reset-registration" class="danger-btn" type="button">重置報名隊伍</button>
             <button id="reset-match-history" class="danger-btn" type="button">重置比賽結果</button>
           </div>
           <h4>強制刪除隊伍</h4>
           <ul id="admin-team-list" class="admin-team-list"></ul>
+        </section>
+      </section>
+    </section>
+    <section id="system-admin-page" class="hidden">
+      <section class="registration-section">
+        <h2>系統管理</h2>
+        <section id="sys-admin-login-section" class="panel-block">
+          <h3>系統管理員登入</h3>
+          <label for="sys-admin-password">密碼</label>
+          <input id="sys-admin-password" type="password" placeholder="輸入系統管理員密碼">
+          <div class="panel-actions">
+            <button id="sys-admin-unlock" type="button">進入系統管理</button>
+          </div>
+          <p id="sys-admin-auth-message"></p>
+        </section>
+        <section id="sys-admin-controls-section" class="panel-block hidden">
+          <h3>系統設定</h3>
+          <p id="sys-location-check-status"></p>
+          <div class="panel-actions">
+            <button id="sys-toggle-location-check" class="danger-btn" type="button">切換定位檢查</button>
+          </div>
         </section>
       </section>
     </section>
