@@ -1165,39 +1165,102 @@ function adminForceDeleteTeam(teamIndex) {
   if (!adminUnlocked) return;
   const team = state.registeredTeams[teamIndex];
   if (!team) return;
-  if (teamIndex === state.currentAIndex || teamIndex === state.currentBIndex) {
-    registrationMessageEl.textContent = `「${team.name}」正在比賽中，無法刪除。`;
-    return;
-  }
-  if (!window.confirm(`確定要強制刪除「${team.name}」的報名嗎？`)) return;
 
-  state.registeredTeams.splice(teamIndex, 1);
+  const isPlayingA = teamIndex === state.currentAIndex;
+  const isPlayingB = teamIndex === state.currentBIndex;
+  const isPlaying = isPlayingA || isPlayingB;
 
-  if (Number.isInteger(state.currentAIndex) && state.currentAIndex > teamIndex) state.currentAIndex -= 1;
-  if (Number.isInteger(state.currentBIndex) && state.currentBIndex > teamIndex) state.currentBIndex -= 1;
-  if (Number.isInteger(state.scorerIndex)) {
-    if (state.scorerIndex > teamIndex) {
-      state.scorerIndex -= 1;
-    } else if (state.scorerIndex === teamIndex) {
-      state.scorerIndex = teamIndex < state.registeredTeams.length ? teamIndex : null;
+  const confirmMsg = isPlaying
+    ? `確定要強制刪除「${team.name}」的報名嗎？\n（該隊正在比賽中，將由算分隊伍補位；若無算分隊伍，比賽將暫停等待報名）`
+    : `確定要強制刪除「${team.name}」的報名嗎？`;
+  if (!window.confirm(confirmMsg)) return;
+
+  let resultMsg = "";
+
+  if (isPlaying) {
+    const scorerIdxBeforeSplice = state.scorerIndex;
+
+    state.registeredTeams.splice(teamIndex, 1);
+
+    // adjust all indices down past the removed position
+    function adj(idx) {
+      if (!Number.isInteger(idx)) return idx;
+      if (idx === teamIndex) return null;
+      return idx > teamIndex ? idx - 1 : idx;
     }
-  }
-  state.scorerTeamId =
-    Number.isInteger(state.scorerIndex) && state.registeredTeams[state.scorerIndex]
-      ? state.registeredTeams[state.scorerIndex].teamId
-      : null;
 
-  if (state.registeredTeams.length < 2) {
-    gameSectionEl.classList.add("hidden");
-    statusSectionEl.classList.add("hidden");
-    state.currentAIndex = null;
-    state.currentBIndex = null;
-    state.scorerIndex = null;
-    state.scorerTeamId = null;
-    state.scoreA = 0;
-    state.scoreB = 0;
-    state.serving = null;
-    state.finished = false;
+    const adjA = isPlayingA ? null : adj(state.currentAIndex);
+    const adjB = isPlayingB ? null : adj(state.currentBIndex);
+    const adjScorer = adj(scorerIdxBeforeSplice);
+
+    if (Number.isInteger(adjScorer) && state.registeredTeams[adjScorer]) {
+      // scorer fills in for the deleted playing team
+      state.currentAIndex = isPlayingA ? adjScorer : adjA;
+      state.currentBIndex = isPlayingB ? adjScorer : adjB;
+      state.scorerIndex = null;
+      state.scorerTeamId = null;
+      assignScorerIfMissing();
+
+      const newA = state.registeredTeams[state.currentAIndex];
+      const newB = state.registeredTeams[state.currentBIndex];
+      state.teamAName = newA.name;
+      state.teamBName = newB.name;
+      state.teamAPlayers = [...newA.players];
+      state.teamBPlayers = [...newB.players];
+      state.scoreA = 0;
+      state.scoreB = 0;
+      state.serving = "B";
+      state.finished = false;
+      state.currentMatchRecorded = false;
+      renderPlayerList(teamAPlayersEl, state.teamAPlayers);
+      renderPlayerList(teamBPlayersEl, state.teamBPlayers);
+      gameSectionEl.classList.remove("hidden");
+      statusSectionEl.classList.remove("hidden");
+      resultMsg = `已刪除「${team.name}」（比賽中），由算分隊補位，比賽重置。`;
+    } else {
+      // no scorer to fill in — pause until a new team registers
+      state.currentAIndex = null;
+      state.currentBIndex = null;
+      state.scorerIndex = null;
+      state.scorerTeamId = null;
+      state.scoreA = 0;
+      state.scoreB = 0;
+      state.serving = null;
+      state.finished = false;
+      gameSectionEl.classList.add("hidden");
+      statusSectionEl.classList.add("hidden");
+      resultMsg = `已刪除「${team.name}」（比賽中），無後續隊伍，等待新隊伍報名後繼續。`;
+    }
+  } else {
+    state.registeredTeams.splice(teamIndex, 1);
+
+    if (Number.isInteger(state.currentAIndex) && state.currentAIndex > teamIndex) state.currentAIndex -= 1;
+    if (Number.isInteger(state.currentBIndex) && state.currentBIndex > teamIndex) state.currentBIndex -= 1;
+    if (Number.isInteger(state.scorerIndex)) {
+      if (state.scorerIndex > teamIndex) {
+        state.scorerIndex -= 1;
+      } else if (state.scorerIndex === teamIndex) {
+        state.scorerIndex = teamIndex < state.registeredTeams.length ? teamIndex : null;
+      }
+    }
+    state.scorerTeamId =
+      Number.isInteger(state.scorerIndex) && state.registeredTeams[state.scorerIndex]
+        ? state.registeredTeams[state.scorerIndex].teamId
+        : null;
+
+    if (state.registeredTeams.length < 2) {
+      gameSectionEl.classList.add("hidden");
+      statusSectionEl.classList.add("hidden");
+      state.currentAIndex = null;
+      state.currentBIndex = null;
+      state.scorerIndex = null;
+      state.scorerTeamId = null;
+      state.scoreA = 0;
+      state.scoreB = 0;
+      state.serving = null;
+      state.finished = false;
+    }
+    resultMsg = `已強制刪除「${team.name}」的報名。`;
   }
 
   renderRegisteredTeams();
@@ -1205,7 +1268,7 @@ function adminForceDeleteTeam(teamIndex) {
   ensureDeviceTeamStillExists();
   refreshView();
   saveRegistrationState();
-  registrationMessageEl.textContent = `已強制刪除「${team.name}」的報名。`;
+  registrationMessageEl.textContent = resultMsg;
 }
 
 async function resetMatchHistory() {

@@ -263,6 +263,11 @@ h1 {
 
 .announcement-text p:last-child { margin: 0; }
 
+.announcement-text strong {
+  color: var(--purple-deep);
+  font-weight: 800;
+}
+
 /* ── Venue selection page ────────────────────────── */
 #venue-page {
   display: flex;
