@@ -33,9 +33,19 @@ const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
 const MSG_BOARD_KEY = "volleyball-messages";
 const MSG_NAME_KEY = "volleyball-msg-name";
-const APP_VERSION = "1.7.3";
+const APP_VERSION = "1.7.4";
 
 const CHANGELOG = [
+  {
+    version: "v1.7.4",
+    date: "2026-05",
+    title: "推播通知細化",
+    items: [
+      "連二下模式觸發時，通知上場兩隊「輪到你們上場了！！！」",
+      "連二下模式通知隊列第三隊「下一場就是你算分了喔！只能再休息一下！」",
+      "PLAY2 通知訊息更新為「下一場就是你算分了喔！只能再休息一下！」"
+    ]
+  },
   {
     version: "v1.7.3",
     date: "2026-05",
@@ -1967,6 +1977,12 @@ function advanceToNextMatch() {
       registrationMessageEl.textContent = `${state.registeredTeams[state.scorerIndex].name} 連贏兩場，下場改為記分隊。`;
       if (started) {
         saveRegistrationState();
+        const upA = state.registeredTeams[playIndices[0]]?.name;
+        const upB = state.registeredTeams[playIndices[1]]?.name;
+        const nextWait = playIndices[2] !== undefined ? state.registeredTeams[playIndices[2]]?.name : null;
+        if (upA) sendPlayNotification(selectedVenueId, upA, "輪到你們上場了！！！", `${upA} 快來上場！`);
+        if (upB) sendPlayNotification(selectedVenueId, upB, "輪到你們上場了！！！", `${upB} 快來上場！`);
+        if (nextWait) sendPlayNotification(selectedVenueId, nextWait, "目前是PLAY2了！", `${nextWait} 下一場就是你算分了喔！只能再休息一下！`);
       }
       return started;
     }
@@ -1983,7 +1999,7 @@ function advanceToNextMatch() {
     const play1Name = state.scorerIndex !== null ? state.registeredTeams[state.scorerIndex]?.name : null;
     const play2Name = state.scorerIndex !== null ? state.registeredTeams[state.scorerIndex + 1]?.name : null;
     if (play1Name) sendPlayNotification(selectedVenueId, play1Name, "目前是PLAY1了！", `${play1Name} 快來算分！下場就是你了喔`);
-    if (play2Name) sendPlayNotification(selectedVenueId, play2Name, "目前是PLAY2了！", `${play2Name} 準備來算分了喔！`);
+    if (play2Name) sendPlayNotification(selectedVenueId, play2Name, "目前是PLAY2了！", `${play2Name} 下一場就是你算分了喔！只能再休息一下！`);
   }
   return started;
 }
