@@ -365,7 +365,14 @@
     function pressBtn(id) {
       if (pressedIds.has(id)) return;
       if (id === 'p1-down' && downLocked) return;
-      if (id === 'p1-left' || id === 'p1-right') downLocked = false;
+      if (id === 'p1-left' || id === 'p1-right') {
+        if (id === UNLOCK_SEQ[unlockProgress]) {
+          unlockProgress++;
+          if (unlockProgress >= UNLOCK_SEQ.length) { downLocked = false; unlockProgress = 0; }
+        } else {
+          unlockProgress = id === UNLOCK_SEQ[0] ? 1 : 0;
+        }
+      }
       pressedIds.add(id);
       document.getElementById(id).classList.add('pressed');
       fireKey(KEY_MAP[id], 'keydown');
@@ -423,7 +430,15 @@
         e.preventDefault();
         e.stopPropagation();
         if (e.code === 'ArrowDown' && downLocked) return;
-        if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') downLocked = false;
+        if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
+          const id = e.code === 'ArrowLeft' ? 'p1-left' : 'p1-right';
+          if (id === UNLOCK_SEQ[unlockProgress]) {
+            unlockProgress++;
+            if (unlockProgress >= UNLOCK_SEQ.length) { downLocked = false; unlockProgress = 0; }
+          } else {
+            unlockProgress = id === UNLOCK_SEQ[0] ? 1 : 0;
+          }
+        }
         window.dispatchEvent(new KeyboardEvent('keydown', { code: mapped, key: mapped, bubbles: true, cancelable: true }));
       }
     }, { capture: true });
@@ -441,8 +456,10 @@
     } catch(_e) {}
 
     // Auto-start single player (vs CPU) when Play is clicked:
-    // Lock down key during menu phase; unlocks when player presses left/right (game has started)
+    // Lock down key during menu phase; unlocks after left-right-left-right sequence
     let downLocked = true;
+    const UNLOCK_SEQ = ['p1-left','p1-right','p1-left','p1-right'];
+    let unlockProgress = 0;
 
     // ── Leaderboard ──────────────────────────────────
     const LB_KEY = 'pikachu-leaderboard';
@@ -465,6 +482,7 @@
     window.__onGameEnd = function(score) {
       pendingScore = score;
       downLocked = true;
+      unlockProgress = 0;
       if (score <= 0) return;
       scoreText.textContent = '你的得分：' + score;
       nameInput.value = '';
