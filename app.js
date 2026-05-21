@@ -538,37 +538,43 @@ async function runUpdate() {
   progressWrap.classList.remove("hidden");
   messageEl.textContent = "";
 
-  const steps = [
-    { pct: 20, text: "正在檢查 Service Worker…" },
-    { pct: 45, text: "正在清除舊版快取…" },
-    { pct: 70, text: "正在下載最新版本…" },
-    { pct: 90, text: "即將完成…" },
-    { pct: 100, text: "更新完成！" }
-  ];
-
-  function advance(step) {
+  function advance(pct, text) {
     return new Promise(resolve => setTimeout(() => {
-      progressBar.style.width = step.pct + "%";
-      progressText.textContent = step.text;
-      progressPct.textContent = step.pct + "%";
+      progressBar.style.width = pct + "%";
+      progressText.textContent = text;
+      progressPct.textContent = pct + "%";
       resolve();
     }, 450));
   }
 
+  let hasUpdate = false;
   const swPromise = (async () => {
     if ("serviceWorker" in navigator) {
       const reg = await navigator.serviceWorker.getRegistration();
-      if (reg) await reg.update();
+      if (reg) {
+        let updateFired = false;
+        reg.addEventListener("updatefound", () => { updateFired = true; }, { once: true });
+        await reg.update();
+        await new Promise(r => setTimeout(r, 100));
+        hasUpdate = updateFired || Boolean(reg.installing || reg.waiting);
+      }
     }
   })();
 
-  await advance(steps[0]);
-  await advance(steps[1]);
-  await advance(steps[2]);
+  await advance(20, "正在檢查 Service Worker…");
+  await advance(45, "正在連線伺服器…");
+  await advance(70, "正在比對版本…");
   await swPromise;
-  await advance(steps[3]);
-  await advance(steps[4]);
 
+  if (!hasUpdate) {
+    await advance(100, "已是最新版本！");
+    messageEl.textContent = "✅ 目前已是最新版本，無需重新載入。";
+    startBtn.disabled = false;
+    return;
+  }
+
+  await advance(90, "正在下載更新…");
+  await advance(100, "更新完成！");
   messageEl.textContent = "正在重新載入…";
   setTimeout(() => window.location.reload(true), 700);
 }
