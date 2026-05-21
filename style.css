@@ -213,6 +213,56 @@ h1 {
   flex-shrink: 0;
 }
 
+/* ── Announcement board ──────────────────────────── */
+.announcement-board {
+  width: 100%;
+  max-width: 520px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent, transparent 15px,
+      rgba(107, 79, 175, 0.18) 15px, rgba(107, 79, 175, 0.18) 16px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent, transparent 15px,
+      rgba(107, 79, 175, 0.18) 15px, rgba(107, 79, 175, 0.18) 16px
+    ),
+    linear-gradient(135deg, rgba(155, 127, 212, 0.1) 0%, rgba(62, 207, 196, 0.08) 100%);
+  padding: 14px;
+  border-radius: 20px;
+  border: 2px solid rgba(107, 79, 175, 0.28);
+  margin-bottom: 20px;
+}
+
+.announcement-inner {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 16px 20px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.announcement-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--purple-deep);
+  margin: 0 0 10px;
+  letter-spacing: 0.5px;
+}
+
+.announcement-text {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.75;
+}
+
+.announcement-text p {
+  margin: 0 0 6px;
+}
+
+.announcement-text p:last-child { margin: 0; }
+
 /* ── Venue selection page ────────────────────────── */
 #venue-page {
   display: flex;
@@ -712,7 +762,7 @@ h1 {
 }
 
 .score {
-  font-size: 96px;
+  font-size: 140px;
   font-weight: 900;
   margin: 4px 0 18px;
   color: var(--white);
@@ -1066,12 +1116,19 @@ button:active {
 
   .panel-actions button { width: 100%; }
 
-  .score { font-size: 80px; }
+  .score { font-size: 110px; }
 }
 
 /* ── Score page landscape mode ───────────────────── */
 @media (orientation: landscape) {
   .scoreboard { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+
+  body.score-page-active {
+    overflow: hidden;
+    height: 100dvh;
+    position: fixed;
+    width: 100%;
+  }
 
   body.score-page-active .container {
     padding: 8px 12px;
@@ -1101,7 +1158,7 @@ button:active {
   }
 
   body.score-page-active .score {
-    font-size: 120px;
+    font-size: 160px;
   }
 
   body.score-page-active .score-page-message {

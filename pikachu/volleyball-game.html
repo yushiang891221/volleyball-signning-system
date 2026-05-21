@@ -53,7 +53,7 @@
     .control-grid {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 20px;
       pointer-events: auto;
     }
 
@@ -174,8 +174,23 @@
 </head>
 <body>
 
-  <!-- Back to app -->
-  <button id="back-btn" onclick="history.back()">← 返回</button>
+  <!-- Back to lobby -->
+  <button id="back-btn" onclick="location.href='index.html'">← 返回</button>
+
+  <!-- Game-end modal -->
+  <div id="game-end-modal" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;">
+    <div style="background:#1a1035;border:2px solid rgba(155,127,212,0.5);border-radius:18px;padding:28px 32px;width:min(340px,90vw);text-align:center;font-family:'Segoe UI','Microsoft JhengHei',sans-serif;color:#fff;">
+      <div style="font-size:2rem;margin-bottom:6px;">🏐</div>
+      <h2 style="margin:0 0 6px;font-size:1.3rem;font-weight:800;">遊戲結束</h2>
+      <p id="modal-score-text" style="font-size:1.6rem;font-weight:900;color:#F5C842;margin:0 0 18px;"></p>
+      <input id="modal-name-input" type="text" maxlength="12" placeholder="輸入你的名字"
+        style="width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid rgba(155,127,212,0.5);background:rgba(255,255,255,0.1);color:#fff;font-size:1rem;font-family:inherit;outline:none;margin-bottom:14px;">
+      <div style="display:flex;gap:10px;">
+        <button id="modal-submit-btn" style="flex:1;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#9B7FD4,#6B4FAF);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;">記錄分數</button>
+        <button id="modal-skip-btn" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.25);background:transparent;color:rgba(255,255,255,0.7);font-size:1rem;cursor:pointer;font-family:inherit;">跳過</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Game container (the game injects its canvas here) -->
   <div id="flex-container">
@@ -378,6 +393,9 @@
       btn.addEventListener('mouseleave', (e) => { e.preventDefault(); releaseBtn(id); });
     }
 
+    // Force medium difficulty before game bundles read settings
+    try { localStorage.setItem('pv-offline-speed', 'medium'); } catch(_e) {}
+
     // Auto-start single player (vs CPU) when Play is clicked:
     // fire KeyZ to skip intro → skip menu animation → confirm "with computer"
     document.getElementById('close-about-btn').addEventListener('click', () => {
@@ -388,6 +406,48 @@
       setTimeout(() => fireKey('KeyZ', 'keydown'), 1800);
       setTimeout(() => fireKey('KeyZ', 'keyup'),   1860);
     });
+
+    // ── Leaderboard ──────────────────────────────────
+    const LB_KEY = 'pikachu-leaderboard';
+
+    function getLeaderboard() {
+      try { return JSON.parse(localStorage.getItem(LB_KEY) || '[]'); } catch(_e) { return []; }
+    }
+    function saveLeaderboard(board) {
+      try { localStorage.setItem(LB_KEY, JSON.stringify(board)); } catch(_e) {}
+    }
+
+    const modal        = document.getElementById('game-end-modal');
+    const scoreText    = document.getElementById('modal-score-text');
+    const nameInput    = document.getElementById('modal-name-input');
+    const submitBtn    = document.getElementById('modal-submit-btn');
+    const skipBtn      = document.getElementById('modal-skip-btn');
+
+    let pendingScore = 0;
+
+    window.__onGameEnd = function(score) {
+      pendingScore = score;
+      if (score <= 0) return;
+      scoreText.textContent = '你的得分：' + score;
+      nameInput.value = '';
+      modal.style.display = 'flex';
+      setTimeout(() => nameInput.focus(), 80);
+    };
+
+    function submitScore() {
+      const name = nameInput.value.trim();
+      if (!name) { nameInput.focus(); return; }
+      const board = getLeaderboard();
+      board.push({ name, score: pendingScore, date: new Date().toLocaleDateString('zh-TW') });
+      board.sort((a, b) => b.score - a.score);
+      if (board.length > 100) board.splice(100);
+      saveLeaderboard(board);
+      modal.style.display = 'none';
+    }
+
+    submitBtn.addEventListener('click', submitScore);
+    nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitScore(); });
+    skipBtn.addEventListener('click', () => { modal.style.display = 'none'; });
   </script>
 </body>
 </html>
