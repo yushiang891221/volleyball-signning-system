@@ -822,7 +822,7 @@ function showPage(page) {
     if (hasFirebase() && firebaseReady && !unsubscribeGlobalStats) {
       unsubscribeGlobalStats = window.FirebaseDB.subscribeGlobalStats(
         (data) => { globalStatsData = data; if (currentPage === "system-admin" && systemAdminUnlocked) renderFbStatsTable(); },
-        () => {}
+        (err) => console.error("[stats]", err)
       );
     }
     renderFbStatsTable();
