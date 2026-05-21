@@ -187,7 +187,6 @@
     </div>
     <div class="lb-actions">
       <button class="btn-back" id="lb-back-btn">← 返回</button>
-      <button class="btn-clear" id="lb-clear-btn">清除排行榜</button>
     </div>
   </div>
 
@@ -234,13 +233,6 @@
 
     document.getElementById('back-to-lobby-btn').addEventListener('click', backToLobby);
     document.getElementById('lb-back-btn').addEventListener('click', backToLobby);
-
-    document.getElementById('lb-clear-btn').addEventListener('click', () => {
-      if (confirm('確定要清除所有排行榜紀錄嗎？')) {
-        localStorage.removeItem(LB_KEY);
-        renderBoard();
-      }
-    });
   </script>
 </body>
 </html>

@@ -95,6 +95,7 @@ const sysAdminUnlockBtn = document.getElementById("sys-admin-unlock");
 const sysAdminAuthMessageEl = document.getElementById("sys-admin-auth-message");
 const sysLocationCheckStatusEl = document.getElementById("sys-location-check-status");
 const sysToggleLocationCheckBtn = document.getElementById("sys-toggle-location-check");
+const sysClearLeaderboardBtn = document.getElementById("sys-clear-leaderboard");
 const venueSelectEl = document.getElementById("venue-select");
 const teamNameInputEl = document.getElementById("team-name");
 const teamInputContainerEl = document.getElementById("team-inputs");
@@ -1782,6 +1783,13 @@ goAdminBtn.addEventListener("click", () => showPage("admin"));
 document.getElementById("go-system-admin").addEventListener("click", () => { showPage("system-admin"); closeDrawer(); });
 sysAdminUnlockBtn.addEventListener("click", unlockSystemAdmin);
 sysToggleLocationCheckBtn.addEventListener("click", toggleSystemLocationCheck);
+sysClearLeaderboardBtn.addEventListener("click", () => {
+  if (!systemAdminUnlocked) return;
+  if (window.confirm("確定要清除所有排行榜紀錄嗎？")) {
+    localStorage.removeItem("pikachu-leaderboard");
+    sysAdminAuthMessageEl.textContent = "排行榜已清除。";
+  }
+});
 document.getElementById("sys-admin-back-btn").addEventListener("click", () => {
   const noVenue = document.getElementById("side-drawer").classList.contains("no-venue");
   if (noVenue) showVenuePage(); else showPage("registration");
