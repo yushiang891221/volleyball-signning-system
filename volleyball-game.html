@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>線上打排球</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="pikachu/resources/style.css">
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      touch-action: none;
+    }
+
+    /* ── Back button ─── */
+    #back-btn {
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      z-index: 1000;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      border: 1.5px solid rgba(255,255,255,0.35);
+      border-radius: 8px;
+      padding: 4px 12px;
+      font-size: 14px;
+      font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+    }
+
+    /* ── Touch controls overlay ─── */
+    #touch-overlay {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 160px;
+      z-index: 999;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 0 16px 20px;
+      pointer-events: none;
+    }
+
+    .player-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .ctrl-btn {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      font-size: 22px;
+      font-family: "Segoe UI", sans-serif;
+      backdrop-filter: blur(8px);
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: background 0.08s;
+    }
+
+    .ctrl-btn:active,
+    .ctrl-btn.pressed {
+      background: rgba(255,255,255,0.4);
+    }
+
+    .ctrl-btn.jump-btn {
+      background: rgba(255, 200, 50, 0.25);
+      border-color: rgba(255, 200, 50, 0.6);
+    }
+    .ctrl-btn.jump-btn:active,
+    .ctrl-btn.jump-btn.pressed {
+      background: rgba(255, 200, 50, 0.55);
+    }
+
+    .ctrl-btn.power-btn {
+      background: rgba(255, 80, 80, 0.25);
+      border-color: rgba(255, 80, 80, 0.6);
+    }
+    .ctrl-btn.power-btn:active,
+    .ctrl-btn.power-btn.pressed {
+      background: rgba(255, 80, 80, 0.55);
+    }
+
+    /* Player labels */
+    .player-label {
+      color: rgba(255,255,255,0.6);
+      font-size: 11px;
+      font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+      text-align: center;
+      margin-bottom: 2px;
+    }
+
+    /* Landscape: spread controls to edges */
+    @media (orientation: landscape) {
+      #touch-overlay {
+        height: 140px;
+        padding: 0 12px 12px;
+      }
+      .ctrl-btn { width: 56px; height: 56px; font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Back to app -->
+  <button id="back-btn" onclick="history.back()">← 返回</button>
+
+  <!-- Game container (the game injects its canvas here) -->
+  <div id="flex-container">
+    <div id="menu-bar">
+      <div class="btn-container left">
+        <div class="relative-container">
+          <button type="button" id="game-dropdown-btn" class="btn dropdown-btn">Game</button>
+          <div id="game-dropdown" class="dropdown">
+            <button type="button" id="pause-btn" class="btn"><span class="check">&#10003; </span>Pause</button>
+            <button type="button" id="restart-btn" class="btn">Restart</button>
+          </div>
+        </div>
+        <div class="relative-container">
+          <button type="button" id="options-dropdown-btn" class="btn dropdown-btn">Options</button>
+          <div id="options-dropdown" class="dropdown">
+            <div class="relative-container">
+              <button type="button" id="graphic-submenu-btn" class="btn submenu-btn">Graphic &#9654;&#xfe0e;</button>
+              <div id="graphic-submenu" class="submenu">
+                <button type="button" id="graphic-sharp-btn" class="btn selected"><span class="check">&#10003; </span>sharp</button>
+                <button type="button" id="graphic-soft-btn" class="btn"><span class="check">&#10003; </span>soft</button>
+              </div>
+            </div>
+            <div class="relative-container">
+              <button type="button" id="bgm-submenu-btn" class="btn submenu-btn">BGM &#9654;&#xfe0e;</button>
+              <div id="bgm-submenu" class="submenu">
+                <button type="button" id="bgm-on-btn" class="btn selected"><span class="check">&#10003; </span>on</button>
+                <button type="button" id="bgm-off-btn" class="btn"><span class="check">&#10003; </span>off</button>
+              </div>
+            </div>
+            <div class="relative-container">
+              <button type="button" id="sfx-submenu-btn" class="btn submenu-btn">SFX &#9654;&#xfe0e;</button>
+              <div id="sfx-submenu" class="submenu">
+                <button type="button" id="stereo-btn" class="btn selected"><span class="check">&#10003; </span>stereo</button>
+                <button type="button" id="mono-btn" class="btn"><span class="check">&#10003; </span>mono</button>
+                <button type="button" id="sfx-off-btn" class="btn"><span class="check">&#10003; </span>off</button>
+              </div>
+            </div>
+            <div class="relative-container">
+              <button type="button" id="speed-submenu-btn" class="btn submenu-btn">Speed &#9654;&#xfe0e;</button>
+              <div id="speed-submenu" class="submenu">
+                <button type="button" id="slow-speed-btn" class="btn"><span class="check">&#10003; </span>slow</button>
+                <button type="button" id="medium-speed-btn" class="btn selected"><span class="check">&#10003; </span>medium</button>
+                <button type="button" id="fast-speed-btn" class="btn"><span class="check">&#10003; </span>fast</button>
+              </div>
+            </div>
+            <div class="relative-container">
+              <button type="button" id="winning-score-submenu-btn" class="btn submenu-btn">Winning score &#9654;&#xfe0e;</button>
+              <div id="winning-score-submenu" class="submenu">
+                <button type="button" id="winning-score-5-btn" class="btn"><span class="check">&#10003; </span>5 pts</button>
+                <button type="button" id="winning-score-10-btn" class="btn"><span class="check">&#10003; </span>10 pts</button>
+                <button type="button" id="winning-score-15-btn" class="btn selected"><span class="check">&#10003; </span>15 pts</button>
+              </div>
+            </div>
+            <div class="relative-container">
+              <button type="button" id="practice-mode-submenu-btn" class="btn submenu-btn">Practice mode &#9654;&#xfe0e;</button>
+              <div id="practice-mode-submenu" class="submenu">
+                <button type="button" id="practice-mode-on-btn" class="btn"><span class="check">&#10003; </span>on</button>
+                <button type="button" id="practice-mode-off-btn" class="btn selected"><span class="check">&#10003; </span>off</button>
+              </div>
+            </div>
+            <button type="button" id="reset-to-default-btn" class="btn">Reset to default</button>
+          </div>
+        </div>
+        <div class="color-scheme-toggle-switch-container">
+          <input type="checkbox" id="dark-color-scheme-checkbox-1" class="toggle-switch dark-color-scheme-checkbox">
+          <label for="dark-color-scheme-checkbox-1"></label>
+        </div>
+      </div>
+      <div class="btn-container right">
+        <button type="button" id="about-btn" class="btn glow">
+          <span class="text-about hidden">About</span><span class="text-play">Play</span>
+        </button>
+      </div>
+    </div>
+    <div class="if-embedded-in-other-website hidden"></div>
+    <div id="game-canvas-container">
+      <div class="fade-in-box about" id="about-box">
+        <div id="about-box-head">
+          <h1>Pikachu Volleyball</h1>
+          <p class="original-by">1997 (C) SACHI SOFT / SAWAYAKAN Programmers<br>1997 (C) Satoshi Takenouchi</p>
+          <p class="reverse-engineered-by">Web version by <a href="https://gorisanson.github.io/">Kyutae Lee</a></p>
+          <p class="source-code-on">Source on <a href="https://github.com/gorisanson/pikachu-volleyball" target="_blank" rel="noopener">GitHub</a></p>
+        </div>
+        <div class="margin-top limit-width">
+          <div class="margin-top">
+            <button type="button" id="close-about-btn" class="btn-in-box glow">
+              <span class="text-close hidden">close</span><span class="text-play">Play</span>
+            </button>
+          </div>
+          <div class="for-margin"></div>
+        </div>
+      </div>
+      <div class="fade-in-box notice hidden" id="notice-box-1">
+        <p>The winning score can not be set to the <span id="winning-score-in-notice-box-1"></span> pts, since the score is already reached.</p>
+        <button type="button" id="notice-ok-btn-1" class="btn-in-box">OK</button>
+      </div>
+      <div class="fade-in-box notice hidden" id="notice-box-2">
+        <p>There's no point adjusting the winning score in practice mode.</p>
+        <button type="button" id="notice-ok-btn-2" class="btn-in-box">OK</button>
+      </div>
+      <div class="fade-in-box loading hidden" id="loading-box">
+        <div>
+          <p>Loading...</p>
+          <div id="progress-bar-border"><div id="progress-bar" style="width: 0%"></div></div>
+        </div>
+      </div>
+      <div class="fade-in-box update hidden" id="update-notification-message-box">
+        A new version is available.
+        <div>
+          <button type="button" class="update" id="update-now">Update Now</button>
+          <button type="button" class="update" id="later">Later</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Touch controls overlay ── -->
+  <div id="touch-overlay">
+    <!-- Player 1 (left side) — keys: KeyD/KeyG/KeyR/KeyZ -->
+    <div class="player-controls" id="p1-controls">
+      <div class="player-label">玩家 1</div>
+      <div class="controls-row">
+        <button class="ctrl-btn jump-btn" id="p1-jump">↑</button>
+        <button class="ctrl-btn power-btn" id="p1-power">⚡</button>
+      </div>
+      <div class="controls-row">
+        <button class="ctrl-btn" id="p1-left">←</button>
+        <button class="ctrl-btn" id="p1-right">→</button>
+      </div>
+    </div>
+
+    <!-- Player 2 (right side) — keys: ArrowLeft/ArrowRight/ArrowUp/Enter -->
+    <div class="player-controls" id="p2-controls" style="align-items: flex-end;">
+      <div class="player-label">玩家 2</div>
+      <div class="controls-row">
+        <button class="ctrl-btn power-btn" id="p2-power">⚡</button>
+        <button class="ctrl-btn jump-btn" id="p2-jump">↑</button>
+      </div>
+      <div class="controls-row">
+        <button class="ctrl-btn" id="p2-left">←</button>
+        <button class="ctrl-btn" id="p2-right">→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game bundles (same origin — key events work directly) -->
+  <script defer src="pikachu/runtime.bundle.js"></script>
+  <script defer src="pikachu/27.bundle.js"></script>
+  <script defer src="pikachu/main.bundle.js"></script>
+  <script defer src="pikachu/dark_color_scheme.bundle.js"></script>
+  <script defer src="pikachu/is_embedded_in_other_website.bundle.js"></script>
+
+  <script>
+    // Request landscape for immersive gameplay
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => {});
+    }
+
+    // Map button id → KeyboardEvent.code
+    const KEY_MAP = {
+      'p1-left':  'KeyD',
+      'p1-right': 'KeyG',
+      'p1-jump':  'KeyR',
+      'p1-power': 'KeyZ',
+      'p2-left':  'ArrowLeft',
+      'p2-right': 'ArrowRight',
+      'p2-jump':  'ArrowUp',
+      'p2-power': 'Enter',
+    };
+
+    function fireKey(code, type) {
+      window.dispatchEvent(new KeyboardEvent(type, { code, key: code, bubbles: true, cancelable: true }));
+    }
+
+    // Bind touch + mouse events for each button
+    for (const [id, code] of Object.entries(KEY_MAP)) {
+      const btn = document.getElementById(id);
+      if (!btn) continue;
+
+      const press = (e) => {
+        e.preventDefault();
+        btn.classList.add('pressed');
+        fireKey(code, 'keydown');
+      };
+      const release = (e) => {
+        e.preventDefault();
+        btn.classList.remove('pressed');
+        fireKey(code, 'keyup');
+      };
+
+      btn.addEventListener('touchstart', press, { passive: false });
+      btn.addEventListener('touchend', release, { passive: false });
+      btn.addEventListener('touchcancel', release, { passive: false });
+      // Mouse fallback for desktop testing
+      btn.addEventListener('mousedown', press);
+      btn.addEventListener('mouseup', release);
+      btn.addEventListener('mouseleave', release);
+    }
+  </script>
+</body>
+</html>

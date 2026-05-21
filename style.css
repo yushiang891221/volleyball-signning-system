@@ -103,6 +103,34 @@ h1 {
   box-shadow: 0 4px 18px var(--purple-glow);
 }
 
+#go-game {
+  background: var(--card-bg);
+  color: var(--purple-deep);
+  border: 1.5px solid var(--border);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 10px rgba(107, 79, 175, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding: 10px 10px;
+  text-decoration: none;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
+}
+
+#go-game:hover {
+  background: var(--purple);
+  color: var(--white);
+  border-color: transparent;
+  box-shadow: 0 4px 18px var(--purple-glow);
+}
+
 .page-nav button.active {
   background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
   color: var(--white);
