@@ -490,8 +490,6 @@ function getStatePayloadForStorage() {
     currentBIndex: state.currentBIndex,
     scorerIndex: state.scorerIndex,
     scorerTeamId: state.scorerTeamId,
-    locationCheckEnabled: state.locationCheckEnabled,
-    streakTwoModeEnabled: state.streakTwoModeEnabled,
     streakTeamId: state.streakTeamId,
     streakCount: state.streakCount,
     currentMatchRecorded: state.currentMatchRecorded,
@@ -613,8 +611,24 @@ async function ensureFirebaseAuth() {
 
 async function saveRegistrationStateStrict() {
   if (hasFirebase() && firebaseReady) {
+    const payload = getStatePayloadForStorage();
     await ensureFirebaseAuth();
-    await window.FirebaseDB.saveVenueState(selectedVenueId, getStatePayloadForStorage());
+    await window.FirebaseDB.saveVenueState(selectedVenueId, payload);
+    return;
+  }
+  syncActiveVenueFromState();
+  const payload = {
+    date: getTodayKey(),
+    selectedVenueId,
+    venueStates: allVenueStates
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+async function saveAdminSettingsStrict(settings) {
+  if (hasFirebase() && firebaseReady) {
+    await ensureFirebaseAuth();
+    await window.FirebaseDB.saveVenueState(selectedVenueId, settings);
     return;
   }
   syncActiveVenueFromState();
@@ -997,24 +1011,25 @@ async function toggleLocationCheckWithPassword() {
   }
 
   const originalLocationCheck = state.locationCheckEnabled;
-  state.locationCheckEnabled = !originalLocationCheck;
-  isInVenue = !state.locationCheckEnabled ? true : false;
+  const newValue = !originalLocationCheck;
+  state.locationCheckEnabled = newValue;
+  isInVenue = !newValue;
   updateLocationCheckStatus();
   applyVenueGate();
   try {
-    await saveRegistrationStateStrict();
+    await saveAdminSettingsStrict({ locationCheckEnabled: newValue });
   } catch (error) {
     console.error("toggle location check failed:", error);
     state.locationCheckEnabled = originalLocationCheck;
-    isInVenue = !state.locationCheckEnabled ? true : false;
+    isInVenue = !originalLocationCheck;
     updateLocationCheckStatus();
     applyVenueGate();
     const errCode = error && error.code ? ` [${error.code}]` : "";
-    registrationMessageEl.textContent = `切換「${venueName}」定位檢查失敗${errCode}，請確認 Firebase 設定。`;
+    locationCheckStatusEl.textContent = `切換失敗${errCode}，請確認 Firebase 設定。`;
     return;
   }
   checkLocationForRegistration();
-  registrationMessageEl.textContent = state.locationCheckEnabled ? "已啟用定位檢查。" : "已停用定位檢查。";
+  locationCheckStatusEl.textContent = newValue ? "定位檢查：已啟用" : "定位檢查：已停用";
 }
 
 async function toggleStreakMode() {
@@ -1030,21 +1045,20 @@ async function toggleStreakMode() {
   }
 
   const originalStreakMode = state.streakTwoModeEnabled;
-  state.streakTwoModeEnabled = !originalStreakMode;
+  const newStreakMode = !originalStreakMode;
+  state.streakTwoModeEnabled = newStreakMode;
   state.streakTeamId = null;
   state.streakCount = 0;
   updateStreakModeStatus();
   try {
-    await saveRegistrationStateStrict();
-    registrationMessageEl.textContent = state.streakTwoModeEnabled
-      ? "已開啟連二下模式。"
-      : "已關閉連二下模式。";
+    await saveAdminSettingsStrict({ streakTwoModeEnabled: newStreakMode, streakTeamId: null, streakCount: 0 });
+    streakModeStatusEl.textContent = newStreakMode ? "連二下模式：已啟用" : "連二下模式：已停用";
   } catch (error) {
     console.error("toggle streak mode failed:", error);
     state.streakTwoModeEnabled = originalStreakMode;
     updateStreakModeStatus();
     const errCode = error && error.code ? ` [${error.code}]` : "";
-    registrationMessageEl.textContent = `切換「${venueName}」比賽模式失敗${errCode}，請確認 Firebase 設定。`;
+    streakModeStatusEl.textContent = `切換失敗${errCode}，請確認 Firebase 設定。`;
   }
 }
 
