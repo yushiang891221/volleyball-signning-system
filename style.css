@@ -184,6 +184,7 @@ h1 {
   background: transparent;
   border: none;
   border-left: 3px solid transparent;
+  box-shadow: none;
   color: var(--purple-deep);
   font-size: 15px;
   font-weight: 700;
@@ -198,9 +199,22 @@ h1 {
 #drawer-nav li button:hover,
 #drawer-nav li a:hover {
   background: rgba(155, 127, 212, 0.1);
+  filter: none;
+  transform: none;
+  box-shadow: none;
 }
 
-#drawer-nav li button.active {
+#drawer-nav li button:active,
+#drawer-nav li a:active {
+  transform: none;
+  filter: none;
+  box-shadow: none;
+  background: rgba(155, 127, 212, 0.18);
+  transition: none;
+}
+
+#drawer-nav li button.active,
+#drawer-nav li a.active {
   background: linear-gradient(90deg, rgba(155, 127, 212, 0.15) 0%, rgba(62, 207, 196, 0.08) 100%);
   border-left-color: var(--purple);
   color: var(--purple-dark);
