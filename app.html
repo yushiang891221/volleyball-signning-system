@@ -35,9 +35,9 @@
       <li id="nav-li-score"><button id="go-score" type="button"><img src="score.png" class="nav-icon" alt="">計分頁面</button></li>
       <li id="nav-li-admin"><button id="go-admin" type="button"><img src="setting.png" class="nav-icon" alt="">野場管理員(NPC)</button></li>
       <li class="nav-divider-item"></li>
-      <li><a href="pikachu/index.html" id="go-game">🏐 線上打排球</a></li>
       <li><button id="go-message-board" type="button">💬 留言板</button></li>
       <li><button id="go-system-admin" type="button">⚙️ 系統管理</button></li>
+      <li><a href="pikachu/index.html" id="go-game">🏐 線上打排球</a></li>
     </ul>
   </nav>
 
@@ -251,6 +251,13 @@
             <button id="sys-clear-messages" class="danger-btn" type="button">清除留言板</button>
           </div>
           <p id="sys-controls-message"></p>
+          <h4>遊戲難易度</h4>
+          <p id="sys-difficulty-status" class="fb-stats-note"></p>
+          <div class="panel-actions">
+            <button id="sys-difficulty-slow" type="button">簡單</button>
+            <button id="sys-difficulty-medium" type="button">中等</button>
+            <button id="sys-difficulty-fast" type="button">困難</button>
+          </div>
           <h4>Firebase 作業統計</h4>
           <p class="fb-stats-note">本裝置累計（估算）</p>
           <div id="fb-stats-table-wrap"></div>

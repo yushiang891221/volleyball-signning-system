@@ -190,23 +190,32 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="../firebase-config.js"></script>
+  <script src="../firebase-db.js"></script>
   <script>
     const LB_KEY = 'pikachu-leaderboard';
+    const MEDALS = ['🥇','🥈','🥉'];
+    let boardData = [];
+    let unsubLb = null;
 
-    function getBoard() {
+    function getLocalBoard() {
       try { return JSON.parse(localStorage.getItem(LB_KEY) || '[]'); } catch(_e) { return []; }
     }
 
-    const MEDALS = ['🥇','🥈','🥉'];
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
 
     function renderBoard() {
-      const board = getBoard();
       const tbody = document.getElementById('lb-body');
-      if (board.length === 0) {
+      if (boardData.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" class="empty-lb">尚無紀錄</td></tr>';
         return;
       }
-      tbody.innerHTML = board.map((r, i) =>
+      tbody.innerHTML = boardData.map((r, i) =>
         `<tr>
           <td><span class="rank-medal">${MEDALS[i] || (i+1)}</span></td>
           <td>${escHtml(r.name)}</td>
@@ -216,21 +225,30 @@
       ).join('');
     }
 
-    function escHtml(s) {
-      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-
-    document.getElementById('show-lb-btn').addEventListener('click', () => {
-      renderBoard();
+    function showLeaderboard() {
       document.getElementById('lobby-page').classList.add('hidden');
       document.getElementById('lb-page').classList.remove('hidden');
-    });
+      if (window.FirebaseAppReady && window.FirebaseDB) {
+        window.FirebaseAppReady.then(() => {
+          if (unsubLb) unsubLb();
+          unsubLb = window.FirebaseDB.subscribeLeaderboard(
+            (docs) => { boardData = docs; renderBoard(); },
+            () => { boardData = getLocalBoard(); renderBoard(); }
+          );
+        });
+      } else {
+        boardData = getLocalBoard();
+        renderBoard();
+      }
+    }
 
     function backToLobby() {
+      if (unsubLb) { unsubLb(); unsubLb = null; }
       document.getElementById('lb-page').classList.add('hidden');
       document.getElementById('lobby-page').classList.remove('hidden');
     }
 
+    document.getElementById('show-lb-btn').addEventListener('click', showLeaderboard);
     document.getElementById('back-to-lobby-btn').addEventListener('click', backToLobby);
     document.getElementById('lb-back-btn').addEventListener('click', backToLobby);
   </script>

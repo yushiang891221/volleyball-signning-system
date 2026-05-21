@@ -380,6 +380,28 @@ function updateSysLocationCheckStatus() {
   }
 }
 
+function updateDifficultyStatus() {
+  const current = loadSystemSettings().gameDifficulty || "medium";
+  const statusEl = document.getElementById("sys-difficulty-status");
+  const labels = { slow: "簡單", medium: "中等", fast: "困難" };
+  if (statusEl) statusEl.textContent = `目前難易度：${labels[current] || "中等"}`;
+  ["slow", "medium", "fast"].forEach(d => {
+    const btn = document.getElementById(`sys-difficulty-${d}`);
+    if (btn) btn.classList.toggle("active", d === current);
+  });
+}
+
+function setGameDifficulty(difficulty) {
+  if (!systemAdminUnlocked) return;
+  const current = loadSystemSettings();
+  saveSystemSettings({ ...current, gameDifficulty: difficulty });
+  updateDifficultyStatus();
+  if (sysControlsMessageEl) {
+    const labels = { slow: "簡單", medium: "中等", fast: "困難" };
+    sysControlsMessageEl.textContent = `遊戲難易度已設為「${labels[difficulty]}」。`;
+  }
+}
+
 function renderFbStatsTable() {
   const wrap = document.getElementById("fb-stats-table-wrap");
   if (!wrap) return;
@@ -775,7 +797,7 @@ function showPage(page) {
   if (goMsgBoardBtnEl) goMsgBoardBtnEl.classList.toggle("active", isMessageBoard);
   updateScorePageMessage();
   if (isAdmin) updateAdminVenueInfo();
-  if (isSystemAdmin && systemAdminUnlocked) renderFbStatsTable();
+  if (isSystemAdmin && systemAdminUnlocked) { renderFbStatsTable(); updateDifficultyStatus(); }
   if (isMessageBoard) {
     if (!hasFirebase() || !firebaseReady) loadLocalMessages();
     renderMessageCards();
@@ -1339,6 +1361,7 @@ function unlockSystemAdmin() {
     sysAdminLoginSectionEl.classList.add("hidden");
     sysAdminControlsSectionEl.classList.remove("hidden");
     updateSysLocationCheckStatus();
+    updateDifficultyStatus();
     renderFbStatsTable();
   } else {
     sysAdminAuthMessageEl.textContent = "密碼錯誤。";
@@ -1995,14 +2018,25 @@ goAdminBtn.addEventListener("click", () => showPage("admin"));
 document.getElementById("go-system-admin").addEventListener("click", () => { showPage("system-admin"); closeDrawer(); });
 sysAdminUnlockBtn.addEventListener("click", unlockSystemAdmin);
 sysToggleLocationCheckBtn.addEventListener("click", toggleSystemLocationCheck);
-sysClearLeaderboardBtn.addEventListener("click", () => {
+sysClearLeaderboardBtn.addEventListener("click", async () => {
   if (!systemAdminUnlocked) return;
-  if (window.confirm("確定要清除所有排行榜紀錄嗎？")) {
-    localStorage.removeItem("pikachu-leaderboard");
-    if (sysControlsMessageEl) sysControlsMessageEl.textContent = "排行榜已清除。";
+  if (!window.confirm("確定要清除所有排行榜紀錄嗎？")) return;
+  localStorage.removeItem("pikachu-leaderboard");
+  if (hasFirebase() && firebaseReady) {
+    try {
+      await ensureFirebaseAuth();
+      await window.FirebaseDB.clearLeaderboard();
+    } catch (error) {
+      console.error("clearLeaderboard failed:", error);
+    }
   }
+  if (sysControlsMessageEl) sysControlsMessageEl.textContent = "排行榜已清除。";
 });
 if (sysClearMessagesBtn) sysClearMessagesBtn.addEventListener("click", clearMessageBoard);
+["slow", "medium", "fast"].forEach(d => {
+  const btn = document.getElementById(`sys-difficulty-${d}`);
+  if (btn) btn.addEventListener("click", () => setGameDifficulty(d));
+});
 document.getElementById("sys-admin-back-btn").addEventListener("click", () => {
   if (!venueSelected) showVenuePage(); else showPage("registration");
 });

@@ -186,5 +186,37 @@ window.FirebaseDB = {
     snap.docs.forEach((doc) => batch.delete(doc.ref));
     await batch.commit();
     window.FirebaseStats.del(snap.docs.length);
+  },
+
+  subscribeLeaderboard(onData, onError) {
+    return firebase.firestore()
+      .collection("leaderboard")
+      .orderBy("score", "desc")
+      .limit(20)
+      .onSnapshot(
+        (snap) => {
+          window.FirebaseStats.read(snap.docs.length || 1);
+          onData(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+        },
+        (error) => { if (onError) onError(error); }
+      );
+  },
+
+  async addLeaderboardScore(name, score, date) {
+    await firebase.firestore().collection("leaderboard").add({
+      name, score, date,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    window.FirebaseStats.write();
+  },
+
+  async clearLeaderboard() {
+    const snap = await firebase.firestore().collection("leaderboard").get();
+    window.FirebaseStats.read(snap.docs.length || 1);
+    if (snap.empty) return;
+    const batch = firebase.firestore().batch();
+    snap.docs.forEach((doc) => batch.delete(doc.ref));
+    await batch.commit();
+    window.FirebaseStats.del(snap.docs.length);
   }
 };

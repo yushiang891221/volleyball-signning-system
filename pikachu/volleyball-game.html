@@ -327,6 +327,12 @@
   <script defer src="dark_color_scheme.bundle.js"></script>
   <script defer src="is_embedded_in_other_website.bundle.js"></script>
 
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="../firebase-config.js"></script>
+  <script src="../firebase-db.js"></script>
+
   <script>
     // Request landscape for immersive gameplay
     if (screen.orientation && screen.orientation.lock) {
@@ -393,18 +399,21 @@
       btn.addEventListener('mouseleave', (e) => { e.preventDefault(); releaseBtn(id); });
     }
 
-    // Force medium difficulty before game bundles read settings
-    try { localStorage.setItem('pv-offline-speed', 'slow'); } catch(_e) {}
+    // Apply difficulty from system settings before game bundles read it
+    try {
+      const sys = JSON.parse(localStorage.getItem('volleyball-system-settings') || '{}');
+      localStorage.setItem('pv-offline-speed', sys.gameDifficulty || 'medium');
+    } catch(_e) {}
 
     // Auto-start single player (vs CPU) when Play is clicked:
-    // fire KeyZ to skip intro → skip menu animation → confirm "with computer"
+    // fire KeyZ: skip intro → confirm 1P mode → confirm "with computer"
     document.getElementById('close-about-btn').addEventListener('click', () => {
-      setTimeout(() => fireKey('KeyZ', 'keydown'), 500);
-      setTimeout(() => fireKey('KeyZ', 'keyup'),   560);
-      setTimeout(() => fireKey('KeyZ', 'keydown'), 1600);
-      setTimeout(() => fireKey('KeyZ', 'keyup'),   1660);
-      setTimeout(() => fireKey('KeyZ', 'keydown'), 1800);
-      setTimeout(() => fireKey('KeyZ', 'keyup'),   1860);
+      setTimeout(() => fireKey('KeyZ', 'keydown'), 300);
+      setTimeout(() => fireKey('KeyZ', 'keyup'),   360);
+      setTimeout(() => fireKey('KeyZ', 'keydown'), 1200);
+      setTimeout(() => fireKey('KeyZ', 'keyup'),   1260);
+      setTimeout(() => fireKey('KeyZ', 'keydown'), 2500);
+      setTimeout(() => fireKey('KeyZ', 'keyup'),   2560);
     });
 
     // ── Leaderboard ──────────────────────────────────
@@ -434,15 +443,22 @@
       setTimeout(() => nameInput.focus(), 80);
     };
 
-    function submitScore() {
+    async function submitScore() {
       const name = nameInput.value.trim();
       if (!name) { nameInput.focus(); return; }
+      const date = new Date().toLocaleDateString('zh-TW');
       const board = getLeaderboard();
-      board.push({ name, score: pendingScore, date: new Date().toLocaleDateString('zh-TW') });
+      board.push({ name, score: pendingScore, date });
       board.sort((a, b) => b.score - a.score);
       if (board.length > 100) board.splice(100);
       saveLeaderboard(board);
       modal.style.display = 'none';
+      if (window.FirebaseAppReady && window.FirebaseDB) {
+        try {
+          await window.FirebaseAppReady;
+          await window.FirebaseDB.addLeaderboardScore(name, pendingScore, date);
+        } catch(_e) {}
+      }
     }
 
     submitBtn.addEventListener('click', submitScore);
