@@ -1765,14 +1765,7 @@ goRegistrationBtn.addEventListener("click", () => showPage("registration"));
 goScoreBtn.addEventListener("click", () => showPage("score"));
 goAdminBtn.addEventListener("click", () => showPage("admin"));
 document.getElementById("select-fengchia").addEventListener("click", () => {
-  if (fengchiaAccessible === null) {
-    document.getElementById("fengchia-card-status").textContent = "🔍 定位中，請稍候...";
-    return;
-  }
-  if (fengchiaAccessible === false) {
-    document.getElementById("fengchia-card-status").textContent = "📍 須位於逢甲球場範圍內才可選擇";
-    return;
-  }
+  if (!fengchiaAccessible) return;
   document.getElementById("venue-top-select").classList.add("hidden");
   document.getElementById("court-select").classList.remove("hidden");
 });
