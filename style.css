@@ -1325,6 +1325,60 @@ button:active {
   color: rgba(255,255,255,0.9);
 }
 
+.fb-stats-note {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.55);
+  margin: 2px 0 8px;
+}
+
+.fb-stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.fb-stats-table thead tr {
+  background: rgba(255,255,255,0.18);
+}
+
+.fb-stats-table th {
+  padding: 8px 10px;
+  text-align: right;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.fb-stats-table th:first-child { text-align: left; }
+
+.fb-stats-table td {
+  padding: 7px 10px;
+  text-align: right;
+  color: rgba(255,255,255,0.85);
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.fb-stats-table td:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+
+.fb-stats-table tr.fb-row-today td {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  font-weight: 700;
+}
+
+.fb-stats-table tfoot td {
+  border-top: 2px solid rgba(255,255,255,0.3);
+  font-weight: 800;
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+}
+
 /* ── Utility ─────────────────────────────────────── */
 .hidden { display: none; }
 

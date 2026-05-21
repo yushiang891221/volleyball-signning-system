@@ -380,6 +380,30 @@ function updateSysLocationCheckStatus() {
   }
 }
 
+function renderFbStatsTable() {
+  const wrap = document.getElementById("fb-stats-table-wrap");
+  if (!wrap) return;
+  const s = window.FirebaseStats ? window.FirebaseStats.load() : {};
+  const rows = [{ label: "今天", reads: s.reads || 0, writes: s.writes || 0, deletes: s.deletes || 0, today: true }];
+  if (Array.isArray(s.history)) {
+    for (const h of s.history) {
+      rows.push({ label: h.date || "—", reads: h.reads || 0, writes: h.writes || 0, deletes: h.deletes || 0, today: false });
+    }
+  }
+  const totR = rows.reduce((a, r) => a + r.reads, 0);
+  const totW = rows.reduce((a, r) => a + r.writes, 0);
+  const totD = rows.reduce((a, r) => a + r.deletes, 0);
+  const tbody = rows.map((r) => {
+    const tot = r.reads + r.writes + r.deletes;
+    return `<tr class="${r.today ? "fb-row-today" : ""}"><td>${r.label}</td><td>${r.reads}</td><td>${r.writes}</td><td>${r.deletes}</td><td>${tot}</td></tr>`;
+  }).join("");
+  wrap.innerHTML = `<table class="fb-stats-table">
+    <thead><tr><th>日期</th><th>讀取</th><th>寫入</th><th>刪除</th><th>合計</th></tr></thead>
+    <tbody>${tbody}</tbody>
+    <tfoot><tr><td>加總</td><td>${totR}</td><td>${totW}</td><td>${totD}</td><td>${totR + totW + totD}</td></tr></tfoot>
+  </table>`;
+}
+
 function applyVenueGate() {
   registerTeamBtn.disabled = isLocationCheckEnabled() && !isInVenue;
 }
@@ -751,6 +775,7 @@ function showPage(page) {
   if (goMsgBoardBtnEl) goMsgBoardBtnEl.classList.toggle("active", isMessageBoard);
   updateScorePageMessage();
   if (isAdmin) updateAdminVenueInfo();
+  if (isSystemAdmin && systemAdminUnlocked) renderFbStatsTable();
   if (isMessageBoard) {
     if (!hasFirebase() || !firebaseReady) loadLocalMessages();
     renderMessageCards();
@@ -1314,6 +1339,7 @@ function unlockSystemAdmin() {
     sysAdminLoginSectionEl.classList.add("hidden");
     sysAdminControlsSectionEl.classList.remove("hidden");
     updateSysLocationCheckStatus();
+    renderFbStatsTable();
   } else {
     sysAdminAuthMessageEl.textContent = "密碼錯誤。";
   }
