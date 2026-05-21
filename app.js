@@ -411,7 +411,12 @@ function setGameDifficulty(difficulty) {
   saveSystemSettings({ ...current, gameDifficulty: difficulty });
   localStorage.setItem('pv-offline-speed', difficulty);
   if (hasFirebase() && firebaseReady) {
-    window.FirebaseDB.setAdminConfig({ gameDifficulty: difficulty }).catch(console.error);
+    ensureFirebaseAuth().then(() => {
+      console.log("[difficulty] writing to Firebase, uid:", firebase.auth().currentUser?.uid);
+      window.FirebaseDB.setAdminConfig({ gameDifficulty: difficulty })
+        .then(() => console.log("[difficulty] write OK"))
+        .catch(e => console.error("[difficulty] write FAIL", e));
+    }).catch(e => console.error("[difficulty] auth fail", e));
     if (adminConfigCache) adminConfigCache.gameDifficulty = difficulty;
   }
   updateDifficultyStatus();
@@ -1024,7 +1029,9 @@ function saveRegistrationState() {
 async function ensureFirebaseAuth() {
   if (!hasFirebase() || !firebaseReady) return;
   if (!firebase.auth().currentUser) {
+    console.log("[auth] signing in anonymously...");
     await firebase.auth().signInAnonymously();
+    console.log("[auth] signed in:", firebase.auth().currentUser?.uid);
   }
 }
 
