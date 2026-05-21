@@ -106,5 +106,31 @@ window.FirebaseDB = {
       },
       { merge: true }
     );
+  },
+
+  subscribeMessages(onData, onError) {
+    return firebase.firestore()
+      .collection("messages")
+      .orderBy("postedAt", "desc")
+      .limit(100)
+      .onSnapshot(
+        (snap) => { onData(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))); },
+        (error) => { if (onError) onError(error); }
+      );
+  },
+
+  async addMessage(msg) {
+    await firebase.firestore().collection("messages").add({
+      ...msg,
+      postedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  },
+
+  async clearMessages() {
+    const snap = await firebase.firestore().collection("messages").get();
+    if (snap.empty) return;
+    const batch = firebase.firestore().batch();
+    snap.docs.forEach((doc) => batch.delete(doc.ref));
+    await batch.commit();
   }
 };

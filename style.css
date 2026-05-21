@@ -577,6 +577,7 @@ h1 {
 }
 
 .registration-card input,
+.registration-card textarea,
 #admin-login-section input {
   width: 100%;
   margin-bottom: 8px;
@@ -589,7 +590,15 @@ h1 {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
+.registration-card textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+  color: var(--text);
+}
+
 .registration-card input:focus,
+.registration-card textarea:focus,
 #admin-login-section input:focus {
   border-color: var(--purple);
   box-shadow: 0 0 0 3px var(--purple-glow);
@@ -1237,6 +1246,83 @@ button:active {
 
 .landing-enter-btn:hover {
   background: var(--purple-light);
+}
+
+/* ── Message board ───────────────────────────────── */
+.msg-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+  padding-bottom: 20px;
+}
+
+.msg-card {
+  border: 1.5px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 16px rgba(107,79,175,0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.13s, box-shadow 0.13s;
+}
+
+.msg-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(107,79,175,0.14);
+}
+
+.msg-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.msg-card-name {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--purple-deep);
+}
+
+.msg-card-time {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.msg-card-content {
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.65;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.msg-empty-hint {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-top: 32px;
+  font-weight: 600;
+}
+
+#msg-submit-message {
+  margin: 8px 0 0;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--teal-dark);
+}
+
+#sys-controls-message {
+  margin: 10px 0 0;
+  font-weight: 600;
+  font-size: 14px;
+  color: rgba(255,255,255,0.9);
 }
 
 /* ── Utility ─────────────────────────────────────── */

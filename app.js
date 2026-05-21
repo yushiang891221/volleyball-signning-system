@@ -37,6 +37,8 @@ const DEVICE_UUID_KEY = "volleyball-device-uuid";
 const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
 const SYSTEM_ADMIN_PASSWORD = "admin0";
+const MSG_BOARD_KEY = "volleyball-messages";
+const MSG_NAME_KEY = "volleyball-msg-name";
 const VENUES = {
   fengchia_1: {
     name: "場地一",
@@ -114,6 +116,15 @@ const goAdminBtn = document.getElementById("go-admin");
 const adminLoginSectionEl = document.getElementById("admin-login-section");
 const adminControlsSectionEl = document.getElementById("admin-controls-section");
 const adminVenueInfoEl = document.getElementById("admin-venue-info");
+const messageBoardPageEl = document.getElementById("message-board-page");
+const msgNameInputEl = document.getElementById("msg-name-input");
+const msgContentInputEl = document.getElementById("msg-content-input");
+const msgSubmitBtn = document.getElementById("msg-submit-btn");
+const msgSubmitMessageEl = document.getElementById("msg-submit-message");
+const msgCardsContainerEl = document.getElementById("msg-cards-container");
+const msgEmptyHintEl = document.getElementById("msg-empty-hint");
+const sysClearMessagesBtn = document.getElementById("sys-clear-messages");
+const sysControlsMessageEl = document.getElementById("sys-controls-message");
 const adminPasswordInputEl = document.getElementById("admin-password");
 const adminUnlockBtn = document.getElementById("admin-unlock");
 const adminAuthMessageEl = document.getElementById("admin-auth-message");
@@ -133,6 +144,8 @@ let firebaseReady = false;
 let unsubscribeVenueState = null;
 let unsubscribeVenueMatches = null;
 let isDailyResetRunning = false;
+let unsubscribeMessages = null;
+let allMessages = [];
 let adminUnlocked = false;
 let hasHydratedVenueState = false;
 let deviceTeamMap = {};
@@ -494,6 +507,142 @@ function updateAdminVenueInfo() {
   adminVenueInfoEl.textContent = `目前球場：${fullName}｜模式：${mode}`;
 }
 
+const MSG_CARD_ACCENTS = [
+  { bg: "linear-gradient(135deg,rgba(155,127,212,0.15) 0%,rgba(240,235,255,0.9) 100%)", border: "rgba(155,127,212,0.35)", nameColor: "#4A2D8C" },
+  { bg: "linear-gradient(135deg,rgba(62,207,196,0.15) 0%,rgba(226,250,248,0.9) 100%)", border: "rgba(62,207,196,0.35)", nameColor: "#0D7A73" },
+  { bg: "linear-gradient(135deg,rgba(245,200,66,0.18) 0%,rgba(255,252,210,0.9) 100%)", border: "rgba(200,160,40,0.4)", nameColor: "#7A6000" },
+  { bg: "linear-gradient(135deg,rgba(230,100,150,0.12) 0%,rgba(255,235,245,0.9) 100%)", border: "rgba(200,80,130,0.3)", nameColor: "#8C1A4A" },
+  { bg: "linear-gradient(135deg,rgba(100,160,230,0.12) 0%,rgba(235,245,255,0.9) 100%)", border: "rgba(80,130,200,0.3)", nameColor: "#1A5080" },
+];
+
+function formatMsgTime(ts) {
+  if (!ts) return "";
+  const date = typeof ts.toDate === "function" ? ts.toDate() : new Date(ts);
+  if (isNaN(date.getTime())) return "";
+  const now = new Date();
+  if (date.toDateString() === now.toDateString()) {
+    return date.toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit", hour12: false });
+  }
+  return date.toLocaleString("zh-TW", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+function renderMessageCards() {
+  if (!msgCardsContainerEl) return;
+  msgCardsContainerEl.innerHTML = "";
+  if (allMessages.length === 0) {
+    if (msgEmptyHintEl) msgEmptyHintEl.classList.remove("hidden");
+    return;
+  }
+  if (msgEmptyHintEl) msgEmptyHintEl.classList.add("hidden");
+  allMessages.forEach((msg, i) => {
+    const accent = MSG_CARD_ACCENTS[i % MSG_CARD_ACCENTS.length];
+    const card = document.createElement("div");
+    card.className = "msg-card";
+    card.style.background = accent.bg;
+    card.style.borderColor = accent.border;
+
+    const header = document.createElement("div");
+    header.className = "msg-card-header";
+
+    const nameEl = document.createElement("span");
+    nameEl.className = "msg-card-name";
+    nameEl.style.color = accent.nameColor;
+    nameEl.textContent = msg.name || "匿名";
+
+    const timeEl = document.createElement("span");
+    timeEl.className = "msg-card-time";
+    timeEl.textContent = formatMsgTime(msg.postedAt);
+
+    header.appendChild(nameEl);
+    header.appendChild(timeEl);
+
+    const contentEl = document.createElement("div");
+    contentEl.className = "msg-card-content";
+    contentEl.textContent = msg.content || "";
+
+    card.appendChild(header);
+    card.appendChild(contentEl);
+    msgCardsContainerEl.appendChild(card);
+  });
+}
+
+function loadLocalMessages() {
+  try {
+    const raw = localStorage.getItem(MSG_BOARD_KEY);
+    allMessages = raw ? JSON.parse(raw) : [];
+  } catch (_e) {
+    allMessages = [];
+  }
+}
+
+function saveLocalMessages() {
+  localStorage.setItem(MSG_BOARD_KEY, JSON.stringify(allMessages));
+}
+
+async function submitMessage() {
+  const name = (msgNameInputEl ? msgNameInputEl.value : "").trim();
+  const content = (msgContentInputEl ? msgContentInputEl.value : "").trim();
+  if (!name) {
+    if (msgSubmitMessageEl) msgSubmitMessageEl.textContent = "請輸入你的名字。";
+    return;
+  }
+  if (!content) {
+    if (msgSubmitMessageEl) msgSubmitMessageEl.textContent = "請輸入留言內容。";
+    return;
+  }
+  localStorage.setItem(MSG_NAME_KEY, name);
+  const msg = { name, content };
+  if (hasFirebase() && firebaseReady) {
+    try {
+      await ensureFirebaseAuth();
+      await window.FirebaseDB.addMessage(msg);
+      if (msgContentInputEl) msgContentInputEl.value = "";
+      if (msgSubmitMessageEl) {
+        msgSubmitMessageEl.textContent = "留言成功！";
+        setTimeout(() => { if (msgSubmitMessageEl) msgSubmitMessageEl.textContent = ""; }, 3000);
+      }
+    } catch (error) {
+      console.error("addMessage failed:", error);
+      if (msgSubmitMessageEl) msgSubmitMessageEl.textContent = "留言失敗，請稍後再試。";
+    }
+  } else {
+    const newMsg = {
+      id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      name,
+      content,
+      postedAt: new Date().toISOString()
+    };
+    allMessages.unshift(newMsg);
+    if (allMessages.length > 100) allMessages = allMessages.slice(0, 100);
+    saveLocalMessages();
+    if (msgContentInputEl) msgContentInputEl.value = "";
+    if (msgSubmitMessageEl) {
+      msgSubmitMessageEl.textContent = "留言成功！";
+      setTimeout(() => { if (msgSubmitMessageEl) msgSubmitMessageEl.textContent = ""; }, 3000);
+    }
+    renderMessageCards();
+  }
+}
+
+async function clearMessageBoard() {
+  if (!systemAdminUnlocked) return;
+  if (!window.confirm("確定要清除所有留言嗎？")) return;
+  if (hasFirebase() && firebaseReady) {
+    try {
+      await ensureFirebaseAuth();
+      await window.FirebaseDB.clearMessages();
+      if (sysControlsMessageEl) sysControlsMessageEl.textContent = "留言板已清除。";
+    } catch (error) {
+      console.error("clearMessages failed:", error);
+      if (sysControlsMessageEl) sysControlsMessageEl.textContent = "清除留言板失敗。";
+    }
+  } else {
+    allMessages = [];
+    saveLocalMessages();
+    if (sysControlsMessageEl) sysControlsMessageEl.textContent = "留言板已清除。";
+  }
+}
+
 function updateFengchiaCard() {
   const card = document.getElementById("select-fengchia");
   const status = document.getElementById("fengchia-card-status");
@@ -584,6 +733,7 @@ function showPage(page) {
   const isScore = page === "score";
   const isAdmin = page === "admin";
   const isSystemAdmin = page === "system-admin";
+  const isMessageBoard = page === "message-board";
   currentPage = page;
   window.scrollTo(0, 0);
   venuePageEl.classList.add("hidden");
@@ -591,13 +741,22 @@ function showPage(page) {
   scorePageEl.classList.toggle("hidden", !isScore);
   adminPageEl.classList.toggle("hidden", !isAdmin);
   systemAdminPageEl.classList.toggle("hidden", !isSystemAdmin);
+  messageBoardPageEl.classList.toggle("hidden", !isMessageBoard);
   goRegistrationBtn.classList.toggle("active", isRegistration);
   goScoreBtn.classList.toggle("active", isScore);
   goAdminBtn.classList.toggle("active", isAdmin);
   const goSystemAdminBtnEl = document.getElementById("go-system-admin");
   if (goSystemAdminBtnEl) goSystemAdminBtnEl.classList.toggle("active", isSystemAdmin);
+  const goMsgBoardBtnEl = document.getElementById("go-message-board");
+  if (goMsgBoardBtnEl) goMsgBoardBtnEl.classList.toggle("active", isMessageBoard);
   updateScorePageMessage();
   if (isAdmin) updateAdminVenueInfo();
+  if (isMessageBoard) {
+    if (!hasFirebase() || !firebaseReady) loadLocalMessages();
+    renderMessageCards();
+    const savedName = localStorage.getItem(MSG_NAME_KEY);
+    if (savedName && msgNameInputEl && !msgNameInputEl.value) msgNameInputEl.value = savedName;
+  }
 
   document.body.classList.toggle("score-page-active", isScore);
 
@@ -1814,13 +1973,18 @@ sysClearLeaderboardBtn.addEventListener("click", () => {
   if (!systemAdminUnlocked) return;
   if (window.confirm("確定要清除所有排行榜紀錄嗎？")) {
     localStorage.removeItem("pikachu-leaderboard");
-    sysAdminAuthMessageEl.textContent = "排行榜已清除。";
+    if (sysControlsMessageEl) sysControlsMessageEl.textContent = "排行榜已清除。";
   }
 });
+if (sysClearMessagesBtn) sysClearMessagesBtn.addEventListener("click", clearMessageBoard);
 document.getElementById("sys-admin-back-btn").addEventListener("click", () => {
-  const noVenue = document.getElementById("side-drawer").classList.contains("no-venue");
-  if (noVenue) showVenuePage(); else showPage("registration");
+  if (!venueSelected) showVenuePage(); else showPage("registration");
 });
+document.getElementById("go-message-board").addEventListener("click", () => { showPage("message-board"); closeDrawer(); });
+document.getElementById("msg-board-back-btn").addEventListener("click", () => {
+  if (!venueSelected) showVenuePage(); else showPage("registration");
+});
+if (msgSubmitBtn) msgSubmitBtn.addEventListener("click", submitMessage);
 document.getElementById("select-fengchia").addEventListener("click", () => {
   if (isLocationCheckEnabled() && !fengchiaAccessible) return;
   document.getElementById("venue-top-select").classList.add("hidden");
@@ -1881,6 +2045,13 @@ window.FirebaseAppReady
     }
     syncUserTeamClaim();
     subscribeFirebaseVenue(selectedVenueId);
+    unsubscribeMessages = window.FirebaseDB.subscribeMessages(
+      (msgs) => {
+        allMessages = msgs;
+        if (currentPage === "message-board") renderMessageCards();
+      },
+      (error) => console.error("Messages subscribe error:", error)
+    );
     runDailyAutoResetIfNeeded();
   })
   .catch((error) => {

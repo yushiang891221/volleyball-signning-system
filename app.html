@@ -36,6 +36,7 @@
       <li id="nav-li-admin"><button id="go-admin" type="button"><img src="setting.png" class="nav-icon" alt="">野場管理員(NPC)</button></li>
       <li class="nav-divider-item"></li>
       <li><a href="pikachu/index.html" id="go-game">🏐 線上打排球</a></li>
+      <li><button id="go-message-board" type="button">💬 留言板</button></li>
       <li><button id="go-system-admin" type="button">⚙️ 系統管理</button></li>
     </ul>
   </nav>
@@ -247,9 +248,32 @@
           <div class="panel-actions">
             <button id="sys-toggle-location-check" class="danger-btn" type="button">切換定位檢查</button>
             <button id="sys-clear-leaderboard" class="danger-btn" type="button">清除排行榜</button>
+            <button id="sys-clear-messages" class="danger-btn" type="button">清除留言板</button>
           </div>
+          <p id="sys-controls-message"></p>
         </section>
       </section>
+    </section>
+
+    <section id="message-board-page" class="hidden">
+      <div class="subpage-header">
+        <button id="msg-board-back-btn" type="button" class="subpage-back-btn">← 返回</button>
+        <h2 class="subpage-title">💬 留言板</h2>
+      </div>
+      <section class="registration-section">
+        <div class="registration-card">
+          <label for="msg-name-input">你的名字</label>
+          <input id="msg-name-input" type="text" placeholder="例如：小明" maxlength="20">
+          <label for="msg-content-input">留言內容</label>
+          <textarea id="msg-content-input" rows="3" placeholder="說點什麼吧...（最多 100 字）" maxlength="100"></textarea>
+          <div class="panel-actions" style="margin-top: 10px;">
+            <button id="msg-submit-btn" type="button">✉ 送出留言</button>
+          </div>
+          <p id="msg-submit-message"></p>
+        </div>
+      </section>
+      <div id="msg-cards-container" class="msg-cards-grid"></div>
+      <p id="msg-empty-hint" class="msg-empty-hint hidden">目前沒有留言，來第一個留言吧！</p>
     </section>
   </main>
 
