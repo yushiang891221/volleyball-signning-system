@@ -27,8 +27,8 @@ const MIN_LEAD = 2;
 const STORAGE_KEY = "volleyball-registration";
 const FAVORITE_TEAMS_KEY = "volleyball-favorite-teams";
 const ADMIN_PAGE_PASSWORDS = {
-  fengchia_1: "test1",
-  fengchia_2: "test1",
+  fengchia_1: "test1m",
+  fengchia_2: "test1f",
   home: "test0"
 };
 const DEFAULT_VENUE_ID = "fengchia_1";
