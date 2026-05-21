@@ -808,12 +808,38 @@ function showPage(page) {
   if (goMsgBoardBtnEl) goMsgBoardBtnEl.classList.toggle("active", isMessageBoard);
   updateScorePageMessage();
   if (isAdmin) updateAdminVenueInfo();
-  if (isSystemAdmin && systemAdminUnlocked) { renderFbStatsTable(); updateDifficultyStatus(); }
+  if (isSystemAdmin && systemAdminUnlocked) {
+    if (hasFirebase() && firebaseReady && !unsubscribeGlobalStats) {
+      unsubscribeGlobalStats = window.FirebaseDB.subscribeGlobalStats(
+        (data) => { globalStatsData = data; if (currentPage === "system-admin" && systemAdminUnlocked) renderFbStatsTable(); },
+        () => {}
+      );
+    }
+    renderFbStatsTable();
+    updateDifficultyStatus();
+  }
+  if (!isSystemAdmin && unsubscribeGlobalStats) {
+    unsubscribeGlobalStats();
+    unsubscribeGlobalStats = null;
+    globalStatsData = null;
+  }
   if (isMessageBoard) {
-    if (!hasFirebase() || !firebaseReady) loadLocalMessages();
+    if (hasFirebase() && firebaseReady) {
+      if (!unsubscribeMessages) {
+        unsubscribeMessages = window.FirebaseDB.subscribeMessages(
+          (msgs) => { allMessages = msgs; if (currentPage === "message-board") renderMessageCards(); },
+          (error) => console.error("Messages subscribe error:", error)
+        );
+      }
+    } else {
+      loadLocalMessages();
+    }
     renderMessageCards();
     const savedName = localStorage.getItem(MSG_NAME_KEY);
     if (savedName && msgNameInputEl && !msgNameInputEl.value) msgNameInputEl.value = savedName;
+  } else if (unsubscribeMessages) {
+    unsubscribeMessages();
+    unsubscribeMessages = null;
   }
 
   document.body.classList.toggle("score-page-active", isScore);
@@ -1374,6 +1400,12 @@ function unlockSystemAdmin() {
     updateSysLocationCheckStatus();
     updateDifficultyStatus();
     renderFbStatsTable();
+    if (hasFirebase() && firebaseReady && !unsubscribeGlobalStats) {
+      unsubscribeGlobalStats = window.FirebaseDB.subscribeGlobalStats(
+        (data) => { globalStatsData = data; if (currentPage === "system-admin" && systemAdminUnlocked) renderFbStatsTable(); },
+        () => {}
+      );
+    }
   } else {
     sysAdminAuthMessageEl.textContent = "密碼錯誤。";
   }
@@ -2118,20 +2150,6 @@ window.FirebaseAppReady
     }
     syncUserTeamClaim();
     subscribeFirebaseVenue(selectedVenueId);
-    unsubscribeMessages = window.FirebaseDB.subscribeMessages(
-      (msgs) => {
-        allMessages = msgs;
-        if (currentPage === "message-board") renderMessageCards();
-      },
-      (error) => console.error("Messages subscribe error:", error)
-    );
-    unsubscribeGlobalStats = window.FirebaseDB.subscribeGlobalStats(
-      (data) => {
-        globalStatsData = data;
-        if (currentPage === "system-admin" && systemAdminUnlocked) renderFbStatsTable();
-      },
-      () => {}
-    );
     runDailyAutoResetIfNeeded();
   })
   .catch((error) => {
