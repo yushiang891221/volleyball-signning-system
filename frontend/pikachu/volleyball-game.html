@@ -364,8 +364,7 @@
 
     function pressBtn(id) {
       if (pressedIds.has(id)) return;
-      if (id === 'p1-down' && downLocked) return;
-      if (id === 'p1-power') onAttackPress();
+      onMenuInput(id === 'p1-power' ? 'attack' : id === 'p1-down' ? 'down' : id === 'p1-jump' ? 'up' : null);
       pressedIds.add(id);
       document.getElementById(id).classList.add('pressed');
       fireKey(KEY_MAP[id], 'keydown');
@@ -422,8 +421,7 @@
       if (mapped) {
         e.preventDefault();
         e.stopPropagation();
-        if (e.code === 'ArrowDown' && downLocked) return;
-        if (e.code === 'Space') onAttackPress();
+        onMenuInput(e.code === 'Space' ? 'attack' : e.code === 'ArrowDown' ? 'down' : e.code === 'ArrowUp' ? 'up' : null);
         window.dispatchEvent(new KeyboardEvent('keydown', { code: mapped, key: mapped, bubbles: true, cancelable: true }));
       }
     }, { capture: true });
@@ -440,17 +438,27 @@
       localStorage.setItem('pv-offline-speed', sys.gameDifficulty || 'medium');
     } catch(_e) {}
 
-    // Auto-start single player (vs CPU) when Play is clicked:
-    // Lock down key during menu phase; unlocks after 3 attack presses (menu navigation complete)
-    let downLocked = true;
-    let attackCount = 0;
-    const ATTACKS_TO_UNLOCK = 3;
+    // Track menu state to detect 1P vs 2P mode for leaderboard gating
+    // States: 'TITLE' → (attack) → 'MODE_SELECT' → (attack) → 'PLAYING'
+    let menuState = 'TITLE';
+    let isTwoPlayer = false;
 
-    function onAttackPress() {
-      if (!downLocked) return;
-      attackCount++;
-      if (attackCount >= ATTACKS_TO_UNLOCK) downLocked = false;
+    function onMenuInput(action) {
+      if (!action) return;
+      if (menuState === 'TITLE' && action === 'attack') {
+        menuState = 'MODE_SELECT';
+        isTwoPlayer = false; // cursor starts on 1P
+      } else if (menuState === 'MODE_SELECT') {
+        if (action === 'down') isTwoPlayer = true;
+        else if (action === 'up') isTwoPlayer = false;
+        else if (action === 'attack') menuState = 'PLAYING';
+      }
     }
+
+    document.getElementById('close-about-btn').addEventListener('click', () => {
+      menuState = 'TITLE';
+      isTwoPlayer = false;
+    });
 
     // ── Leaderboard ──────────────────────────────────
     const LB_KEY = 'pikachu-leaderboard';
@@ -472,9 +480,10 @@
 
     window.__onGameEnd = function(score) {
       pendingScore = score;
-      downLocked = true;
-      attackCount = 0;
-      if (score <= 0) return;
+      const wasOnePlayer = !isTwoPlayer;
+      menuState = 'TITLE';
+      isTwoPlayer = false;
+      if (score <= 0 || !wasOnePlayer) return;
       scoreText.textContent = '你的得分：' + score;
       nameInput.value = '';
       modal.style.display = 'flex';
