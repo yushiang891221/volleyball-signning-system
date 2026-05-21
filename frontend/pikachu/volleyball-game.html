@@ -440,19 +440,16 @@
     // Auto-start single player (vs CPU) when Play is clicked:
     // fire KeyZ: skip intro → confirm 1P mode → confirm "with computer"
     // lock down key during menu phase so player can't select 2-player mode
-    function autoStartSinglePlayer() {
-      setTimeout(() => fireKey('KeyZ', 'keydown'), 300);
-      setTimeout(() => fireKey('KeyZ', 'keyup'),   360);
-      setTimeout(() => fireKey('KeyZ', 'keydown'), 1200);
-      setTimeout(() => fireKey('KeyZ', 'keyup'),   1260);
-      setTimeout(() => fireKey('KeyZ', 'keydown'), 2500);
-      setTimeout(() => fireKey('KeyZ', 'keyup'),   2560);
+    function pressPlay() {
+      fireKey('KeyZ', 'keydown');
+      setTimeout(() => fireKey('KeyZ', 'keyup'), 60);
     }
 
     const playBtn = document.getElementById('close-about-btn');
-    playBtn.addEventListener('click', autoStartSinglePlayer);
-    // Auto-click on page load to skip title screen and enter 1P mode immediately
-    setTimeout(() => playBtn.click(), 500);
+    playBtn.addEventListener('click', pressPlay);
+    setTimeout(() => playBtn.click(), 1000);
+    setTimeout(() => playBtn.click(), 1800);
+    setTimeout(() => playBtn.click(), 2600);
 
     // ── Leaderboard ──────────────────────────────────
     const LB_KEY = 'pikachu-leaderboard';
