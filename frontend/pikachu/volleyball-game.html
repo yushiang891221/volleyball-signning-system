@@ -364,7 +364,8 @@
 
     function pressBtn(id) {
       if (pressedIds.has(id)) return;
-      cancelAutoPlay();
+      if (id === 'p1-down' && downLocked) return;
+      if (id === 'p1-left' || id === 'p1-right') downLocked = false;
       pressedIds.add(id);
       document.getElementById(id).classList.add('pressed');
       fireKey(KEY_MAP[id], 'keydown');
@@ -421,8 +422,8 @@
       if (mapped) {
         e.preventDefault();
         e.stopPropagation();
-        cancelAutoPlay();
         if (e.code === 'ArrowDown' && downLocked) return;
+        if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') downLocked = false;
         window.dispatchEvent(new KeyboardEvent('keydown', { code: mapped, key: mapped, bubbles: true, cancelable: true }));
       }
     }, { capture: true });
@@ -440,28 +441,8 @@
     } catch(_e) {}
 
     // Auto-start single player (vs CPU) when Play is clicked:
-    // fire KeyZ: skip intro → confirm 1P mode → confirm "with computer"
-    // lock down key during menu phase so player can't select 2-player mode
-    let autoPlayTimers = [];
-
-    function pressPlay() {
-      fireKey('KeyZ', 'keydown');
-      setTimeout(() => fireKey('KeyZ', 'keyup'), 60);
-    }
-
-    function cancelAutoPlay() {
-      autoPlayTimers.forEach(t => clearTimeout(t));
-      autoPlayTimers = [];
-    }
-
-    function scheduleAutoPlay() {
-      cancelAutoPlay();
-      autoPlayTimers = Array.from({length:40},(_,i)=>1000+i*100).map(t=>setTimeout(pressPlay,t));
-    }
-
-    const playBtn = document.getElementById('close-about-btn');
-    playBtn.addEventListener('click', pressPlay);
-    scheduleAutoPlay();
+    // Lock down key during menu phase; unlocks when player presses left/right (game has started)
+    let downLocked = true;
 
     // ── Leaderboard ──────────────────────────────────
     const LB_KEY = 'pikachu-leaderboard';
@@ -483,10 +464,8 @@
 
     window.__onGameEnd = function(score) {
       pendingScore = score;
-      if (score <= 0) {
-        scheduleAutoPlay();
-        return;
-      }
+      downLocked = true;
+      if (score <= 0) return;
       scoreText.textContent = '你的得分：' + score;
       nameInput.value = '';
       modal.style.display = 'flex';
@@ -509,18 +488,11 @@
           await window.FirebaseDB.addLeaderboardScore(name, pendingScore, date);
         } catch(_e) {}
       }
-      scheduleAutoPlay();
     }
 
     submitBtn.addEventListener('click', submitScore);
     nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitScore(); });
-    skipBtn.addEventListener('click', () => { modal.style.display = 'none'; scheduleAutoPlay(); });
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'KeyZ' && modal.style.display === 'flex') {
-        modal.style.display = 'none';
-        scheduleAutoPlay();
-      }
-    });
+    skipBtn.addEventListener('click', () => { modal.style.display = 'none'; });
 
     // ── Mute toggle ──────────────────────────────────
     let isMuted = false;
