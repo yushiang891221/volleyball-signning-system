@@ -177,6 +177,12 @@
   <!-- Back to lobby -->
   <button id="back-btn" onclick="location.href='index.html'">← 返回</button>
 
+  <!-- 2-player / practice mode toggle -->
+  <button id="two-player-btn" onclick="toggleTwoPlayerMode()"
+    style="position:fixed;top:8px;right:8px;z-index:1000;background:rgba(0,0,0,0.55);color:#fff;border:1.5px solid rgba(255,255,255,0.35);border-radius:8px;padding:4px 12px;font-size:14px;font-family:'Segoe UI','Microsoft JhengHei',sans-serif;cursor:pointer;backdrop-filter:blur(6px);">
+    👤 單人
+  </button>
+
   <!-- Game-end modal -->
   <div id="game-end-modal" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;">
     <div style="background:#1a1035;border:2px solid rgba(155,127,212,0.5);border-radius:18px;padding:28px 32px;width:min(340px,90vw);text-align:center;font-family:'Segoe UI','Microsoft JhengHei',sans-serif;color:#fff;">
@@ -488,6 +494,22 @@
     submitBtn.addEventListener('click', submitScore);
     nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitScore(); });
     skipBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+
+    // ── 2-player / practice mode toggle ──────────────
+    let isTwoPlayerMode = false;
+    window.toggleTwoPlayerMode = function() {
+      isTwoPlayerMode = !isTwoPlayerMode;
+      const btn = document.getElementById('two-player-btn');
+      if (isTwoPlayerMode) {
+        btn.textContent = '👥 雙人';
+        btn.style.borderColor = 'rgba(255,200,50,0.7)';
+        document.getElementById('practice-mode-on-btn').click();
+      } else {
+        btn.textContent = '👤 單人';
+        btn.style.borderColor = 'rgba(255,255,255,0.35)';
+        document.getElementById('practice-mode-off-btn').click();
+      }
+    };
   </script>
 </body>
 </html>

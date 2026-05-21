@@ -24,7 +24,6 @@ const state = {
 
 const WIN_SCORE = 25;
 const MIN_LEAD = 2;
-const MAX_TEAMS = 20;
 const STORAGE_KEY = "volleyball-registration";
 const FAVORITE_TEAMS_KEY = "volleyball-favorite-teams";
 const DEFAULT_VENUE_ID = "fengchia_1";
@@ -1984,10 +1983,6 @@ function registerTeam() {
     return;
   }
 
-  if (state.registeredTeams.length >= MAX_TEAMS) {
-    registrationMessageEl.textContent = `報名隊伍已達上限（${MAX_TEAMS} 隊）。`;
-    return;
-  }
 
   if (deviceTeamId) {
     const exists = state.registeredTeams.some((team) => team.teamId === deviceTeamId);
@@ -2289,7 +2284,7 @@ window.FirebaseAppReady
           if (!hasHydratedVenueState) applyVenueStatePayload(data);
         } catch (_) {}
       }
-    }, 5000);
+    }, 3000);
   })
   .catch((error) => {
     console.error("Firebase init error:", error);
