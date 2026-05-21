@@ -505,6 +505,12 @@
     submitBtn.addEventListener('click', submitScore);
     nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitScore(); });
     skipBtn.addEventListener('click', () => { modal.style.display = 'none'; scheduleAutoPlay(); });
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'KeyZ' && modal.style.display === 'flex') {
+        modal.style.display = 'none';
+        scheduleAutoPlay();
+      }
+    });
 
     // ── Mute toggle ──────────────────────────────────
     let isMuted = false;
