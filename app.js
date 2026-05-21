@@ -412,15 +412,17 @@ function setGameDifficulty(difficulty) {
   localStorage.setItem('pv-offline-speed', difficulty);
   if (hasFirebase() && firebaseReady) {
     ensureFirebaseAuth().then(() => {
-      console.log("[difficulty] writing to Firebase, uid:", firebase.auth().currentUser?.uid);
-      window.FirebaseDB.setAdminConfig({ gameDifficulty: difficulty })
-        .then(() => console.log("[difficulty] write OK"))
-        .catch(e => console.error("[difficulty] write FAIL", e));
-    }).catch(e => console.error("[difficulty] auth fail", e));
+      return window.FirebaseDB.setAdminConfig({ gameDifficulty: difficulty });
+    }).then(() => {
+      if (sysControlsMessageEl) sysControlsMessageEl.textContent = `遊戲難易度已設為「${labels[difficulty]}」（已同步至雲端）。`;
+    }).catch(e => {
+      console.error("[difficulty] write FAIL", e);
+      if (sysControlsMessageEl) sysControlsMessageEl.textContent = `遊戲難易度已設為「${labels[difficulty]}」（雲端同步失敗：${e.code || e.message}）。`;
+    });
     if (adminConfigCache) adminConfigCache.gameDifficulty = difficulty;
   }
   updateDifficultyStatus();
-  if (sysControlsMessageEl) sysControlsMessageEl.textContent = `遊戲難易度已設為「${labels[difficulty]}」。`;
+  if (sysControlsMessageEl) sysControlsMessageEl.textContent = `遊戲難易度已設為「${labels[difficulty]}」（同步中…）。`;
 }
 
 function renderFbStatsTable() {
