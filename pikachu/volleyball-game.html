@@ -40,7 +40,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: 160px;
+      height: 196px;
       z-index: 999;
       display: flex;
       justify-content: space-between;
@@ -52,23 +52,23 @@
     .player-controls {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       pointer-events: auto;
     }
 
     .controls-row {
       display: flex;
-      gap: 8px;
+      gap: 10px;
     }
 
     .ctrl-btn {
-      width: 62px;
-      height: 62px;
+      width: 76px;
+      height: 76px;
       border-radius: 50%;
       border: 2px solid rgba(255,255,255,0.3);
       background: rgba(255,255,255,0.15);
       color: #fff;
-      font-size: 22px;
+      font-size: 26px;
       font-family: "Segoe UI", sans-serif;
       backdrop-filter: blur(8px);
       cursor: pointer;
@@ -116,10 +116,44 @@
     /* Landscape: spread controls to edges */
     @media (orientation: landscape) {
       #touch-overlay {
-        height: 140px;
+        height: 172px;
         padding: 0 12px 12px;
       }
-      .ctrl-btn { width: 56px; height: 56px; font-size: 20px; }
+      .ctrl-btn { width: 68px; height: 68px; font-size: 24px; }
+      .player-controls { gap: 8px; }
+      .controls-row { gap: 8px; }
+    }
+
+    /* ── Game layout overrides ── */
+
+    /* Hide the game's own menu bar — we use the back button */
+    #menu-bar { display: none !important; }
+
+    /* Remove built-in padding and fill full screen */
+    #flex-container {
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      height: 100dvh !important;
+      height: 100vh !important; /* fallback */
+      justify-content: flex-start !important;
+    }
+
+    /* Portrait: fill width, keep aspect ratio */
+    @media (orientation: portrait) {
+      #game-canvas {
+        width: 100vw !important;
+        height: calc(100vw * 304 / 432) !important;
+      }
+    }
+
+    /* Landscape: fill height minus touch controls, keep aspect ratio */
+    @media (orientation: landscape) {
+      #game-canvas {
+        height: calc(100vh - 172px) !important;
+        height: calc(100dvh - 172px) !important;
+        width: calc((100dvh - 172px) * 432 / 304) !important;
+        max-width: 100vw !important;
+      }
     }
   </style>
 </head>
