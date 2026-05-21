@@ -552,6 +552,7 @@ function applyVenueStatePayload(payload) {
   }
   renderRegisteredTeams();
   renderRegistrationHistory();
+  renderAdminTeamList();
   ensureDeviceTeamStillExists();
   updateLocationCheckStatus();
   updateStreakModeStatus();
