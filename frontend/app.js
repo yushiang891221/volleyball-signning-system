@@ -1970,10 +1970,10 @@ function advanceToNextMatch() {
   const started = setTeamsByIndex(winnerIndex, challengerIndex);
   if (started) {
     saveRegistrationState();
-    const play2Name = state.registeredTeams[state.currentBIndex]?.name;
     const play1Name = state.scorerIndex !== null ? state.registeredTeams[state.scorerIndex]?.name : null;
-    if (play2Name) sendPlayNotification(selectedVenueId, "目前是PLAY2了！", `${play2Name} 準備來算分了喔！`);
+    const play2Name = state.scorerIndex !== null ? state.registeredTeams[state.scorerIndex + 1]?.name : null;
     if (play1Name) sendPlayNotification(selectedVenueId, "目前是PLAY1了！", `${play1Name} 快來算分！下場就是你了喔`);
+    if (play2Name) sendPlayNotification(selectedVenueId, "目前是PLAY2了！", `${play2Name} 準備來算分了喔！`);
   }
   return started;
 }
