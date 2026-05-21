@@ -2381,6 +2381,7 @@ window.FirebaseAppReady
       }
       if (cfg.locationCheckEnabled !== undefined) {
         state.locationCheckEnabled = cfg.locationCheckEnabled;
+        checkFengchiaAccessible();
       }
       if (cfg.vapidPublicKey) {
         vapidPublicKey = cfg.vapidPublicKey;
