@@ -853,6 +853,10 @@ function renderRegisteredTeams() {
     registeredTeamsEl.appendChild(item);
   }
 
+  const quickStartBtn = document.getElementById("quick-start");
+  if (quickStartBtn) {
+    quickStartBtn.classList.toggle("hidden", state.registeredTeams.length > 0);
+  }
 }
 
 function renderRegistrationHistory() {
@@ -1062,41 +1066,25 @@ async function toggleStreakMode() {
 }
 
 
-async function adminQuickStart() {
-  if (!adminUnlocked) return;
-  if (!window.confirm("直接以「A 隊 vs B 隊」開始計分，不需報名？")) return;
+function quickStart() {
+  if (state.registeredTeams.length > 0) {
+    registrationMessageEl.textContent = "已有隊伍報名，無法使用快速開局。";
+    return;
+  }
+  if (!window.confirm("加入「A 隊」和「B 隊」為虛擬隊伍，再報名你的隊伍取得計分權？")) return;
 
-  const preservedLocationCheck = state.locationCheckEnabled;
-  const preservedStreakMode = state.streakTwoModeEnabled;
-  Object.assign(state, createEmptyVenueState());
-  state.locationCheckEnabled = preservedLocationCheck;
-  state.streakTwoModeEnabled = preservedStreakMode;
-  state.quickStartMode = true;
-
-  const teamA = { teamId: generateTeamId(), ownerDeviceId: deviceUuid, name: "A 隊", players: [] };
+  const teamA = { teamId: generateTeamId(), ownerDeviceId: "", name: "A 隊", players: [] };
   const teamB = { teamId: generateTeamId(), ownerDeviceId: "", name: "B 隊", players: [] };
-  state.registeredTeams = [teamA, teamB];
-  state.currentAIndex = 0;
-  state.currentBIndex = 1;
-  state.teamAName = "A 隊";
-  state.teamBName = "B 隊";
-  state.teamAPlayers = [];
-  state.teamBPlayers = [];
-  state.scoreA = 0;
-  state.scoreB = 0;
-  state.serving = "B";
-  state.finished = false;
-  state.currentMatchRecorded = false;
+  state.registeredTeams.push(teamA, teamB);
+  startMatchWithQueue();
 
-  renderPlayerList(teamAPlayersEl, []);
-  renderPlayerList(teamBPlayersEl, []);
   renderRegisteredTeams();
   renderAdminTeamList();
   gameSectionEl.classList.remove("hidden");
   statusSectionEl.classList.remove("hidden");
   refreshView();
-  await saveRegistrationStateStrict();
-  showPage("score");
+  saveRegistrationState();
+  registrationMessageEl.textContent = "已加入 A 隊、B 隊，請填寫隊名後報名取得計分權。";
 }
 
 function renderAdminTeamList() {
@@ -1494,7 +1482,10 @@ function registerTeam() {
     return;
   }
 
-  registrationMessageEl.textContent = `已加入第 ${state.registeredTeams.length} 隊。`;
+  const justGotScorer = state.scorerTeamId && state.scorerTeamId === deviceTeamId;
+  registrationMessageEl.textContent = justGotScorer
+    ? `已加入第 ${state.registeredTeams.length} 隊，已取得本場計分權。`
+    : `已加入第 ${state.registeredTeams.length} 隊。`;
   saveRegistrationState();
 }
 
@@ -1571,7 +1562,7 @@ resetMatchHistoryBtn.addEventListener("click", resetMatchHistory);
 toggleLocationCheckBtn.addEventListener("click", toggleLocationCheckWithPassword);
 toggleStreakModeBtn.addEventListener("click", toggleStreakMode);
 adminUnlockBtn.addEventListener("click", unlockAdminPage);
-document.getElementById("quick-start").addEventListener("click", adminQuickStart);
+document.getElementById("quick-start").addEventListener("click", quickStart);
 applyFavoriteBtnEl.addEventListener("click", applyFavoriteTeam);
 saveFavoriteBtnEl.addEventListener("click", saveAsFavoriteTeam);
 deleteFavoriteBtnEl.addEventListener("click", deleteFavoriteTeam);
