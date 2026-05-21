@@ -523,6 +523,8 @@ function updateStreakModeStatus() {
 }
 
 function renderChangelog() {
+  const versionBadge = document.getElementById("update-current-version");
+  if (versionBadge) versionBadge.textContent = "v" + APP_VERSION;
   const container = document.getElementById("update-changelog");
   if (!container || container.children.length > 0) return;
   container.innerHTML = CHANGELOG.map((entry, i) => `
