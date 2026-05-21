@@ -810,3 +810,52 @@ button:active {
 
   .score { font-size: 80px; }
 }
+
+/* ── Score page landscape mode ───────────────────── */
+@media (orientation: landscape) {
+  .scoreboard { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+
+  body.score-page-active .container {
+    padding: 8px 12px;
+  }
+
+  body.score-page-active h1,
+  body.score-page-active #current-time {
+    display: none;
+  }
+
+  body.score-page-active .page-nav {
+    margin-bottom: 8px;
+    gap: 4px;
+  }
+
+  body.score-page-active .page-nav button {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+
+  body.score-page-active #game-section {
+    height: calc(100dvh - 72px);
+  }
+
+  body.score-page-active .team-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+  }
+
+  body.score-page-active .score {
+    font-size: 120px;
+  }
+
+  body.score-page-active .score-page-message {
+    font-size: 12px;
+    margin: 0 0 6px;
+    line-height: 1.4;
+  }
+
+  body.score-page-active #status-section {
+    margin-top: 6px;
+  }
+}

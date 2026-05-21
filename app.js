@@ -42,7 +42,8 @@ const VENUES = {
     name: "測試用球場",
     type: "circle",
     center: { lat: 24.743353, lng: 121.088657 },
-    radiusM: 80
+    radiusM: 80,
+    noLocationCheck: true
   }
 };
 
@@ -392,7 +393,7 @@ function refreshScoringPermissionView() {
 }
 
 function checkLocationForRegistration() {
-  if (!state.locationCheckEnabled) {
+  if (!state.locationCheckEnabled || VENUES[selectedVenueId]?.noLocationCheck) {
     isInVenue = true;
     locationMessageEl.textContent = "";
     applyVenueGate();
@@ -449,6 +450,16 @@ function showPage(page) {
   goScoreBtn.classList.toggle("active", isScore);
   goAdminBtn.classList.toggle("active", isAdmin);
   updateScorePageMessage();
+
+  document.body.classList.toggle("score-page-active", isScore);
+
+  if (screen.orientation && screen.orientation.lock) {
+    if (isScore) {
+      screen.orientation.lock("landscape").catch(() => {});
+    } else {
+      screen.orientation.unlock();
+    }
+  }
 }
 
 function renderAdminModeView() {
