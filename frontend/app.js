@@ -2309,7 +2309,19 @@ venueSelectEl.addEventListener("change", () => {
 });
 goRegistrationBtn.addEventListener("click", () => showPage("registration"));
 goMatchBtn.addEventListener("click", () => { showPage("match"); closeDrawer(); });
-document.getElementById("match-back-btn").addEventListener("click", () => showVenuePage());
+document.getElementById("match-back-btn").addEventListener("click", () => {
+  if (selectedVenueId === "fengchia_1" || selectedVenueId === "fengchia_2") {
+    venueSelected = false;
+    venuePageEl.classList.remove("hidden");
+    document.getElementById("venue-top-select").classList.add("hidden");
+    document.getElementById("court-select").classList.remove("hidden");
+    matchPageEl.classList.add("hidden");
+    closeDrawer();
+    updateDrawerVenueGate();
+  } else {
+    showVenuePage();
+  }
+});
 goScoreBtn.addEventListener("click", () => showPage("score"));
 goAdminBtn.addEventListener("click", () => showPage("admin"));
 document.getElementById("go-system-admin").addEventListener("click", () => { showPage("system-admin"); closeDrawer(); });
