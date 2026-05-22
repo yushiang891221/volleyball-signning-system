@@ -793,17 +793,108 @@ h1 {
 
 #registered-teams,
 #registration-history,
-#match-history {
-  margin: 10px 0 0;
-  padding-left: 20px;
+#registered-teams,
+#match-history,
+#registration-history {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
 }
 
-#registered-teams .active-match-team {
-  color: var(--gold);
+/* ── Team queue cards ────────────────────────────── */
+.team-queue-item {
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 0 0 6px;
+}
+.team-queue-item:last-child { margin-bottom: 0; }
+
+.tq-is-playing {
+  background: rgba(255,215,0,0.15);
+  border: 1px solid rgba(255,215,0,0.35);
+}
+
+.tq-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.tq-name {
   font-weight: 700;
+  font-size: 0.88rem;
+}
+.tq-is-playing .tq-name { color: var(--gold); }
+
+.tq-badges { display: flex; gap: 4px; flex-shrink: 0; }
+
+.tq-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.tq-playing  { background: rgba(255,215,0,0.25);  color: #ffd700; border: 1px solid rgba(255,215,0,0.5); }
+.tq-scoring  { background: rgba(62,207,196,0.25); color: #7ef5ee; border: 1px solid rgba(62,207,196,0.5); }
+.tq-waiting  { background: rgba(255,255,255,0.1);  color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.2); }
+
+.tq-players {
+  font-size: 0.71rem;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.4;
 }
 
-#registered-teams .scorer-team { font-weight: 700; }
+/* ── Registration history loser ─────────────────── */
+.history-loser { color: rgba(255,110,110,0.9) !important; }
+
+/* ── Match history cards ─────────────────────────── */
+.match-item {
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 7px 10px;
+  margin: 0 0 6px;
+}
+.match-item:last-child { margin-bottom: 0; }
+
+.match-num {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.match-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.match-team {
+  flex: 1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.match-team:last-child { text-align: right; }
+
+.match-winner { color: #ffd700; font-weight: 800; }
+.match-loser  { color: rgba(255,255,255,0.4); font-weight: 400; }
+
+.match-score {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 
 /* ── Score page ──────────────────────────────────── */
 .score-page-message {

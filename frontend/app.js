@@ -1504,12 +1504,25 @@ function renderRegisteredTeams() {
   registeredTeamsEl.innerHTML = "";
   for (let index = 0; index < state.registeredTeams.length; index += 1) {
     const team = state.registeredTeams[index];
-    const item = document.createElement("li");
-    item.textContent = `${team.name}（${team.players.join("、")}）`;
     const isPlaying = index === state.currentAIndex || index === state.currentBIndex;
     const isScorer = state.scorerTeamId && team.teamId === state.scorerTeamId;
-    item.classList.toggle("active-match-team", isPlaying);
-    item.classList.toggle("scorer-team", Boolean(isScorer));
+
+    const item = document.createElement("li");
+    item.className = "team-queue-item";
+    if (isPlaying) item.classList.add("tq-is-playing");
+
+    let badges = "";
+    if (isPlaying) badges += `<span class="tq-badge tq-playing">🏐 比賽中</span>`;
+    if (isScorer)  badges += `<span class="tq-badge tq-scoring">📊 記分中</span>`;
+    if (!isPlaying && !isScorer) badges = `<span class="tq-badge tq-waiting">⏳ 等待中</span>`;
+
+    const players = team.players.length > 0 ? team.players.join("、") : "（無球員資料）";
+    item.innerHTML = `
+      <div class="tq-header">
+        <span class="tq-name">${team.name}</span>
+        <div class="tq-badges">${badges}</div>
+      </div>
+      <div class="tq-players">${players}</div>`;
     registeredTeamsEl.appendChild(item);
   }
 
@@ -1521,9 +1534,15 @@ function renderRegisteredTeams() {
 
 function renderRegistrationHistory() {
   registrationHistoryEl.innerHTML = "";
+  const losers = new Set();
+  for (const match of state.matchHistory) {
+    if (match.teamA !== match.winner) losers.add(match.teamA);
+    if (match.teamB !== match.winner) losers.add(match.teamB);
+  }
   for (const name of state.registrationHistory) {
     const item = document.createElement("li");
     item.textContent = name;
+    if (losers.has(name)) item.classList.add("history-loser");
     registrationHistoryEl.appendChild(item);
   }
 }
@@ -1532,8 +1551,17 @@ function renderMatchHistory() {
   matchHistoryEl.innerHTML = "";
   for (let index = 0; index < state.matchHistory.length; index += 1) {
     const match = state.matchHistory[index];
+    const aWon = match.winner === match.teamA;
+    const bWon = match.winner === match.teamB;
     const item = document.createElement("li");
-    item.textContent = `第 ${index + 1} 場：${match.teamA} ${match.scoreA} : ${match.scoreB} ${match.teamB}（勝：${match.winner}）`;
+    item.className = "match-item";
+    item.innerHTML = `
+      <span class="match-num">第 ${index + 1} 場</span>
+      <div class="match-row">
+        <span class="match-team ${aWon ? "match-winner" : "match-loser"}">${aWon ? "🏆 " : ""}${match.teamA}</span>
+        <span class="match-score">${match.scoreA} : ${match.scoreB}</span>
+        <span class="match-team ${bWon ? "match-winner" : "match-loser"}">${bWon ? "🏆 " : ""}${match.teamB}</span>
+      </div>`;
     matchHistoryEl.appendChild(item);
   }
 }
