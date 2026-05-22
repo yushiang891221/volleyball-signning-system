@@ -1057,7 +1057,7 @@ function selectVenue(venueId) {
   }
   venuePageEl.classList.add("hidden");
   updateDrawerVenueGate();
-  showPage("registration");
+  showPage("match");
   renderAdminModeView();
 }
 
