@@ -632,6 +632,7 @@ function renderFbStatsTable() {
 
 function applyVenueGate() {
   registerTeamBtn.disabled = isLocationCheckEnabled() && !isInVenue;
+  updateDrawerVenueGate();
 }
 
 function updateStreakModeStatus() {
@@ -811,14 +812,18 @@ function updateScorePageMessage() {
 }
 
 function updateDrawerVenueGate() {
-  const regLi = document.getElementById("nav-li-registration");
   const matchLi = document.getElementById("nav-li-match");
   const scoreLi = document.getElementById("nav-li-score");
+  const regLi = document.getElementById("nav-li-registration");
   const adminLi = document.getElementById("nav-li-admin");
-  if (regLi) regLi.classList.toggle("nav-item-disabled", !venueSelected);
+  // 比賽現況、計分：只需選球場
   if (matchLi) matchLi.classList.toggle("nav-item-disabled", !venueSelected);
   if (scoreLi) scoreLi.classList.toggle("nav-item-disabled", !venueSelected);
-  if (adminLi) adminLi.classList.toggle("nav-item-disabled", !venueSelected);
+  // 報名、管理員：需選球場 + 定位在場地內
+  const locationLocked = venueSelected && isLocationCheckEnabled()
+    && !VENUES[selectedVenueId]?.noLocationCheck && !isInVenue;
+  if (regLi) regLi.classList.toggle("nav-item-disabled", !venueSelected || locationLocked);
+  if (adminLi) adminLi.classList.toggle("nav-item-disabled", !venueSelected || locationLocked);
 }
 
 function updateAdminVenueInfo() {
