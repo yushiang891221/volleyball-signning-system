@@ -23,6 +23,10 @@
 
 * { box-sizing: border-box; }
 
+html {
+  background-color: #F5F2FF;
+}
+
 body {
   margin: 0;
   font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
@@ -30,7 +34,7 @@ body {
     radial-gradient(ellipse at 15% 20%, rgba(139, 100, 220, 0.18) 0%, transparent 55%),
     radial-gradient(ellipse at 85% 75%, rgba(62, 207, 196, 0.18) 0%, transparent 55%),
     linear-gradient(160deg, #F5F2FF 0%, #EBF9F8 100%);
-  background-attachment: fixed;
+  background-attachment: scroll;
   color: var(--text);
   min-height: 100vh;
   min-height: 100dvh;
