@@ -529,6 +529,22 @@ h1 {
 }
 .subpage-back-btn:hover { background: var(--purple-light); box-shadow: none; filter: none; transform: none; }
 
+#match-back-btn {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1.5px solid var(--glass-border);
+  background: var(--card-bg);
+  color: var(--purple-deep);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(107,79,175,0.09);
+  cursor: pointer;
+  font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+  transition: transform 0.14s, box-shadow 0.14s;
+}
+#match-back-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(107,79,175,0.18); }
+#match-back-btn:active { transform: scale(0.94); filter: brightness(0.9); }
 .subpage-back-btn:active { transform: scale(0.94); filter: brightness(0.9); }
 
 .subpage-title {
