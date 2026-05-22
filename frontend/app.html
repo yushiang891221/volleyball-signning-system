@@ -89,10 +89,8 @@
       <section class="registration-section">
         <div class="management-grid">
           <section class="panel-block">
-            <h3>報名隊伍管理</h3>
+            <h3>報名隊伍</h3>
             <div class="panel-actions">
-              <button id="register-team" type="button">報名這一隊</button>
-              <button id="cancel-my-registration" class="danger-btn" type="button">取消我的報名</button>
               <button id="quick-start" type="button">⚡ 快速開局</button>
             </div>
             <ol id="registered-teams"></ol>
@@ -101,7 +99,7 @@
           </section>
 
           <section class="panel-block">
-            <h3>比賽結果管理</h3>
+            <h3>比賽結果</h3>
             <ol id="match-history"></ol>
           </section>
         </div>
@@ -129,7 +127,7 @@
         </div>
 
         <div class="favorite-card registration-card">
-          <label>常用隊伍</label>
+          <label>報名隊伍</label>
           <div class="favorite-row">
             <select id="favorite-select">
               <option value="">── 選擇常用隊伍 ──</option>
@@ -138,6 +136,10 @@
             <button id="delete-favorite-btn" class="danger-btn" type="button">刪除</button>
           </div>
           <button id="save-favorite-btn" type="button" class="save-fav-btn">＋ 儲存目前填寫為常用隊伍</button>
+          <div class="panel-actions fav-register-actions">
+            <button id="register-team" type="button">報名這一隊</button>
+            <button id="cancel-my-registration" class="danger-btn" type="button">取消我的報名</button>
+          </div>
         </div>
 
         <p id="location-message"></p>

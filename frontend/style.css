@@ -659,6 +659,13 @@ h1 {
   background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%) !important;
   box-shadow: 0 3px 12px var(--teal-glow) !important;
   font-size: 14px !important;
+  margin-bottom: 10px;
+}
+
+.fav-register-actions {
+  margin-top: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(62,207,196,0.25);
 }
 
 /* ── Panel blocks ────────────────────────────────── */
