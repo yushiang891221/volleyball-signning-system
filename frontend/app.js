@@ -14,7 +14,6 @@ const state = {
   currentBIndex: null,
   scorerIndex: null,
   scorerTeamId: null,
-  locationCheckEnabled: true,
   streakTwoModeEnabled: false,
   streakTeamId: null,
   streakCount: 0,
@@ -225,8 +224,6 @@ const sysAdminControlsSectionEl = document.getElementById("sys-admin-controls-se
 const sysAdminPasswordInputEl = document.getElementById("sys-admin-password");
 const sysAdminUnlockBtn = document.getElementById("sys-admin-unlock");
 const sysAdminAuthMessageEl = document.getElementById("sys-admin-auth-message");
-const sysLocationCheckStatusEl = document.getElementById("sys-location-check-status");
-const sysToggleLocationCheckBtn = document.getElementById("sys-toggle-location-check");
 const sysClearLeaderboardBtn = document.getElementById("sys-clear-leaderboard");
 const venueSelectEl = document.getElementById("venue-select");
 const teamNameInputEl = document.getElementById("team-name");
@@ -558,14 +555,6 @@ function loadSystemSettings() {
 function saveSystemSettings(s) {
   localStorage.setItem(SYSTEM_SETTINGS_KEY, JSON.stringify(s));
 }
-function isLocationCheckEnabled() {
-  return state.locationCheckEnabled !== false;
-}
-function updateSysLocationCheckStatus() {
-  if (sysLocationCheckStatusEl) {
-    sysLocationCheckStatusEl.textContent = isLocationCheckEnabled() ? "定位檢查：已啟用" : "定位檢查：已停用";
-  }
-}
 
 function updateDifficultyStatus() {
   const current = loadSystemSettings().gameDifficulty || "medium";
@@ -631,7 +620,13 @@ function renderFbStatsTable() {
 }
 
 function applyVenueGate() {
-  registerTeamBtn.disabled = isLocationCheckEnabled() && !isInVenue;
+  const noLocCheck = VENUES[selectedVenueId]?.noLocationCheck;
+  registerTeamBtn.disabled = !noLocCheck && !isInVenue;
+  const statusEl = document.getElementById("venue-location-status");
+  if (statusEl) {
+    const locked = venueSelected && !noLocCheck && !isInVenue;
+    statusEl.textContent = locked ? "不在範圍 無法報名" : "";
+  }
   updateDrawerVenueGate();
 }
 
@@ -766,7 +761,7 @@ function refreshScoringPermissionView() {
 }
 
 function checkLocationForRegistration() {
-  if (!isLocationCheckEnabled() || VENUES[selectedVenueId]?.noLocationCheck) {
+  if (VENUES[selectedVenueId]?.noLocationCheck) {
     isInVenue = true;
     if (locationMessageEl) locationMessageEl.textContent = "";
     applyVenueGate();
@@ -820,8 +815,7 @@ function updateDrawerVenueGate() {
   if (matchLi) matchLi.classList.toggle("nav-item-disabled", !venueSelected);
   if (scoreLi) scoreLi.classList.toggle("nav-item-disabled", !venueSelected);
   // 報名、管理員：需選球場 + 定位在場地內
-  const locationLocked = venueSelected && isLocationCheckEnabled()
-    && !VENUES[selectedVenueId]?.noLocationCheck && !isInVenue;
+  const locationLocked = venueSelected && !VENUES[selectedVenueId]?.noLocationCheck && !isInVenue;
   if (regLi) regLi.classList.toggle("nav-item-disabled", !venueSelected || locationLocked);
   if (adminLi) adminLi.classList.toggle("nav-item-disabled", !venueSelected || locationLocked);
 }
@@ -972,11 +966,6 @@ function updateFengchiaCard() {
   const card = document.getElementById("select-fengchia");
   const status = document.getElementById("fengchia-card-status");
   if (!card || !status) return;
-  if (!isLocationCheckEnabled()) {
-    card.classList.remove("venue-card--disabled");
-    status.textContent = "";
-    return;
-  }
   if (fengchiaAccessible === null) {
     card.classList.remove("venue-card--disabled");
     status.textContent = "🔍 定位中...";
@@ -990,11 +979,6 @@ function updateFengchiaCard() {
 }
 
 function checkFengchiaAccessible() {
-  if (!isLocationCheckEnabled()) {
-    fengchiaAccessible = true;
-    updateFengchiaCard();
-    return;
-  }
   fengchiaAccessible = null;
   updateFengchiaCard();
   const fengchiaVenue = VENUES["fengchia_1"];
@@ -1709,10 +1693,6 @@ async function unlockSystemAdmin() {
       saveSystemSettings({ ...s, gameDifficulty: data.gameDifficulty });
       localStorage.setItem("pv-offline-speed", data.gameDifficulty);
     }
-    if (data.locationCheckEnabled !== undefined) {
-      state.locationCheckEnabled = data.locationCheckEnabled;
-    }
-    updateSysLocationCheckStatus();
     updateDifficultyStatus();
     renderFbStatsTable();
     if (hasFirebase() && firebaseReady && !unsubscribeGlobalStats) {
@@ -1726,20 +1706,6 @@ async function unlockSystemAdmin() {
   }
 }
 
-function toggleSystemLocationCheck() {
-  if (!systemAdminUnlocked) return;
-  const newValue = !state.locationCheckEnabled;
-  const label = newValue ? "啟用" : "停用";
-  if (!window.confirm(`確定要${label}定位檢查嗎？`)) return;
-  state.locationCheckEnabled = newValue;
-  updateSysLocationCheckStatus();
-  isInVenue = !newValue;
-  applyVenueGate();
-  if (newValue) checkLocationForRegistration();
-  checkFengchiaAccessible();
-  callAdminAction("setConfig", { config: { locationCheckEnabled: newValue } })
-    .catch((e) => console.error("[locationCheck] sync failed:", e));
-}
 
 async function toggleStreakMode() {
   if (!adminUnlocked) {
@@ -2183,7 +2149,7 @@ function deleteFavoriteTeam() {
 }
 
 function registerTeam() {
-  if (isLocationCheckEnabled() && !isInVenue) {
+  if (!VENUES[selectedVenueId]?.noLocationCheck && !isInVenue) {
     const venue = VENUES[selectedVenueId];
     registrationMessageEl.textContent = `需在「${venue.name}」範圍內才能報名。`;
     return;
@@ -2375,7 +2341,7 @@ venueSelectEl.addEventListener("change", () => {
   }
   isInVenue = false;
   applyVenueGate();
-  if (isLocationCheckEnabled()) checkLocationForRegistration();
+  checkLocationForRegistration();
 });
 goRegistrationBtn.addEventListener("click", () => showPage("registration"));
 goMatchBtn.addEventListener("click", () => { showPage("match"); closeDrawer(); });
@@ -2383,7 +2349,6 @@ goScoreBtn.addEventListener("click", () => showPage("score"));
 goAdminBtn.addEventListener("click", () => showPage("admin"));
 document.getElementById("go-system-admin").addEventListener("click", () => { showPage("system-admin"); closeDrawer(); });
 sysAdminUnlockBtn.addEventListener("click", unlockSystemAdmin);
-sysToggleLocationCheckBtn.addEventListener("click", toggleSystemLocationCheck);
 sysClearLeaderboardBtn.addEventListener("click", async () => {
   if (!systemAdminUnlocked) return;
   if (!window.confirm("確定要清除所有排行榜紀錄嗎？")) return;
@@ -2417,7 +2382,7 @@ document.getElementById("update-back-btn").addEventListener("click", () => {
 document.getElementById("update-start-btn").addEventListener("click", runUpdate);
 if (msgSubmitBtn) msgSubmitBtn.addEventListener("click", submitMessage);
 document.getElementById("select-fengchia").addEventListener("click", () => {
-  if (isLocationCheckEnabled() && !fengchiaAccessible) return;
+  if (!fengchiaAccessible) return;
   document.getElementById("venue-top-select").classList.add("hidden");
   document.getElementById("court-select").classList.remove("hidden");
 });
@@ -2475,10 +2440,6 @@ window.FirebaseAppReady
         const s = loadSystemSettings();
         saveSystemSettings({ ...s, gameDifficulty: cfg.gameDifficulty });
         localStorage.setItem("pv-offline-speed", cfg.gameDifficulty);
-      }
-      if (cfg.locationCheckEnabled !== undefined) {
-        state.locationCheckEnabled = cfg.locationCheckEnabled;
-        checkFengchiaAccessible();
       }
       if (cfg.vapidPublicKey) {
         vapidPublicKey = cfg.vapidPublicKey;

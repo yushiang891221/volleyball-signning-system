@@ -437,6 +437,14 @@ h1 {
   text-transform: uppercase;
 }
 
+#venue-location-status {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #ff8080;
+  letter-spacing: 0.3px;
+  min-height: 0;
+}
+
 #venue-badge-name {
   font-size: 0.9rem;
   font-weight: 800;
