@@ -13,7 +13,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : {};
   event.waitUntil(
-    self.registration.showNotification(data.title || '野場報隊', {
+    self.registration.showNotification(data.title || '野場喊PLAY！', {
       body: data.body || '',
       icon: '/Gemini_Generated_Image_fft0pnfft0pnfft0.png',
       tag: 'play-notification',

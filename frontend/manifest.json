@@ -1,6 +1,6 @@
 {
-  "name": "野場報隊系統",
-  "short_name": "野場報隊",
+  "name": "野場喊PLAY！",
+  "short_name": "野場喊PLAY！",
   "description": "排球野場報名與計分系統",
   "start_url": "./app.html",
   "display": "standalone",

@@ -62,7 +62,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: 300px;
+      height: 410px;
       z-index: 999;
       display: flex;
       justify-content: center;
@@ -81,8 +81,8 @@
 
     .dpad-grid {
       display: grid;
-      grid-template-columns: 84px 84px;
-      grid-template-rows: repeat(3, 84px);
+      grid-template-columns: 126px 126px;
+      grid-template-rows: repeat(3, 126px);
       gap: 0;
     }
 
@@ -92,13 +92,13 @@
     #p1-down  { grid-column: 1 / 3; grid-row: 3; justify-self: center; }
 
     .ctrl-btn {
-      width: 84px;
-      height: 84px;
+      width: 126px;
+      height: 126px;
       border-radius: 8px;
       border: 2px solid rgba(255,255,255,0.3);
       background: rgba(255,255,255,0.15);
       color: #fff;
-      font-size: 34px;
+      font-size: 51px;
       font-family: "Segoe UI", sans-serif;
       backdrop-filter: blur(8px);
       cursor: pointer;
@@ -157,38 +157,38 @@
     @media (orientation: portrait) {
       #flex-container {
         padding: 0 !important;
-        height: calc(100vh - 300px) !important;
+        height: calc(100vh - 410px) !important;
         justify-content: center !important;
         align-items: center !important;
       }
-      #touch-overlay { height: 300px; }
+      #touch-overlay { height: 410px; }
       #game-canvas {
         width: 100vw !important;
         height: calc(100vw * 304 / 432) !important;
-        max-height: calc(100vh - 300px) !important;
+        max-height: calc(100vh - 410px) !important;
       }
     }
 
     /* Landscape */
     @media (orientation: landscape) {
       #touch-overlay {
-        height: 218px;
+        height: 310px;
         padding: 5px 20px 14px;
       }
-      .ctrl-btn { width: 62px; height: 62px; font-size: 22px; }
+      .ctrl-btn { width: 93px; height: 93px; font-size: 33px; }
       .dpad-grid {
-        grid-template-columns: 62px 62px;
-        grid-template-rows: repeat(3, 62px);
+        grid-template-columns: 93px 93px;
+        grid-template-rows: repeat(3, 93px);
       }
       #flex-container {
         padding: 0 !important;
-        height: calc(100dvh - 218px) !important;
+        height: calc(100dvh - 310px) !important;
         justify-content: center !important;
         align-items: center !important;
       }
       #game-canvas {
-        height: calc(100dvh - 218px) !important;
-        width: calc((100dvh - 218px) * 432 / 304) !important;
+        height: calc(100dvh - 310px) !important;
+        width: calc((100dvh - 310px) * 432 / 304) !important;
         max-width: 100vw !important;
       }
     }
