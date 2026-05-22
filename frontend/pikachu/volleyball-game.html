@@ -447,6 +447,7 @@
 
     function onMenuInput(action) {
       if (!action) return;
+      if (modal.style.display === 'flex') return;
       if (gamePhase === 'MENU') {
         if (action === 'down') isTwoPlayer = true;
         else if (action === 'up') isTwoPlayer = false;

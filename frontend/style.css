@@ -1402,6 +1402,9 @@ button:active {
 }
 
 /* ── Score page landscape mode ───────────────────── */
+/* 調整計分板高度：改這個值，例如 70dvh、260px 等 */
+:root { --score-landscape-h: 75dvh; }
+
 @media (orientation: landscape) {
   .scoreboard { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 
@@ -1436,6 +1439,7 @@ button:active {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     min-height: 0;
   }
 
@@ -1444,11 +1448,19 @@ button:active {
     height: 36px;
     font-size: 16px;
     opacity: 0.7;
+    top: 50%;
+    transform: translateY(-50%);
   }
 
   body.score-page-active #game-section {
-    flex: 1;
+    flex: none;
+    height: var(--score-landscape-h,50);
     min-height: 0;
+    grid-auto-rows: 1fr;
+  }
+
+  body.score-page-active .player-list {
+    display: none;
   }
 
   body.score-page-active .team-card {

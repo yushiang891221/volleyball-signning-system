@@ -33,9 +33,20 @@ const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
 const MSG_BOARD_KEY = "volleyball-messages";
 const MSG_NAME_KEY = "volleyball-msg-name";
-const APP_VERSION = "1.7.4";
+const APP_VERSION = "1.7.5";
 
 const CHANGELOG = [
+  {
+    version: "v1.7.5",
+    date: "2026-05",
+    title: "計分頁面橫屏優化",
+    items: [
+      "計分卡垂直置中，分數數字顯示在螢幕正中央",
+      "橫屏模式選單按鈕移至畫面垂直中心",
+      "新增 --score-landscape-h CSS 變數可自由調整計分板高度",
+      "皮卡丘 2P 模式偵測修正：關閉得分視窗時不誤計選單操作"
+    ]
+  },
   {
     version: "v1.7.4",
     date: "2026-05",
