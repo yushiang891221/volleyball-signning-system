@@ -1434,12 +1434,18 @@ button:active {
     display: none;
   }
 
+  body.score-page-active .score-page-message,
+  body.score-page-active #status-section {
+    display: none;
+  }
+
   body.score-page-active #score-page {
     flex: 1;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: stretch;
     min-height: 0;
   }
 

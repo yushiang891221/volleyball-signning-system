@@ -449,8 +449,8 @@
       if (!action) return;
       if (modal.style.display === 'flex') return;
       if (gamePhase === 'MENU') {
-        if (action === 'down') isTwoPlayer = true;
-        else if (action === 'up') isTwoPlayer = false;
+        if (action === 'down' && menuAttacks === 0) isTwoPlayer = true;
+        else if (action === 'up' && menuAttacks === 0) isTwoPlayer = false;
         else if (action === 'attack') {
           menuAttacks++;
           if (menuAttacks >= 2) gamePhase = 'PLAYING';
