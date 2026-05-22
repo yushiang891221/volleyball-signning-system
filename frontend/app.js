@@ -966,14 +966,12 @@ function updateFengchiaCard() {
   const card = document.getElementById("select-fengchia");
   const status = document.getElementById("fengchia-card-status");
   if (!card || !status) return;
+  card.classList.remove("venue-card--disabled");
   if (fengchiaAccessible === null) {
-    card.classList.remove("venue-card--disabled");
     status.textContent = "🔍 定位中...";
   } else if (fengchiaAccessible === true) {
-    card.classList.remove("venue-card--disabled");
     status.textContent = "";
   } else {
-    card.classList.add("venue-card--disabled");
     status.textContent = "📍 不在球場範圍內";
   }
 }
@@ -2382,7 +2380,6 @@ document.getElementById("update-back-btn").addEventListener("click", () => {
 document.getElementById("update-start-btn").addEventListener("click", runUpdate);
 if (msgSubmitBtn) msgSubmitBtn.addEventListener("click", submitMessage);
 document.getElementById("select-fengchia").addEventListener("click", () => {
-  if (!fengchiaAccessible) return;
   document.getElementById("venue-top-select").classList.add("hidden");
   document.getElementById("court-select").classList.remove("hidden");
 });
