@@ -33,9 +33,18 @@ const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
 const MSG_BOARD_KEY = "volleyball-messages";
 const MSG_NAME_KEY = "volleyball-msg-name";
-const APP_VERSION = "1.7.6";
+const APP_VERSION = "1.7.7";
 
 const CHANGELOG = [
+  {
+    version: "v1.7.7",
+    date: "2026-05",
+    title: "公告改為彈出視窗",
+    items: [
+      "公告欄從主頁移除，改由選單「📢 公告」按鈕開啟 modal",
+      "點擊背景或 ✕ 可關閉公告"
+    ]
+  },
   {
     version: "v1.7.6",
     date: "2026-05",
@@ -2333,6 +2342,10 @@ document.getElementById("admin-back-btn").addEventListener("click", () => showVe
 document.getElementById("sys-admin-back-btn").addEventListener("click", () => {
   if (!venueSelected) showVenuePage(); else showPage("registration");
 });
+const announcementModal = document.getElementById("announcement-modal");
+document.getElementById("go-announcement").addEventListener("click", () => { announcementModal.classList.remove("hidden"); closeDrawer(); });
+document.getElementById("announcement-close").addEventListener("click", () => announcementModal.classList.add("hidden"));
+announcementModal.addEventListener("click", e => { if (e.target === announcementModal) announcementModal.classList.add("hidden"); });
 document.getElementById("go-message-board").addEventListener("click", () => { showPage("message-board"); closeDrawer(); });
 document.getElementById("msg-board-back-btn").addEventListener("click", () => {
   if (!venueSelected) showVenuePage(); else showPage("registration");
