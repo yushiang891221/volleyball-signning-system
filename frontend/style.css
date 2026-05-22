@@ -1435,6 +1435,7 @@ button:active {
   }
 
   body.score-page-active .score-page-message,
+  body.score-page-active .score-back-btn,
   body.score-page-active #status-section {
     display: none;
   }

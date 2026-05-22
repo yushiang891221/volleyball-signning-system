@@ -33,9 +33,18 @@ const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
 const MSG_BOARD_KEY = "volleyball-messages";
 const MSG_NAME_KEY = "volleyball-msg-name";
-const APP_VERSION = "1.7.5";
+const APP_VERSION = "1.7.6";
 
 const CHANGELOG = [
+  {
+    version: "v1.7.6",
+    date: "2026-05",
+    title: "頁面層次優化",
+    items: [
+      "新增各功能頁面「← 回主頁」按鈕，可直接返回球場選擇頁",
+      "主頁專屬公告欄與球場選擇，其他頁面不再重複顯示"
+    ]
+  },
   {
     version: "v1.7.5",
     date: "2026-05",
@@ -2318,6 +2327,9 @@ if (sysClearMessagesBtn) sysClearMessagesBtn.addEventListener("click", clearMess
   const btn = document.getElementById(`sys-difficulty-${d}`);
   if (btn) btn.addEventListener("click", () => setGameDifficulty(d));
 });
+document.getElementById("registration-back-btn").addEventListener("click", () => showVenuePage());
+document.getElementById("score-back-btn").addEventListener("click", () => showVenuePage());
+document.getElementById("admin-back-btn").addEventListener("click", () => showVenuePage());
 document.getElementById("sys-admin-back-btn").addEventListener("click", () => {
   if (!venueSelected) showVenuePage(); else showPage("registration");
 });
