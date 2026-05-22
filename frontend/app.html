@@ -56,9 +56,8 @@
         <p class="venue-page-subtitle">請選擇球場</p>
         <div class="venue-cards">
           <button class="venue-card" id="select-fengchia">
-            <div class="venue-card-icon">🏟</div>
+            <div class="venue-card-icon"><img src="fengchia-logo.png" class="venue-card-logo" alt="逢甲大學"></div>
             <div class="venue-card-name">逢甲大學球場</div>
-            <div class="venue-card-status" id="fengchia-card-status"></div>
           </button>
           <button class="venue-card" id="select-home">
             <div class="venue-card-icon">🏠</div>
@@ -91,9 +90,6 @@
       <section class="registration-section">
         <section class="panel-block">
           <h3>報名隊伍</h3>
-          <div class="panel-actions">
-            <button id="quick-start" type="button">⚡ 快速開局</button>
-          </div>
           <ol id="registered-teams"></ol>
           <h4>報名隊名紀錄</h4>
           <ol id="registration-history"></ol>
@@ -143,10 +139,10 @@
           <div class="panel-actions fav-register-actions">
             <button id="register-team" type="button">報名這一隊</button>
             <button id="cancel-my-registration" class="danger-btn" type="button">取消我的報名</button>
+            <button id="quick-start" type="button">⚡ 快速開局</button>
           </div>
         </div>
 
-        <p id="location-message"></p>
         <p id="registration-message"></p>
       </section>
     </section>

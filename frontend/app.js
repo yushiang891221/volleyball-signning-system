@@ -32,9 +32,19 @@ const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
 const MSG_BOARD_KEY = "volleyball-messages";
 const MSG_NAME_KEY = "volleyball-msg-name";
-const APP_VERSION = "1.7.8";
+const APP_VERSION = "1.7.9";
 
 const CHANGELOG = [
+  {
+    version: "v1.7.9",
+    date: "2026-05",
+    title: "定位狀態改集中顯示於抽屜徽章",
+    items: [
+      "移除球場卡片下的定位狀態文字",
+      "移除報名頁面的定位結果訊息",
+      "定位狀態（不在範圍 無法報名）僅顯示於選單球場徽章"
+    ]
+  },
   {
     version: "v1.7.8",
     date: "2026-05",
@@ -216,7 +226,6 @@ const cancelMyRegistrationBtn = document.getElementById("cancel-my-registration"
 const resetRegistrationBtn = document.getElementById("reset-registration");
 const resetMatchHistoryBtn = document.getElementById("reset-match-history");
 const registrationMessageEl = document.getElementById("registration-message");
-const locationMessageEl = document.getElementById("location-message");
 const streakModeStatusEl = document.getElementById("streak-mode-status");
 const systemAdminPageEl = document.getElementById("system-admin-page");
 const sysAdminLoginSectionEl = document.getElementById("sys-admin-login-section");
@@ -762,30 +771,24 @@ function refreshScoringPermissionView() {
 function checkLocationForRegistration() {
   if (VENUES[selectedVenueId]?.noLocationCheck) {
     isInVenue = true;
-    if (locationMessageEl) locationMessageEl.textContent = "";
     applyVenueGate();
     return;
   }
 
   if (!navigator.geolocation) {
     isInVenue = false;
-    locationMessageEl.textContent = "此裝置不支援定位，無法報名。";
     applyVenueGate();
     return;
   }
 
-  locationMessageEl.textContent = "";
   navigator.geolocation.getCurrentPosition(
     (position) => {
       const { latitude, longitude } = position.coords;
       isInVenue = isInsideSelectedVenue(latitude, longitude);
-      locationMessageEl.textContent = isInVenue ? "✓ 符合報隊資格" : "✗ 不符合報隊資格（不在球場範圍內）";
-      locationMessageEl.classList.toggle("location-fail", !isInVenue);
       applyVenueGate();
     },
     () => {
       isInVenue = false;
-      locationMessageEl.textContent = "無法取得位置資訊，請確認定位授權。";
       applyVenueGate();
     },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 10000 }
