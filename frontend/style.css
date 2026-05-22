@@ -799,13 +799,15 @@ h1 {
 }
 
 #registered-teams,
-#registration-history,
-#registered-teams,
 #match-history,
 #registration-history {
   list-style: none;
   padding: 0;
   margin: 8px 0 0;
+  max-height: 260px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.3) transparent;
 }
 
 /* ── Team queue cards ────────────────────────────── */
