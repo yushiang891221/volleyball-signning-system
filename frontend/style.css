@@ -301,6 +301,8 @@ h1 {
 }
 
 /* ── Venue selection page ────────────────────────── */
+#venue-page.hidden { display: none; }
+
 #venue-page {
   display: flex;
   flex-direction: column;
