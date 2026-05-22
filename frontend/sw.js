@@ -15,7 +15,7 @@ self.addEventListener('push', event => {
   event.waitUntil(
     self.registration.showNotification(data.title || '野場喊PLAY！', {
       body: data.body || '',
-      icon: '/Gemini_Generated_Image_fft0pnfft0pnfft0.png',
+      icon: '/app-icon.png',
       tag: 'play-notification',
       renotify: true
     })
