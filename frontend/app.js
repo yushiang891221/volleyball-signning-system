@@ -2327,7 +2327,7 @@ if (sysClearMessagesBtn) sysClearMessagesBtn.addEventListener("click", clearMess
   if (btn) btn.addEventListener("click", () => setGameDifficulty(d));
 });
 document.getElementById("sys-admin-back-btn").addEventListener("click", () => {
-  if (!venueSelected) showVenuePage(); else showPage("registration");
+  if (!venueSelected) showVenuePage(); else showPage("match");
 });
 const announcementModal = document.getElementById("announcement-modal");
 document.getElementById("go-announcement").addEventListener("click", () => { announcementModal.classList.remove("hidden"); closeDrawer(); });
@@ -2335,10 +2335,10 @@ document.getElementById("announcement-close").addEventListener("click", () => an
 announcementModal.addEventListener("click", e => { if (e.target === announcementModal) announcementModal.classList.add("hidden"); });
 document.getElementById("go-message-board").addEventListener("click", () => { showPage("message-board"); closeDrawer(); });
 document.getElementById("msg-board-back-btn").addEventListener("click", () => {
-  if (!venueSelected) showVenuePage(); else showPage("registration");
+  if (!venueSelected) showVenuePage(); else showPage("match");
 });
 document.getElementById("update-back-btn").addEventListener("click", () => {
-  if (!venueSelected) showVenuePage(); else showPage("registration");
+  if (!venueSelected) showVenuePage(); else showPage("match");
 });
 document.getElementById("update-start-btn").addEventListener("click", runUpdate);
 if (msgSubmitBtn) msgSubmitBtn.addEventListener("click", submitMessage);
