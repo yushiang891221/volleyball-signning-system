@@ -337,18 +337,22 @@ h1 {
 
 .back-btn {
   align-self: flex-start;
-  background: transparent;
-  border: none;
-  color: var(--purple-dark);
-  font-size: 0.9rem;
-  font-weight: 600;
+  background: #ffffff;
+  border: 1.5px solid var(--glass-border);
+  border-radius: 20px;
+  color: var(--purple-deep);
+  font-size: 0.78rem;
+  font-weight: 700;
   font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
   cursor: pointer;
-  padding: 4px 0 8px;
+  padding: 8px 18px;
+  box-shadow: 0 4px 18px rgba(107, 79, 175, 0.09);
   touch-action: manipulation;
+  transition: transform 0.14s, box-shadow 0.14s;
 }
 
-.back-btn:hover { color: var(--purple-deep); }
+.back-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(107, 79, 175, 0.2); }
+.back-btn:active { transform: scale(0.92); box-shadow: 0 2px 8px rgba(107,79,175,0.15); filter: brightness(0.88); transition: transform 0.05s, filter 0.05s; }
 
 .venue-page-subtitle {
   color: var(--text-muted);
@@ -531,20 +535,20 @@ h1 {
 
 #match-back-btn {
   flex-shrink: 0;
-  font-size: 0.7rem;
-  padding: 4px 10px;
-  border-radius: 6px;
+  font-size: 0.78rem;
+  padding: 8px 18px;
+  border-radius: 20px;
   border: 1.5px solid var(--glass-border);
-  background: var(--card-bg);
+  background: #ffffff;
   color: var(--purple-deep);
   font-weight: 700;
-  box-shadow: 0 2px 8px rgba(107,79,175,0.09);
+  box-shadow: 0 4px 18px rgba(107, 79, 175, 0.09);
   cursor: pointer;
   font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
   transition: transform 0.14s, box-shadow 0.14s;
 }
-#match-back-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(107,79,175,0.18); }
-#match-back-btn:active { transform: scale(0.94); filter: brightness(0.9); }
+#match-back-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(107, 79, 175, 0.2); }
+#match-back-btn:active { transform: scale(0.92); box-shadow: 0 2px 8px rgba(107,79,175,0.15); filter: brightness(0.88); transition: transform 0.05s, filter 0.05s; }
 .subpage-back-btn:active { transform: scale(0.94); filter: brightness(0.9); }
 
 .subpage-title {
