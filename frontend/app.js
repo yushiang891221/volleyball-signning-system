@@ -267,7 +267,6 @@ let currentPage = "registration";
 let isInVenue = false;
 let systemAdminUnlocked = false;
 let vapidPublicKey = null;
-let fengchiaAccessible = null;
 let venueSelected = false;
 let selectedVenueId = DEFAULT_VENUE_ID;
 let allVenueStates = {};
@@ -962,44 +961,6 @@ async function clearMessageBoard() {
   }
 }
 
-function updateFengchiaCard() {
-  const card = document.getElementById("select-fengchia");
-  const status = document.getElementById("fengchia-card-status");
-  if (!card || !status) return;
-  card.classList.remove("venue-card--disabled");
-  if (fengchiaAccessible === null) {
-    status.textContent = "🔍 定位中...";
-  } else if (fengchiaAccessible === true) {
-    status.textContent = "";
-  } else {
-    status.textContent = "📍 不在球場範圍內";
-  }
-}
-
-function checkFengchiaAccessible() {
-  fengchiaAccessible = null;
-  updateFengchiaCard();
-  const fengchiaVenue = VENUES["fengchia_1"];
-  if (!fengchiaVenue || fengchiaVenue.noLocationCheck) {
-    fengchiaAccessible = true;
-    updateFengchiaCard();
-    return;
-  }
-  if (!navigator.geolocation) {
-    fengchiaAccessible = false;
-    updateFengchiaCard();
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      const { latitude, longitude } = pos.coords;
-      fengchiaAccessible = isInsideVenueBox(latitude, longitude, fengchiaVenue.cornerA, fengchiaVenue.cornerB);
-      updateFengchiaCard();
-    },
-    () => { fengchiaAccessible = false; updateFengchiaCard(); },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
-  );
-}
 
 function showMainPage() {
   venuePageEl.classList.add("hidden");
@@ -1025,7 +986,6 @@ function showVenuePage() {
   systemAdminPageEl.classList.add("hidden");
   closeDrawer();
   updateDrawerVenueGate();
-  checkFengchiaAccessible();
 }
 
 function selectVenue(venueId) {
