@@ -34,6 +34,37 @@
       backdrop-filter: blur(6px);
     }
 
+    /* ── Mode badge ─── */
+    #mode-badge {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      z-index: 1000;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+      padding: 4px 10px;
+      border-radius: 8px;
+      backdrop-filter: blur(6px);
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      pointer-events: none;
+    }
+    #mode-badge.mode-hint {
+      background: rgba(0,0,0,0.45);
+      color: rgba(255,255,255,0.6);
+      border: 1.5px solid rgba(255,255,255,0.2);
+    }
+    #mode-badge.mode-1p {
+      background: rgba(30,180,140,0.75);
+      color: #fff;
+      border: 1.5px solid rgba(100,255,200,0.5);
+    }
+    #mode-badge.mode-2p {
+      background: rgba(220,130,30,0.8);
+      color: #fff;
+      border: 1.5px solid rgba(255,200,80,0.5);
+    }
+
     /* ── Touch controls overlay ─── */
     #touch-overlay {
       position: fixed;
@@ -176,6 +207,9 @@
 
   <!-- Back to lobby -->
   <button id="back-btn" onclick="location.href='index.html'">← 返回</button>
+
+  <!-- Mode badge -->
+  <div id="mode-badge" class="mode-hint">↑1P ↓2P</div>
 
   <!-- Mute toggle -->
   <button id="mute-btn" onclick="toggleMute()"
@@ -444,17 +478,33 @@
     let gamePhase = 'MENU';
     let menuAttacks = 0;
     let isTwoPlayer = false;
+    let modeChosen = false;
+
+    const modeBadge = document.getElementById('mode-badge');
+    function updateModeBadge() {
+      if (gamePhase === 'MENU' && !modeChosen) {
+        modeBadge.className = 'mode-hint';
+        modeBadge.textContent = '↑1P ↓2P';
+      } else if (isTwoPlayer) {
+        modeBadge.className = 'mode-2p';
+        modeBadge.textContent = gamePhase === 'PLAYING' ? '2P 模式' : '2P 模式 (待確認)';
+      } else {
+        modeBadge.className = 'mode-1p';
+        modeBadge.textContent = gamePhase === 'PLAYING' ? '1P 模式' : '1P 模式 (待確認)';
+      }
+    }
 
     function onMenuInput(action) {
       if (!action) return;
       if (modal.style.display === 'flex') return;
       if (gamePhase === 'MENU') {
-        if (action === 'down' && menuAttacks === 0) isTwoPlayer = true;
-        else if (action === 'up' && menuAttacks === 0) isTwoPlayer = false;
+        if (action === 'down' && menuAttacks === 0) { isTwoPlayer = true; modeChosen = true; }
+        else if (action === 'up' && menuAttacks === 0) { isTwoPlayer = false; modeChosen = true; }
         else if (action === 'attack') {
           menuAttacks++;
           if (menuAttacks >= 2) gamePhase = 'PLAYING';
         }
+        updateModeBadge();
       }
     }
 
@@ -462,6 +512,8 @@
       gamePhase = 'MENU';
       menuAttacks = 0;
       isTwoPlayer = false;
+      modeChosen = false;
+      updateModeBadge();
     });
 
     // ── Leaderboard ──────────────────────────────────
@@ -488,6 +540,8 @@
       gamePhase = 'MENU';
       menuAttacks = 0;
       isTwoPlayer = false;
+      modeChosen = false;
+      updateModeBadge();
       if (score <= 0) return;
       submitBtn.disabled = !wasOnePlayer;
       submitBtn.style.opacity = wasOnePlayer ? '' : '0.35';
