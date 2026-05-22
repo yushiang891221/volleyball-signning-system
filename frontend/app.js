@@ -2358,9 +2358,6 @@ if (sysClearMessagesBtn) sysClearMessagesBtn.addEventListener("click", clearMess
   const btn = document.getElementById(`sys-difficulty-${d}`);
   if (btn) btn.addEventListener("click", () => setGameDifficulty(d));
 });
-document.getElementById("registration-back-btn").addEventListener("click", () => showMainPage());
-document.getElementById("score-back-btn").addEventListener("click", () => showMainPage());
-document.getElementById("admin-back-btn").addEventListener("click", () => showMainPage());
 document.getElementById("sys-admin-back-btn").addEventListener("click", () => {
   if (!venueSelected) showVenuePage(); else showPage("registration");
 });
