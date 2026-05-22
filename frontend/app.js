@@ -984,9 +984,12 @@ function showVenuePage() {
   document.getElementById("venue-top-select").classList.remove("hidden");
   document.getElementById("court-select").classList.add("hidden");
   registrationPageEl.classList.add("hidden");
+  matchPageEl.classList.add("hidden");
   scorePageEl.classList.add("hidden");
   adminPageEl.classList.add("hidden");
   systemAdminPageEl.classList.add("hidden");
+  messageBoardPageEl.classList.add("hidden");
+  updatePageEl.classList.add("hidden");
   closeDrawer();
   updateDrawerVenueGate();
 }
