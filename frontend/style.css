@@ -733,38 +733,8 @@ h1 {
 .management-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 14px;
 }
-
-.management-grid .panel-block {
-  padding: 10px;
-}
-
-.management-grid .panel-block h3 {
-  font-size: 0.78rem;
-  margin-bottom: 8px;
-}
-
-.management-grid .panel-block h4 {
-  font-size: 0.66rem;
-  margin: 10px 0 3px;
-}
-
-.management-grid #registered-teams,
-.management-grid #match-history,
-.management-grid #registration-history {
-  max-height: 200px;
-}
-
-.management-grid .tq-name   { font-size: 0.78rem; }
-.management-grid .tq-players { font-size: 0.64rem; }
-.management-grid .tq-badge  { font-size: 0.56rem; padding: 1px 5px; }
-.management-grid .team-queue-item { padding: 6px 8px; }
-
-.management-grid .match-item  { padding: 5px 8px; }
-.management-grid .match-num   { font-size: 0.58rem; }
-.management-grid .match-team  { font-size: 0.72rem; }
-.management-grid .match-score { font-size: 0.82rem; }
 
 /* ── Messages ────────────────────────────────────── */
 #registration-message {
@@ -1522,6 +1492,7 @@ button:active {
   h1 { font-size: 1.4rem; letter-spacing: 2px; }
 
   .scoreboard         { grid-template-columns: 1fr; }
+  .management-grid    { grid-template-columns: 1fr; }
 
   .panel-actions button { width: 100%; }
 

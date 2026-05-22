@@ -241,11 +241,13 @@ const scorePageMessageEl = document.getElementById("score-page-message");
 const venuePageEl = document.getElementById("venue-page");
 const venueBadgeNameEl = document.getElementById("venue-badge-name");
 const goRegistrationBtn = document.getElementById("go-registration");
+const goMatchBtn = document.getElementById("go-match");
 const goScoreBtn = document.getElementById("go-score");
 const goAdminBtn = document.getElementById("go-admin");
 const adminLoginSectionEl = document.getElementById("admin-login-section");
 const adminControlsSectionEl = document.getElementById("admin-controls-section");
 const adminVenueInfoEl = document.getElementById("admin-venue-info");
+const matchPageEl = document.getElementById("match-page");
 const messageBoardPageEl = document.getElementById("message-board-page");
 const msgNameInputEl = document.getElementById("msg-name-input");
 const msgContentInputEl = document.getElementById("msg-content-input");
@@ -810,9 +812,11 @@ function updateScorePageMessage() {
 
 function updateDrawerVenueGate() {
   const regLi = document.getElementById("nav-li-registration");
+  const matchLi = document.getElementById("nav-li-match");
   const scoreLi = document.getElementById("nav-li-score");
   const adminLi = document.getElementById("nav-li-admin");
   if (regLi) regLi.classList.toggle("nav-item-disabled", !venueSelected);
+  if (matchLi) matchLi.classList.toggle("nav-item-disabled", !venueSelected);
   if (scoreLi) scoreLi.classList.toggle("nav-item-disabled", !venueSelected);
   if (adminLi) adminLi.classList.toggle("nav-item-disabled", !venueSelected);
 }
@@ -1013,6 +1017,7 @@ function checkFengchiaAccessible() {
 function showMainPage() {
   venuePageEl.classList.add("hidden");
   registrationPageEl.classList.add("hidden");
+  matchPageEl.classList.add("hidden");
   scorePageEl.classList.add("hidden");
   adminPageEl.classList.add("hidden");
   systemAdminPageEl.classList.add("hidden");
@@ -1062,6 +1067,7 @@ function showPage(page) {
     return;
   }
   const isRegistration = page === "registration";
+  const isMatch = page === "match";
   const isScore = page === "score";
   const isAdmin = page === "admin";
   const isSystemAdmin = page === "system-admin";
@@ -1071,6 +1077,7 @@ function showPage(page) {
   window.scrollTo(0, 0);
   venuePageEl.classList.add("hidden");
   registrationPageEl.classList.toggle("hidden", !isRegistration);
+  matchPageEl.classList.toggle("hidden", !isMatch);
   scorePageEl.classList.toggle("hidden", !isScore);
   adminPageEl.classList.toggle("hidden", !isAdmin);
   systemAdminPageEl.classList.toggle("hidden", !isSystemAdmin);
@@ -1078,6 +1085,7 @@ function showPage(page) {
   updatePageEl.classList.toggle("hidden", !isUpdate);
   if (isUpdate) { renderChangelog(); }
   goRegistrationBtn.classList.toggle("active", isRegistration);
+  goMatchBtn.classList.toggle("active", isMatch);
   goScoreBtn.classList.toggle("active", isScore);
   goAdminBtn.classList.toggle("active", isAdmin);
   const goSystemAdminBtnEl = document.getElementById("go-system-admin");
@@ -2365,6 +2373,7 @@ venueSelectEl.addEventListener("change", () => {
   if (isLocationCheckEnabled()) checkLocationForRegistration();
 });
 goRegistrationBtn.addEventListener("click", () => showPage("registration"));
+goMatchBtn.addEventListener("click", () => { showPage("match"); closeDrawer(); });
 goScoreBtn.addEventListener("click", () => showPage("score"));
 goAdminBtn.addEventListener("click", () => showPage("admin"));
 document.getElementById("go-system-admin").addEventListener("click", () => { showPage("system-admin"); closeDrawer(); });

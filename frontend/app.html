@@ -32,6 +32,7 @@
     <ul id="drawer-nav">
       <li class="nav-venue-section-label">球場功能</li>
       <li id="nav-li-registration"><button id="go-registration" type="button"><img src="contract.png" class="nav-icon" alt="">報名頁面</button></li>
+      <li id="nav-li-match"><button id="go-match" type="button">📋 比賽現況</button></li>
       <li id="nav-li-score"><button id="go-score" type="button"><img src="score.png" class="nav-icon" alt="">計分頁面</button></li>
       <li id="nav-li-admin"><button id="go-admin" type="button"><img src="setting.png" class="nav-icon" alt="">野場管理員(NPC)</button></li>
       <li class="nav-divider-item"></li>
@@ -85,25 +86,27 @@
       </div>
     </section>
 
+    <section id="match-page" class="hidden">
+      <section class="registration-section">
+        <section class="panel-block">
+          <h3>報名隊伍</h3>
+          <div class="panel-actions">
+            <button id="quick-start" type="button">⚡ 快速開局</button>
+          </div>
+          <ol id="registered-teams"></ol>
+          <h4>報名隊名紀錄</h4>
+          <ol id="registration-history"></ol>
+        </section>
+
+        <section class="panel-block">
+          <h3>比賽結果</h3>
+          <ol id="match-history"></ol>
+        </section>
+      </section>
+    </section>
+
     <section id="registration-page" class="hidden">
       <section class="registration-section">
-        <div class="management-grid">
-          <section class="panel-block">
-            <h3>報名隊伍</h3>
-            <div class="panel-actions">
-              <button id="quick-start" type="button">⚡ 快速開局</button>
-            </div>
-            <ol id="registered-teams"></ol>
-            <h4>報名隊名紀錄</h4>
-            <ol id="registration-history"></ol>
-          </section>
-
-          <section class="panel-block">
-            <h3>比賽結果</h3>
-            <ol id="match-history"></ol>
-          </section>
-        </div>
-
         <h2>單隊報名（每隊 6 人）</h2>
         <div class="registration-card hidden">
           <label for="venue-select">選擇球場</label>
