@@ -2309,6 +2309,7 @@ venueSelectEl.addEventListener("change", () => {
 });
 goRegistrationBtn.addEventListener("click", () => showPage("registration"));
 goMatchBtn.addEventListener("click", () => { showPage("match"); closeDrawer(); });
+document.getElementById("match-back-btn").addEventListener("click", () => showVenuePage());
 goScoreBtn.addEventListener("click", () => showPage("score"));
 goAdminBtn.addEventListener("click", () => showPage("admin"));
 document.getElementById("go-system-admin").addEventListener("click", () => { showPage("system-admin"); closeDrawer(); });
