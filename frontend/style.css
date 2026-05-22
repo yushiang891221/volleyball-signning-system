@@ -529,17 +529,28 @@ h1 {
 }
 .subpage-back-btn:hover { background: var(--purple-light); box-shadow: none; filter: none; transform: none; }
 
+#match-page .subpage-header {
+  background: linear-gradient(135deg, var(--purple-dark) 0%, var(--purple-deep) 100%);
+  border-bottom: none;
+  border-radius: 0;
+  padding: 10px 16px;
+}
+
 #match-back-btn {
+  flex-shrink: 0;
   font-size: 0.7rem;
   padding: 4px 10px;
   border-radius: 6px;
-  border: 1.5px solid rgba(107,79,175,0.4);
-  background: rgba(107,79,175,0.1);
-  color: var(--purple-dark);
+  border: 1.5px solid rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.9);
   font-weight: 700;
   box-shadow: none;
+  cursor: pointer;
+  font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+  transition: background 0.12s, border-color 0.12s;
 }
-#match-back-btn:hover { background: rgba(107,79,175,0.2); border-color: rgba(107,79,175,0.65); }
+#match-back-btn:hover { background: rgba(255,255,255,0.28); border-color: rgba(255,255,255,0.7); }
 .subpage-back-btn:active { transform: scale(0.94); filter: brightness(0.9); }
 
 .subpage-title {
