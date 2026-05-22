@@ -33,9 +33,19 @@ const DAILY_RESET_CHECK_KEY = "volleyball-last-daily-reset-check";
 const SYSTEM_SETTINGS_KEY = "volleyball-system-settings";
 const MSG_BOARD_KEY = "volleyball-messages";
 const MSG_NAME_KEY = "volleyball-msg-name";
-const APP_VERSION = "1.7.7";
+const APP_VERSION = "1.7.8";
 
 const CHANGELOG = [
+  {
+    version: "v1.7.8",
+    date: "2026-05",
+    title: "主頁簡化，球場選擇移至選單",
+    items: [
+      "主頁僅保留標題與時間，球場選擇從主頁移除",
+      "從選單「選球場」開啟球場選擇，原「換球場」更名",
+      "「← 回主頁」返回空白主頁，不重置球場選擇狀態"
+    ]
+  },
   {
     version: "v1.7.7",
     date: "2026-05",
@@ -998,6 +1008,18 @@ function checkFengchiaAccessible() {
     () => { fengchiaAccessible = false; updateFengchiaCard(); },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
   );
+}
+
+function showMainPage() {
+  venuePageEl.classList.add("hidden");
+  registrationPageEl.classList.add("hidden");
+  scorePageEl.classList.add("hidden");
+  adminPageEl.classList.add("hidden");
+  systemAdminPageEl.classList.add("hidden");
+  messageBoardPageEl.classList.add("hidden");
+  updatePageEl.classList.add("hidden");
+  closeDrawer();
+  updateDrawerVenueGate();
 }
 
 function showVenuePage() {
@@ -2336,9 +2358,9 @@ if (sysClearMessagesBtn) sysClearMessagesBtn.addEventListener("click", clearMess
   const btn = document.getElementById(`sys-difficulty-${d}`);
   if (btn) btn.addEventListener("click", () => setGameDifficulty(d));
 });
-document.getElementById("registration-back-btn").addEventListener("click", () => showVenuePage());
-document.getElementById("score-back-btn").addEventListener("click", () => showVenuePage());
-document.getElementById("admin-back-btn").addEventListener("click", () => showVenuePage());
+document.getElementById("registration-back-btn").addEventListener("click", () => showMainPage());
+document.getElementById("score-back-btn").addEventListener("click", () => showMainPage());
+document.getElementById("admin-back-btn").addEventListener("click", () => showMainPage());
 document.getElementById("sys-admin-back-btn").addEventListener("click", () => {
   if (!venueSelected) showVenuePage(); else showPage("registration");
 });
@@ -2398,7 +2420,8 @@ renderMatchHistory();
 ensureDeviceTeamStillExists();
 updateStreakModeStatus();
 refreshView();
-showVenuePage();
+showMainPage();
+checkFengchiaAccessible();
 updateDrawerVenueGate();
 renderAdminModeView();
 venueSelectEl.value = selectedVenueId;

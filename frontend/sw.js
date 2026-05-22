@@ -1,4 +1,4 @@
-const CACHE_NAME = 'volleyball-cache-v1.7.7';
+const CACHE_NAME = 'volleyball-cache-v1.7.8';
 
 self.addEventListener('install', () => self.skipWaiting());
 
