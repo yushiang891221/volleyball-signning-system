@@ -978,20 +978,21 @@ h1 {
   pointer-events: none;
 }
 
-#team-a-card {
-  background: linear-gradient(150deg, #A87FE0 0%, var(--purple-dark) 50%, var(--purple-deep) 100%);
+#team-a-card,
+#team-b-card {
+  background: #0a0a0a;
   box-shadow:
-    0 12px 36px var(--purple-glow),
-    0 2px 8px rgba(0,0,0,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.3);
+    0 12px 36px rgba(0,0,0,0.45),
+    0 2px 8px rgba(0,0,0,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.08);
 }
 
-#team-b-card {
-  background: linear-gradient(150deg, #52DDD5 0%, var(--teal-dark) 50%, var(--teal-deep) 100%);
-  box-shadow:
-    0 12px 36px var(--teal-glow),
-    0 2px 8px rgba(0,0,0,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.3);
+/* Hide the white gloss/decorative overlays so the card stays solid black */
+#team-a-card::before,
+#team-b-card::before,
+#team-a-card::after,
+#team-b-card::after {
+  display: none;
 }
 
 .team-card h2 {
@@ -1012,12 +1013,13 @@ h1 {
 }
 
 .score {
-  font-size: 140px;
+  font-size: 220px;
   font-weight: 900;
   margin: 4px 0 18px;
-  color: var(--white);
+  color: var(--gold);
   line-height: 1;
-  text-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  letter-spacing: -4px;
+  text-shadow: 0 4px 18px rgba(0,0,0,0.55);
   position: relative;
 }
 
@@ -1522,7 +1524,7 @@ button:active {
 
   .panel-actions button { width: 100%; }
 
-  .score { font-size: 110px; }
+  .score { font-size: 180px; }
 }
 
 /* ── Score page landscape mode ───────────────────── */
@@ -1602,7 +1604,7 @@ button:active {
   }
 
   body.score-page-active .score {
-    font-size: 160px;
+    font-size: clamp(180px, 42dvh, 360px);
   }
 
   body.score-page-active .score-page-message {
