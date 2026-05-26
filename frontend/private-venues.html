@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>私人球館 | 野場喊PLAY！</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="app-icon.png">
+  <meta name="theme-color" content="#8B72BE">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .pv-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 16px 56px;
+    }
+    .pv-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .pv-back {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      color: var(--purple-dark);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 8px 14px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .pv-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: var(--purple-deep);
+      margin: 0;
+    }
+    .pv-region {
+      margin: 22px 0 28px;
+    }
+    .pv-region-name {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--purple-deep);
+      margin: 0 0 12px;
+      padding-left: 8px;
+      border-left: 5px solid var(--purple);
+    }
+    .pv-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+    }
+    .pv-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 64px;
+      padding: 0 12px;
+      background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 1px;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px var(--purple-glow), inset 0 1px 0 rgba(255,255,255,0.25);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      word-break: break-word;
+    }
+    .pv-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 3px 10px var(--purple-glow), inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+    @media (max-width: 480px) {
+      .pv-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .pv-btn { height: 60px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <main class="pv-container">
+    <div class="pv-header">
+      <a href="app.html" class="pv-back">← 返回</a>
+      <h1 class="pv-title">🏟️ 私人球館</h1>
+    </div>
+
+    <!-- 台北地區 -->
+    <section class="pv-region">
+      <h2 class="pv-region-name">台北地區</h2>
+      <div class="pv-grid">
+        <!-- 範例（待替換）：<a class="pv-btn" href="https://example.com" target="_blank" rel="noopener">球館名稱</a> -->
+      </div>
+    </section>
+
+    <!-- 桃園地區 -->
+    <section class="pv-region">
+      <h2 class="pv-region-name">桃園地區</h2>
+      <div class="pv-grid">
+      </div>
+    </section>
+
+    <!-- 台中地區 -->
+    <section class="pv-region">
+      <h2 class="pv-region-name">台中地區</h2>
+      <div class="pv-grid">
+      </div>
+    </section>
+
+    <!-- 之後可繼續加：新竹、台南、高雄… -->
+  </main>
+</body>
+</html>
