@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="style.css">
   <style>
     .pv-container {
-      max-width: 900px;
+      max-width: 960px;
       margin: 0 auto;
       padding: 24px 16px 56px;
     }
@@ -54,26 +54,27 @@
     }
     .pv-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       gap: 12px;
     }
     .pv-btn {
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 64px;
-      padding: 0 12px;
+      height: 72px;
+      padding: 0 10px;
       background: linear-gradient(135deg, var(--purple) 0%, var(--purple-dark) 100%);
       color: #fff;
       font-weight: 700;
-      font-size: 0.95rem;
-      letter-spacing: 1px;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
       text-align: center;
       text-decoration: none;
       border-radius: 16px;
       box-shadow: 0 6px 16px var(--purple-glow), inset 0 1px 0 rgba(255,255,255,0.25);
       transition: transform 0.15s ease, box-shadow 0.15s ease;
       word-break: break-word;
+      line-height: 1.25;
     }
     .pv-btn:active {
       transform: translateY(1px);
@@ -82,8 +83,9 @@
     @media (max-width: 480px) {
       .pv-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
       }
-      .pv-btn { height: 60px; font-size: 0.9rem; }
+      .pv-btn { height: 68px; font-size: 0.85rem; }
     }
   </style>
 </head>
@@ -98,7 +100,39 @@
     <section class="pv-region">
       <h2 class="pv-region-name">台北地區</h2>
       <div class="pv-grid">
-        <!-- 範例（待替換）：<a class="pv-btn" href="https://example.com" target="_blank" rel="noopener">球館名稱</a> -->
+        <a class="pv-btn" href="https://paisport.com.tw/reserve" target="_blank" rel="noopener">三米線排球俱樂部</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/1671371583782210/" target="_blank" rel="noopener">板城輕鬆玩-排羽球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/65volleyball/?locale=zh_TW" target="_blank" rel="noopener">65volleyball</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/1502761274445610/" target="_blank" rel="noopener">藍鵲排球-板橋訓練基地</a>
+        <a class="pv-btn" href="https://zhonghe-ace.app.acesports.tw/#/login" target="_blank" rel="noopener">中和Ace3.0排球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/capibara1903/?locale=zh_TW" target="_blank" rel="noopener">輕鬆玩心流運動空間橋和場</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/278784660958694/" target="_blank" rel="noopener">藍鵲排球-中和館</a>
+        <a class="pv-btn" href="https://612-d3bnchawfpeeamcy.japanwest-01.azurewebsites.net/signup" target="_blank" rel="noopener">612排球星球+</a>
+        <a class="pv-btn" href="https://nva-web.azurewebsites.net/signup" target="_blank" rel="noopener">NVA Club House 排球俱樂部</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/1043028786377395/?locale=zh_TW" target="_blank" rel="noopener">WOOHA SPORTS CLUB</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/361679846839401/" target="_blank" rel="noopener">Y.M.268 球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/471627857365456/?locale=zh_TW" target="_blank" rel="noopener">3.14π球館</a>
+        <a class="pv-btn" href="https://www.aligh.co/zh-TW/venue/1785?sportId=1" target="_blank" rel="noopener">259排球館</a>
+        <a class="pv-btn" href="https://flywing.acesports.tw/login" target="_blank" rel="noopener">新莊飛翼FLYWING排球館</a>
+        <a class="pv-btn" href="https://powerfrog-cwagdne0bdc4dedp.japanwest-01.azurewebsites.net/signup" target="_blank" rel="noopener">活力小蛙泰林排球館</a>
+        <a class="pv-btn" href="https://booking.acesports.tw/login" target="_blank" rel="noopener">林口Ace2.0排球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/420193853490542/?locale=zh_TW" target="_blank" rel="noopener">OIN排球基地</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/capibara1903/?locale=zh_TW" target="_blank" rel="noopener">輕鬆玩心流運動空間</a>
+        <a class="pv-btn" href="https://magicblock.acesports.tw/login" target="_blank" rel="noopener">球魔方2.0排球館</a>
+      </div>
+    </section>
+
+    <!-- 新竹地區 -->
+    <section class="pv-region">
+      <h2 class="pv-region-name">新竹地區</h2>
+      <div class="pv-grid">
+        <a class="pv-btn" href="https://www.facebook.com/groups/1932942800843343/" target="_blank" rel="noopener">可利小棧三館</a>
+        <a class="pv-btn" href="https://justcrazy.acesports.tw/login" target="_blank" rel="noopener">就醬瘋排球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/1156254225814800/" target="_blank" rel="noopener">啪！排郎</a>
+        <a class="pv-btn" href="https://app.volleydog.com/" target="_blank" rel="noopener">Volley Chill x 排丘</a>
+        <a class="pv-btn" href="https://longshot.booknow.com.tw/#" target="_blank" rel="noopener">龍蝦排球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/3086997421584207/?locale=zh_TW" target="_blank" rel="noopener">可利's排球小棧二館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/3086997421584207/?locale=zh_TW" target="_blank" rel="noopener">可利's排球小棧</a>
       </div>
     </section>
 
@@ -106,6 +140,17 @@
     <section class="pv-region">
       <h2 class="pv-region-name">桃園地區</h2>
       <div class="pv-grid">
+        <a class="pv-btn" href="https://chasinglife.tw/i/01" target="_blank" rel="noopener">追球人生 一館-中壢館</a>
+        <a class="pv-btn" href="https://www.jinvolleyball.com/" target="_blank" rel="noopener">金排球</a>
+        <a class="pv-btn" href="https://hibi.acesports.tw/login" target="_blank" rel="noopener">Hibi日日排羽球</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/314386268272954/posts/326104420434472" target="_blank" rel="noopener">告四排排球館_VolleyRoad</a>
+        <a class="pv-btn" href="https://hunss.com/order/volleyball" target="_blank" rel="noopener">匈奴人匹羽排球館</a>
+        <a class="pv-btn" href="https://chasinglife.tw/i/02" target="_blank" rel="noopener">追球人生二館-桃園館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/1185048532336040?locale=zh_TW" target="_blank" rel="noopener">貓球俱樂部</a>
+        <a class="pv-btn" href="https://shurenvolley.tw/" target="_blank" rel="noopener">樹人球館</a>
+        <a class="pv-btn" href="https://playone.acesports.tw/login" target="_blank" rel="noopener">Playone排球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/493636872374635" target="_blank" rel="noopener">霖度c排球館</a>
+        <a class="pv-btn" href="https://www.aligh.co/zh-TW/venue/1723?sportId=1" target="_blank" rel="noopener">邷力豹 | 排球館</a>
       </div>
     </section>
 
@@ -113,10 +158,83 @@
     <section class="pv-region">
       <h2 class="pv-region-name">台中地區</h2>
       <div class="pv-grid">
+        <a class="pv-btn" href="https://www.facebook.com/groups/234463818422423/" target="_blank" rel="noopener">厚島町室內排球場</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/814510590320528?locale=zh_TW" target="_blank" rel="noopener">V.Labs瓦雷排球實驗室</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/volleyzone2024/" target="_blank" rel="noopener">VolleyZone_排球地帶</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/594421682500598" target="_blank" rel="noopener">英雄室內排球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/278990120293030/" target="_blank" rel="noopener">諾亞方舟 西屯館</a>
+        <a class="pv-btn" href="https://app.volleydog.com/" target="_blank" rel="noopener">Volley Valley x 排谷排球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/1751569372228467" target="_blank" rel="noopener">波長排球館</a>
+        <a class="pv-btn" href="https://supaiku.net/" target="_blank" rel="noopener">史派克 Supaiku Volley</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/186877438033868/user/1737698754075314/" target="_blank" rel="noopener">芭娜娜排球樂園</a>
+        <a class="pv-btn" href="https://www.aligh.co/zh-TW/venue/1762?sportId=1" target="_blank" rel="noopener">野居排球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/901364761863698" target="_blank" rel="noopener">連義華排球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/278990120293030/" target="_blank" rel="noopener">諾亞方舟 大雅館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/382676516295185" target="_blank" rel="noopener">芊億排球館</a>
       </div>
     </section>
 
-    <!-- 之後可繼續加：新竹、台南、高雄… -->
+    <!-- 彰化地區 -->
+    <section class="pv-region">
+      <h2 class="pv-region-name">彰化地區</h2>
+      <div class="pv-grid">
+        <a class="pv-btn" href="https://www.facebook.com/groups/2717063038634540" target="_blank" rel="noopener">小睡排球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/150382077999223/" target="_blank" rel="noopener">魚躍室內排球館 Diving volleyball</a>
+      </div>
+    </section>
+
+    <!-- 嘉義地區 -->
+    <section class="pv-region">
+      <h2 class="pv-region-name">嘉義地區</h2>
+      <div class="pv-grid">
+        <a class="pv-btn" href="https://www.aligh.co/zh-TW/venue/1787?sportId=1" target="_blank" rel="noopener">懶網LazyNet_嘉義</a>
+      </div>
+    </section>
+
+    <!-- 雲林地區 -->
+    <section class="pv-region">
+      <h2 class="pv-region-name">雲林地區</h2>
+      <div class="pv-grid">
+        <a class="pv-btn" href="https://www.aligh.co/zh-TW/venue/1788?sportId=1" target="_blank" rel="noopener">懶網LazyNetˍ雲林</a>
+      </div>
+    </section>
+
+    <!-- 台南地區 -->
+    <section class="pv-region">
+      <h2 class="pv-region-name">台南地區</h2>
+      <div class="pv-grid">
+        <a class="pv-btn" href="https://www.facebook.com/groups/1270706607213459/" target="_blank" rel="noopener">鷹派TNN-IMPACT</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/514305787267312?locale=zh_TW" target="_blank" rel="noopener">小窩排球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/1680803596084612/" target="_blank" rel="noopener">台南霖度C ：企球</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/690138552641200/" target="_blank" rel="noopener">排排棧</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/484121989418203" target="_blank" rel="noopener">排島町</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/484121989418203?locale=zh_TW" target="_blank" rel="noopener">排島町-惡館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/806496358817920?locale=zh_TW" target="_blank" rel="noopener">YY室內排球</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/1714233705626361?locale=zh_TW" target="_blank" rel="noopener">OutcastLai 歐萊</a>
+      </div>
+    </section>
+
+    <!-- 高雄地區 -->
+    <section class="pv-region">
+      <h2 class="pv-region-name">高雄地區</h2>
+      <div class="pv-grid">
+        <a class="pv-btn" href="https://www.facebook.com/groups/807346614687482/" target="_blank" rel="noopener">小咘室內排球館</a>
+        <a class="pv-btn" href="https://tinybot.cc/gcsports0419/product-category/%e4%bb%81%e6%ad%a6%e9%a4%a8%e6%8e%92%e7%90%83/" target="_blank" rel="noopener">GC Sports 排球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/820366093632741/" target="_blank" rel="noopener">洪竿樂活排球館</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/993388521539131/" target="_blank" rel="noopener">M.V.C(大師排球俱樂部)</a>
+        <a class="pv-btn" href="https://tinybot.cc/insidesport/" target="_blank" rel="noopener">INSIDE SPORT 排球館、匹克球</a>
+        <a class="pv-btn" href="https://www.facebook.com/groups/993388521539131/" target="_blank" rel="noopener">M.V.C_神綺排球俱樂部</a>
+        <a class="pv-btn" href="https://tinybot.cc/gcsports0419/product-category/%e7%be%8e%e5%b1%b1%e9%a4%a8%e6%8e%92%e7%90%83/" target="_blank" rel="noopener">GC Sports</a>
+      </div>
+    </section>
+
+    <!-- 屏東地區 -->
+    <section class="pv-region">
+      <h2 class="pv-region-name">屏東地區</h2>
+      <div class="pv-grid">
+        <a class="pv-btn" href="https://www.facebook.com/groups/967207120954980/" target="_blank" rel="noopener">嚮網休閒運動旗艦館</a>
+      </div>
+    </section>
   </main>
 </body>
 </html>
