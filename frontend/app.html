@@ -369,6 +369,28 @@
         a.querySelector(".venue-card-name").textContent = fav.name;
         list.appendChild(a);
       });
+
+      // 名稱單行，太長就縮字級
+      function fitCardNames() {
+        list.querySelectorAll(".venue-card-name").forEach(el => {
+          if (el.clientWidth === 0) return;
+          el.style.fontSize = "";
+          let size = parseFloat(getComputedStyle(el).fontSize);
+          const minSize = 10;
+          while (el.scrollWidth > el.clientWidth && size > minSize) {
+            size -= 0.5;
+            el.style.fontSize = size + "px";
+          }
+        });
+      }
+      fitCardNames();
+      const venuePage = document.getElementById("venue-page");
+      if (venuePage) {
+        new MutationObserver(() => {
+          if (!venuePage.classList.contains("hidden")) fitCardNames();
+        }).observe(venuePage, { attributes: true, attributeFilter: ["class"] });
+      }
+      window.addEventListener("resize", fitCardNames);
     })();
   </script>
 </body>

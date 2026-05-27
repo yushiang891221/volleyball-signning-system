@@ -415,7 +415,10 @@ a.venue-card { text-decoration: none; color: inherit; }
   color: var(--purple-deep);
   text-align: center;
   line-height: 1.25;
-  word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .venue-card-status {
