@@ -56,7 +56,8 @@
       <!-- Top-level: pick venue -->
       <div id="venue-top-select">
         <p class="venue-page-subtitle">請選擇球場</p>
-        <div class="venue-cards">
+        <div class="venue-cards" id="venue-cards-list">
+          <!-- 我的最愛球館（動態插入於最前） -->
           <button class="venue-card" id="select-fengchia">
             <div class="venue-card-icon"><img src="fengchia-logo.png" class="venue-card-logo" alt="逢甲大學"></div>
             <div class="venue-card-name">逢甲大學球場</div>
@@ -349,5 +350,28 @@
   <script src="firebase-config.js"></script>
   <script src="firebase-db.js"></script>
   <script src="app.js"></script>
+  <script src="pv-favorites.js"></script>
+  <script>
+    // 把私人球館的「我的最愛」插入到球場選擇區最前面
+    (function () {
+      const list = document.getElementById("venue-cards-list");
+      if (!list || !window.PvFavorites) return;
+      const favs = PvFavorites.read();
+      // 反序插入（unshift 等效）所以順序由前到後 = 1,2,3...
+      for (let i = favs.length - 1; i >= 0; i--) {
+        const fav = favs[i];
+        const a = document.createElement("a");
+        a.className = "venue-card venue-card-fav";
+        a.href = fav.url;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.innerHTML =
+          '<div class="venue-card-icon">⭐</div>' +
+          '<div class="venue-card-name"></div>';
+        a.querySelector(".venue-card-name").textContent = fav.name;
+        list.insertBefore(a, list.firstElementChild);
+      }
+    })();
+  </script>
 </body>
 </html>

@@ -401,6 +401,13 @@ h1 {
 .venue-card-icon { font-size: 2.4rem; }
 .venue-card-logo { width: 52px; height: 52px; object-fit: contain; display: block; }
 
+a.venue-card { text-decoration: none; color: inherit; }
+.venue-card-fav {
+  background: linear-gradient(135deg, #FFF7D6 0%, #FFE8A3 100%);
+  border-color: var(--gold);
+}
+.venue-card-fav .venue-card-icon { font-size: 2rem; }
+
 .venue-card-name {
   font-size: 0.93rem;
   font-weight: 700;

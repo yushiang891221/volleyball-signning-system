@@ -98,6 +98,86 @@
       }
       .pv-btn { height: 78px; font-size: 1rem; }
     }
+
+    /* ── 我的最愛編輯模式 ── */
+    .pv-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0 0 18px;
+      flex-wrap: wrap;
+    }
+    .pv-edit-btn {
+      background: var(--purple);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 10px 18px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px var(--purple-glow);
+      transition: transform 0.12s, background 0.12s;
+    }
+    .pv-edit-btn:active { transform: translateY(1px); }
+    .pv-edit-btn.done { background: var(--teal-dark); }
+    .pv-edit-hint {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .pv-item { position: relative; }
+    .pv-fav-badge {
+      display: none;
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #fff;
+      color: var(--purple-deep);
+      font-size: 14px;
+      font-weight: 800;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      border: 2px solid rgba(255,255,255,0.95);
+      pointer-events: none;
+    }
+    body.pv-edit-mode .pv-fav-badge { display: flex; }
+    .pv-fav-badge.selected {
+      background: var(--gold);
+      color: var(--purple-deep);
+      border-color: var(--gold);
+    }
+    body.pv-edit-mode .pv-btn {
+      filter: brightness(0.78);
+    }
+    body.pv-edit-mode .pv-btn:active { transform: scale(0.97); }
+
+    .pv-toast {
+      position: fixed;
+      left: 50%;
+      bottom: 32px;
+      transform: translateX(-50%);
+      background: rgba(26, 16, 53, 0.94);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s;
+      z-index: 9999;
+      max-width: 90vw;
+      text-align: center;
+    }
+    .pv-toast.show { opacity: 1; }
   </style>
 </head>
 <body>
@@ -107,6 +187,11 @@
       <h1 class="pv-title">🏟️ 私人球館</h1>
     </div>
     <p class="pv-intro">想打球免四處尋找！歡迎多加利用這裡整理的球館連結，輕鬆點擊報名！</p>
+
+    <div class="pv-toolbar">
+      <span id="pv-edit-hint" class="pv-edit-hint"></span>
+      <button id="pv-edit-toggle" type="button" class="pv-edit-btn">⭐ 加入我的最愛</button>
+    </div>
 
     <!-- 台北地區 -->
     <section class="pv-region">
@@ -228,5 +313,98 @@
       </div>
     </section>
   </main>
+
+  <div id="pv-toast" class="pv-toast" role="status" aria-live="polite"></div>
+
+  <script src="pv-favorites.js"></script>
+  <script>
+    (function () {
+      const toastEl = document.getElementById("pv-toast");
+      const editBtn = document.getElementById("pv-edit-toggle");
+      const hintEl = document.getElementById("pv-edit-hint");
+      let toastTimer = null;
+      let editMode = false;
+
+      function toast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1800);
+      }
+
+      // 把每個按鈕包進 .pv-item，注入序號圓圈
+      document.querySelectorAll(".pv-grid .pv-btn").forEach(a => {
+        const url = a.getAttribute("href");
+        const name = a.textContent.trim();
+        if (!url || url.startsWith("#")) return;
+
+        const wrap = document.createElement("div");
+        wrap.className = "pv-item";
+        a.parentNode.insertBefore(wrap, a);
+        wrap.appendChild(a);
+
+        const badge = document.createElement("span");
+        badge.className = "pv-fav-badge";
+        badge.dataset.url = url;
+        wrap.appendChild(badge);
+
+        a.addEventListener("click", (e) => {
+          if (!editMode) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const isFav = PvFavorites.isFav(url);
+          if (isFav) {
+            PvFavorites.remove(url);
+          } else {
+            const result = PvFavorites.add(name, url);
+            if (!result.ok && result.reason === "full") {
+              toast(`最多只能加入 ${PvFavorites.MAX} 個最愛球館`);
+              return;
+            }
+          }
+          refreshBadges();
+        });
+      });
+
+      function refreshBadges() {
+        const favs = PvFavorites.read();
+        const urlToIndex = new Map(favs.map((f, i) => [f.url, i + 1]));
+        document.querySelectorAll(".pv-fav-badge").forEach(b => {
+          const idx = urlToIndex.get(b.dataset.url);
+          if (idx) {
+            b.classList.add("selected");
+            b.textContent = String(idx);
+          } else {
+            b.classList.remove("selected");
+            b.textContent = "";
+          }
+        });
+        if (editMode) {
+          hintEl.textContent = `已選 ${favs.length} / ${PvFavorites.MAX} 個（點擊順序＝主頁排序）`;
+        } else {
+          hintEl.textContent = "";
+        }
+      }
+
+      function enterEdit() {
+        editMode = true;
+        document.body.classList.add("pv-edit-mode");
+        editBtn.textContent = "✓ 編輯完成";
+        editBtn.classList.add("done");
+        refreshBadges();
+      }
+      function exitEdit() {
+        editMode = false;
+        document.body.classList.remove("pv-edit-mode");
+        editBtn.textContent = "⭐ 加入我的最愛";
+        editBtn.classList.remove("done");
+        refreshBadges();
+        toast("已儲存到我的最愛");
+      }
+      editBtn.addEventListener("click", () => editMode ? exitEdit() : enterEdit());
+
+      refreshBadges();
+    })();
+  </script>
 </body>
 </html>
