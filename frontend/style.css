@@ -363,10 +363,9 @@ h1 {
 }
 
 .venue-cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
   margin-bottom: 28px;
 }
 
@@ -374,11 +373,12 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 10px;
-  padding: 26px 32px;
-  min-width: 140px;
-  background: var(--card-bg);
-  border: 1.5px solid var(--glass-border);
+  padding: 18px 10px;
+  height: 140px;
+  background: #ffffff;
+  border: 1.5px solid var(--border);
   border-radius: 20px;
   box-shadow: 0 4px 18px rgba(107, 79, 175, 0.09);
   cursor: pointer;
@@ -392,26 +392,30 @@ h1 {
 }
 
 .venue-card:active {
-  transform: scale(0.92);
+  transform: scale(0.95);
   box-shadow: 0 2px 8px rgba(107, 79, 175, 0.15);
-  filter: brightness(0.88);
+  filter: brightness(0.92);
   transition: transform 0.05s, filter 0.05s;
 }
 
-.venue-card-icon { font-size: 2.4rem; }
+.venue-card-icon {
+  font-size: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+}
 .venue-card-logo { width: 52px; height: 52px; object-fit: contain; display: block; }
 
 a.venue-card { text-decoration: none; color: inherit; }
-.venue-card-fav {
-  background: linear-gradient(135deg, #FFF7D6 0%, #FFE8A3 100%);
-  border-color: var(--gold);
-}
-.venue-card-fav .venue-card-icon { font-size: 2rem; }
 
 .venue-card-name {
-  font-size: 0.93rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--purple-deep);
+  text-align: center;
+  line-height: 1.25;
+  word-break: break-word;
 }
 
 .venue-card-status {

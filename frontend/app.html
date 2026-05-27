@@ -352,14 +352,12 @@
   <script src="app.js"></script>
   <script src="pv-favorites.js"></script>
   <script>
-    // 把私人球館的「我的最愛」插入到球場選擇區最前面
+    // 把私人球館的「我的最愛」附加到逢甲/測試之後
     (function () {
       const list = document.getElementById("venue-cards-list");
       if (!list || !window.PvFavorites) return;
       const favs = PvFavorites.read();
-      // 反序插入（unshift 等效）所以順序由前到後 = 1,2,3...
-      for (let i = favs.length - 1; i >= 0; i--) {
-        const fav = favs[i];
+      favs.forEach(fav => {
         const a = document.createElement("a");
         a.className = "venue-card venue-card-fav";
         a.href = fav.url;
@@ -369,8 +367,8 @@
           '<div class="venue-card-icon">⭐</div>' +
           '<div class="venue-card-name"></div>';
         a.querySelector(".venue-card-name").textContent = fav.name;
-        list.insertBefore(a, list.firstElementChild);
-      }
+        list.appendChild(a);
+      });
     })();
   </script>
 </body>
